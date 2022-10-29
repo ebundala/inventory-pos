@@ -1,7 +1,7 @@
-import Link from "next/link";
-import useSWR from "swr";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Link from "next/link";
+import useSWR from "swr";
 
 import BlurImage from "@/components/BlurImage";
 import Layout from "@/components/app/Layout";
@@ -10,20 +10,21 @@ import { fetcher } from "@/lib/fetcher";
 import { HttpMethod } from "@/types";
 
 import type { Post, Site } from "@prisma/client";
+import { APP_HOST } from "@/lib/util";
 
 interface SitePostData {
   posts: Array<Post>;
   site: Site | null;
 }
 
-export default function SiteDrafts() {
+export default function SiteIndex() {
   const [creatingPost, setCreatingPost] = useState(false);
 
   const router = useRouter();
   const { id: siteId } = router.query;
 
   const { data } = useSWR<SitePostData>(
-    siteId && `/api/post?siteId=${siteId}&published=false`,
+    siteId && `/api/post?siteId=${siteId}&published=true`,
     fetcher,
     {
       onSuccess: (data) => !data?.site && router.push("/"),
@@ -53,8 +54,7 @@ export default function SiteDrafts() {
       <div className="py-20 max-w-screen-xl mx-auto px-10 sm:px-20">
         <div className="flex flex-col sm:flex-row space-y-5 sm:space-y-0 justify-between items-center">
           <h1 className="font-cal text-5xl">
-            {" "}
-            Drafts for {data ? data?.site?.name : "..."}
+            Posts for {data ? data?.site?.name : "..."}
           </h1>
           <button
             onClick={() => {
@@ -71,7 +71,7 @@ export default function SiteDrafts() {
               <LoadingDots />
             ) : (
               <>
-                New Draft <span className="ml-2">＋</span>
+                New Post <span className="ml-2">＋</span>
               </>
             )}
           </button>
@@ -98,20 +98,18 @@ export default function SiteDrafts() {
                         )}
                       </div>
                       <div className="relative p-10">
-                        <h2 className="font-cal text-3xl">
-                          {post.title || "Untitled Post"}
-                        </h2>
-                        <p className="text-base my-5">
-                          {post.description ||
-                            "No description provided. Click to edit."}
+                        <h2 className="font-cal text-3xl">{post.title}</h2>
+                        <p className="text-base my-5 line-clamp-3">
+                          {post.description}
                         </p>
                         <a
                           className="font-cal px-3 py-1 tracking-wide rounded bg-gray-200 text-gray-600 absolute bottom-5 left-10 whitespace-nowrap"
-                          href={`https://${data.site?.subdomain}.vercel.pub/${post.slug}`}
+                          href={`https://${data.site?.subdomain}.${APP_HOST}/${post.slug}`}
+                          onClick={(e) => e.stopPropagation()}
                           rel="noreferrer"
                           target="_blank"
                         >
-                          {data.site?.subdomain}.vercel.pub/{post.slug} ↗
+                          {data.site?.subdomain}.${APP_HOST}/{post.slug} ↗
                         </a>
                       </div>
                     </div>
@@ -131,7 +129,7 @@ export default function SiteDrafts() {
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-cal text-gray-600">
-                    No drafts yet. Click &quot;New Draft&quot; to create one.
+                    No posts yet. Click &quot;New Post&quot; to create one.
                   </p>
                 </div>
               </>

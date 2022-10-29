@@ -23,3 +23,5 @@ export const getBlurDataURL = async (url: string | null) => {
   const base64 = Buffer.from(buffer).toString("base64");
   return `data:image/png;base64,${base64}`;
 };
+
+export const APP_HOST = process.env.APP_HOST;

@@ -5,3 +5,8 @@
 **.vercel
 **.git
 .vercel
+pos2.session.sql
+postgres.session.sql
+psql.session.sql
+yarn-error.log
+prisma/schemad.prisma

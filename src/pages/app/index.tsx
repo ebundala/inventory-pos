@@ -13,6 +13,7 @@ import { HttpMethod } from "@/types";
 
 import type { FormEvent } from "react";
 import type { Site } from "@prisma/client";
+import { APP_HOST } from "@/lib/util";
 
 export default function AppIndex() {
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -35,7 +36,7 @@ export default function AppIndex() {
         if (available) {
           setError(null);
         } else {
-          setError(`${debouncedSubdomain}.vercel.pub`);
+          setError(`${debouncedSubdomain}.${APP_HOST}`);
         }
       }
     }

@@ -22,6 +22,7 @@ import type { AdjacentPost, Meta, _SiteSlugData } from "@/types";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import type { MDXRemoteSerializeResult } from "next-mdx-remote";
 import type { ParsedUrlQuery } from "querystring";
+import { APP_HOST } from "@/lib/util";
 
 const components = {
   a: replaceLinks,
@@ -58,7 +59,7 @@ export default function Post({
     description: data.description,
     logo: "/logo.png",
     ogImage: data.image,
-    ogUrl: `https://${data.site?.subdomain}.vercel.pub/${data.slug}`,
+    ogUrl: `https://${data.site?.subdomain}.${APP_HOST}/${data.slug}`,
     title: data.title,
   } as Meta;
 

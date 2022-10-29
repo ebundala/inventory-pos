@@ -14,6 +14,7 @@ import { HttpMethod } from "@/types";
 import type { ChangeEvent } from "react";
 
 import type { WithSitePost } from "@/types";
+import { APP_HOST } from "@/lib/util";
 
 interface PostData {
   title: string;
@@ -191,7 +192,7 @@ export default function Post() {
       if (response.ok) {
         mutate(`/api/post?postId=${postId}`);
         router.push(
-          `https://${post?.site?.subdomain}.vercel.pub/${post?.slug}`
+          `https://${post?.site?.subdomain}.${APP_HOST}/${post?.slug}`
         );
       }
     } catch (error) {

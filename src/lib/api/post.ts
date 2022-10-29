@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Post, Site } from ".prisma/client";
 import type { Session } from "next-auth";
 import { revalidate } from "@/lib/revalidate";
-import { getBlurDataURL } from "@/lib/util";
+import { APP_HOST, getBlurDataURL } from "@/lib/util";
 
 import type { WithSitePost } from "@/types";
 
@@ -172,7 +172,7 @@ export async function deletePost(
     if (response?.site?.subdomain) {
       // revalidate for subdomain
       await revalidate(
-        `https://${response.site?.subdomain}.vercel.pub`, // hostname to be revalidated
+        `https://${response.site?.subdomain}.${APP_HOST}`, // hostname to be revalidated
         response.site.subdomain, // siteId
         response.slug // slugname for the post
       );
