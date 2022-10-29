@@ -1,0 +1,113 @@
+version: "3.1"
+networks:
+  webnet:
+volumes:
+  PGDATA:
+services:
+  
+ 
+  db:
+    image: ${POSTGRES_TAG}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - PGDATA:/var/lib/postgresql/data
+    networks:
+      webnet:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: ${PGDATA}
+    # deploy:
+    #   replicas: 1
+    #   resources:
+    #     limits:
+    #       cpus: "1"
+    #       memory: 1g
+    #   restart_policy:
+    #     condition: on-failure
+  # redis:
+  #   image: redis:alpine
+  #   # ports:
+  #   #   - 6379:6379
+  #   networks:
+  #     webnet:
+    # deploy:
+    #   replicas: 2
+    #   update_config:
+    #     parallelism: 2
+    #     delay: 10s
+    #   restart_policy:
+    #     condition: on-failure
+  # app:
+  #   image: ${NODE_TAG}
+  #   working_dir: /home/app
+  #   environment:
+  #    # google credentials
+  #      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
+  #      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+  #      STORAGE_BUCKET: ${STORAGE_BUCKET}
+  #      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+  #     #sendgrid email
+  #      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+  #      SENDGRID_SENDER_EMAIL: ${SENDGRID_SENDER_EMAIL}
+  #      SENDGRID_ACCOUNT_ACTIVATION_TEMPLATE: ${SENDGRID_ACCOUNT_ACTIVATION_TEMPLATE}
+  #      SENDGRID_ACCOUNT_DEACTIVATION_TEMPLATE: ${SENDGRID_ACCOUNT_DEACTIVATION_TEMPLATE}
+  #      SENDGRID_WELCOME_TEMPLATE: ${SENDGRID_WELCOME_TEMPLATE}
+  #   command: yarn run start:docker:debug
+  #   depends_on:
+  #     - db
+  #     # - redis
+  #   ports:
+  #     - ${APP_PORT}:3000
+  #     - 9228:9229 #debugger port disable in production
+  #     - 5556:5555 #prisma studio disable in production
+  #   volumes:
+  #     - ./:/home/app
+  #   networks:
+  #     webnet:
+
+  #   deploy:
+  #     replicas: 1
+  #     # resources:
+  #     #   limits:
+  #     #     cpus: "1"
+  #     #     memory: 1g
+  #     restart_policy:
+  #       condition: on-failure
+  
+  # webserver:
+  #   image: nginx:mainline-alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./webserver/web-root:/var/www/html
+  #     - ./webserver/nginx-conf/local.conf:/etc/nginx/conf.d/default.conf
+  #     - /etc/ssl/private/nginx-selfsigned.key://etc/ssl/private/nginx-selfsigned.key
+  #     - /etc/ssl/certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     webnet:
+  #   deploy:
+  #     replicas: 1
+  #     # resources:
+  #     #  limits:
+  #     #    cpus: "1"
+  #     #    memory: 1g
+  #     restart_policy:
+  #       condition: on-failure
+        
+  # certbot:
+  #   image: certbot/certbot
+  #   volumes:
+  #     - ./webserver/certbot/certbot-etc:/etc/letsencrypt
+  #     - ./webserver/certbot/certbot-var:/var/lib/letsencrypt
+  #     - ./webserver/web-root:/var/www/html
+  #   depends_on:
+  #     - webserver
+  #   command: certonly --webroot --webroot-path=/var/www/html --email ${DOMAINS_EMAIL} --agree-tos --no-eff-email ${CERTBOT_ENV} ${DOMAINS}
+
+
