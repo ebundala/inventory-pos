@@ -1,5 +1,5 @@
 import cuid from "cuid";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/core";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { Site } from ".prisma/client";

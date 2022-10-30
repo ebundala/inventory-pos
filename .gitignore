@@ -10,3 +10,5 @@ postgres.session.sql
 psql.session.sql
 yarn-error.log
 prisma/schemad.prisma
+.swc
+prisma/generated

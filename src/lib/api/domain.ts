@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import {prisma} from "@/core";
 import { HttpMethod } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";

@@ -1,3 +1,4 @@
+
 export async function fetcher<JSON = any>(
   input: RequestInfo,
   init?: RequestInit
