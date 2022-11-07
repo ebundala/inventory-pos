@@ -12,3 +12,4 @@ yarn-error.log
 prisma/schemad.prisma
 .swc
 prisma/generated
+coverage

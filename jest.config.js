@@ -16,6 +16,11 @@ const customJestConfig = {
         "^@/styles(.*)$": "<rootDir>/src/styles$1",
         "^@/types(.*)$": "<rootDir>/src/types$1",
         
+    },
+    "collectCoverage": true,
+    "collectCoverageFrom": ["./src/**"],
+    "coverageThreshold": {
+      "lines": 90
     }
 }
 

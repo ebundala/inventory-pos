@@ -1,16 +1,17 @@
 import { acceptInvite, createTenant ,deleteManyTenant,
-    deleteTenant,getUniqueTenant,inviteMember,
+    deleteTenant,findManyTenant,getUniqueTenant,inviteMember,
     leaveTenant,rejectInvite,removeMember,updateTenant} from "@/core/tenant";
 import {prisma} from '@/core';
 import { ProcessStatus, RecordStatus } from "@prisma/client";
 
+
+
+describe("Tenant operations",()=>{
+    let tenantId:string|null;
 const userId = "cl9tkbsxi0012yytsf65mdln5";
 const subdomain="pos"
 const tenantName="tenant1"
 const testEmail = "email@example.com";
-
-describe("Tenant operations",()=>{
-    let tenantId:string|null;
     beforeAll(async()=>{
         const tenant = await prisma!.tenant.findFirst({where:{name:tenantName}})
         tenantId = tenant?.tenantId??null;
@@ -73,7 +74,24 @@ describe("Tenant operations",()=>{
         expect(tenant!.members.length).toBe(1)
         expect(tenant!.members[0].id).toBe(userId)
     })
-
+    test("find many tenant",async ()=>{
+        const tenant = await findManyTenant({
+            search:tenantName
+        });       
+        expect(tenant[0].tenantId).toBe(tenantId)
+        const tenant2 = await findManyTenant({
+            search:tenantId!
+        });       
+        expect(tenant2[0].tenantId).toBe(tenantId)
+        const tenant3 = await findManyTenant({
+            search:tenantId!
+        });       
+        expect(tenant3[0].tenantId).toBe(tenantId)
+        const tenant4 = await findManyTenant({
+            name:tenantName!
+        });       
+        expect(tenant4[0].tenantId).toBe(tenantId)
+    })
     test("invite members",async ()=>{
         
         const invite = await inviteMember({

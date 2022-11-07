@@ -1,0 +1,251 @@
+import { prisma, } from "@/core";
+import { Prisma, RecordStatus } from "@prisma/client";
+
+const include = {
+    supplier: true,
+    user: true,
+    warehouse: true,
+    paymentDetails: true,
+    paymentPurchases: true
+};
+export type CreatePurchaseDetailsInput = {
+    cost: number
+    purchaseUnitId?: number
+    taxNet?: number
+    taxMethod?: string
+    discount?: number
+    discountMethod?: string
+    // purchaseId       :number
+    productId: number
+    productVariantId?: number
+    imeiNumber?: string
+    total: number
+    quantity: number
+}
+
+export type CreatePaymentPurchaseInput = {
+    userId: string
+    date: Date
+    ref: string
+    // purchaseId   :number
+    amount: number
+    change: number
+    reglement: string
+    notes?: string
+}
+
+export type CreatePurchaseInput = {
+    userId: string
+    ref: string
+    date: Date
+    supplierId: number
+    warehouseId: number
+    taxRate?: number
+    taxNet?: number
+    discount?: number
+    shipping?: number
+    grandTotal: number
+    paidAmount: number
+    status: string
+    paymentStatus: string
+    notes?: string
+    paymentPurchases: Array<CreatePaymentPurchaseInput>
+    purchaseDetails: Array<CreatePurchaseDetailsInput>
+    tenantId: string
+}
+export const createPurchase = async (input: CreatePurchaseInput) => {
+    const { tenantId, paymentPurchases, purchaseDetails, ...data } = input;
+    let purchaseData = {};
+    if (purchaseDetails && purchaseDetails.length) {
+        purchaseData = {
+            purchaseDetails: {
+                createMany: {
+                    skipDuplicates: true,
+                    data: purchaseDetails.map((v) => ({
+                        ...v, tenantId
+                    }))
+                }
+            }
+        }
+        let paymentData = {};
+        if (paymentPurchases && paymentPurchases.length) {
+            paymentData = {
+                paymentPurchases: {
+                    createMany: {
+                        skipDuplicates: true,
+                        data: purchaseDetails.map((v) => ({
+                            ...v, tenantId
+                        }))
+                    }
+                }
+            }
+        }
+        return prisma!.purchase.create({
+            include,
+            data: {
+                tenantId: tenantId,
+                ...data,
+                ...purchaseData,
+                ...paymentData
+            }
+        })
+    }
+}
+    export type UpdatePurchaseDetailsInput = {
+        id: number
+        cost: number
+        purchaseUnitId?: number
+        taxNet?: number
+        taxMethod?: string
+        discount?: number
+        discountMethod?: string
+        // purchaseId       :number
+        productId: number
+        productVariantId?: number
+        imeiNumber?: string
+        total?: number
+        quantity?: number
+    }
+
+    export type UpdatePaymentPurchaseInput = {
+        id: number
+        userId?: string
+        date?: Date
+        ref?: string
+        // purchaseId   :number
+        amount?: number
+        change?: number
+        reglement?: string
+        notes?: string
+    }
+
+    export type UpdatePurchaseInput = {
+        id?: number
+        userId?: string
+        ref?: string
+        date?: Date
+        supplierId?: number
+        warehouseId?: number
+        taxRate?: number
+        taxNet?: number
+        discount?: number
+        shipping?: number
+        grandTotal?: number
+        paidAmount?: number
+        status?: string
+        paymentStatus?: string
+        notes?: string
+        paymentPurchases?: Array<UpdatePaymentPurchaseInput>
+        purchaseDetails?: Array<UpdatePurchaseDetailsInput>
+        tenantId: string
+    }
+    export const updatePurchase = async (input: UpdatePurchaseInput) => {
+        const { tenantId, id, paymentPurchases,purchaseDetails, ...data } = input;
+        const purchase = await prisma!.purchase.findUnique({
+            where: { id }, include: {
+                purchaseDetails: true,
+                paymentPurchases:true,
+            }
+        });
+        let details = {};
+        if (purchaseDetails && purchase && purchaseDetails.length) {
+            const savedDetails = purchase.purchaseDetails.map((v) => v.id);
+            const detailsToDelete = purchase.purchaseDetails.filter((v) => !purchaseDetails.find((s)=>s.id=v.id))
+                .map((v) => ({ id: v.id }));
+            const detailsToCreate = purchaseDetails.filter((v) => !savedDetails.includes(v.id)).map((v) => ({ ...v, tenantId }));
+            details = {
+                purchaseDetails: {
+                    createMany: { data: detailsToCreate },
+                    deleteMany: detailsToDelete,
+
+                }
+            }
+        }
+        let paymentDetails = {};
+        if (paymentPurchases && purchase && paymentPurchases.length) {
+            const savedDetails = purchase.paymentPurchases.map((v) => v.id);
+            const detailsToDelete = purchase.paymentPurchases.filter((v) => !paymentPurchases.find((s)=>s.id=v.id))
+                .map((v) => ({ id: v.id }));
+            const detailsToCreate = paymentPurchases.filter((v) => !savedDetails.includes(v.id)).map((v) => ({ ...v, tenantId }));
+            paymentDetails = {
+                paymentPurchases: {
+                    createMany: { data: detailsToCreate },
+                    deleteMany: detailsToDelete,
+
+                }
+            }
+        }
+        return prisma!.purchase.update({
+            include,
+            where: {
+                id: id
+            },
+            data: { ...data, ...details,...paymentDetails }
+        })
+    };
+    type PurchaseId = number
+    type PurchasesId = Array<number>
+    export const getUniquePurchase = async (id: PurchaseId) => {
+
+        return prisma!.purchase.findUnique({
+            include,
+            where: {
+                id: id
+            }
+        })
+    };
+    export const deletePurchase = async (id: PurchaseId) => {
+
+        return prisma!.purchase.update({
+            include,
+            where: {
+                id: id
+            },
+            data: {
+                recordStatus: RecordStatus.DELETED
+            }
+        })
+    };
+    export const deleteManyPurchase = async (ids: PurchasesId) => {
+        return prisma!.purchase.updateMany({
+            where: {
+                id: { in: ids }
+            },
+            data: {
+                recordStatus: RecordStatus.DELETED
+            }
+        })
+    };
+
+    export const findManyPurchase = async (input: Pick<Prisma.PurchaseWhereInput, Prisma.PurchaseScalarFieldEnum> & {
+        orderBy?: [Pick<Prisma.PurchaseOrderByWithRelationInput, Prisma.PurchaseScalarFieldEnum>]
+        take?: number,
+        skip?: number,
+        cursor?: number,
+        search?: string,
+    }) => {
+        const { orderBy, take, skip, cursor, search, ...where } = input;
+        let query: Pick<Prisma.PurchaseWhereInput, "OR"> | undefined;
+        if (search) {
+            const terms = Object.values(Prisma.PurchaseScalarFieldEnum)
+                .filter((v) => ["ref", "userId", "status", "paymentStatus", "note"].includes(v))
+                .map((v) => ({
+                    [v]: { contains: search }
+                }));
+
+            query = {
+                OR: terms
+            };
+        };
+        return prisma!.purchase.findMany(
+            {
+                include,
+                where: query ?? where,
+                orderBy: orderBy,
+                take, skip,
+                cursor: cursor ? { id: cursor } : undefined,
+
+
+            }
+        );
+    }

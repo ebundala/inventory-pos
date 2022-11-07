@@ -8,9 +8,11 @@ generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["referentialIntegrity"]
 }
+
 generator zod {
   provider = "prisma-zod-generator"
 }
+
 model AdjustmentDetail {
   id               Int             @id @default(autoincrement())
   productId        Int
@@ -20,10 +22,10 @@ model AdjustmentDetail {
   type             String          @db.VarChar(192)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  adjustment       Adjustment      @relation(fields: [adjustmentId], references: [id], onUpdate: Restrict)
-  product          Product         @relation(fields: [productId], references: [id], onUpdate: Restrict)
+  adjustment       Adjustment      @relation(fields: [adjustmentId], references: [id], onUpdate: Restrict, onDelete: Restrict)
+  product          Product         @relation(fields: [productId], references: [id], onUpdate: Restrict, onDelete: Restrict)
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -42,11 +44,11 @@ model Adjustment {
   notes             String?            @db.Text
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  deletedAt         DateTime?          @db.Timestamp(0)
+  recordStatus      RecordStatus       @default(ACTIVE)
   user              User               @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  warehouse         Warehouse          @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
+  warehouse         Warehouse          @relation(fields: [warehouseId], references: [id], onUpdate: Restrict, onDelete: Cascade)
   adjustmentDetails AdjustmentDetail[]
-  tenant            Tenant             @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant            Tenant             @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId          String
 
   @@index([tenantId])
@@ -55,30 +57,30 @@ model Adjustment {
 }
 
 model Attendance {
-  id          Int       @id @default(autoincrement())
-  userId      String
-  companyId   Int
-  employeeId  Int
-  date        DateTime  @db.Date
-  clockIn     String
-  clockInIp   String    @db.VarChar(45)
-  clockOut    String
-  clockOutIp  String
-  clockInOut  Boolean
-  departEarly String    @default("00:00")
-  lateTime    String    @default("00:00")
-  overtime    String    @default("00:00")
-  totalWork   String    @default("00:00")
-  totalRest   String    @default("00:00")
-  status      String    @default("present")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? @db.Timestamp(0)
-  company     Company   @relation(fields: [companyId], references: [id], onUpdate: Restrict)
-  employee    Employee  @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
-  user        User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId    String
+  id           Int          @id @default(autoincrement())
+  userId       String
+  companyId    Int
+  employeeId   Int
+  date         DateTime     @db.Date
+  clockIn      String
+  clockInIp    String       @db.VarChar(45)
+  clockOut     String
+  clockOutIp   String
+  clockInOut   Boolean
+  departEarly  String       @default("00:00")
+  lateTime     String       @default("00:00")
+  overtime     String       @default("00:00")
+  totalWork    String       @default("00:00")
+  totalRest    String       @default("00:00")
+  status       String       @default("present")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  company      Company      @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([companyId])
@@ -87,52 +89,52 @@ model Attendance {
 }
 
 model Brand {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(192)
-  description String?   @db.VarChar(192)
-  image       String?   @db.VarChar(192)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? @db.Timestamp(0)
-  products    Product[]
-  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId    String
+  id           Int          @id @default(autoincrement())
+  name         String       @db.VarChar(192)
+  description  String?      @db.VarChar(192)
+  image        String?      @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  products     Product[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  code      String    @db.VarChar(192)
-  name      String    @db.VarChar(192)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? @db.Timestamp(0)
-  products  Product[]
-  tenant    Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId  String
+  id           Int          @id @default(autoincrement())
+  code         String       @db.VarChar(192)
+  name         String       @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  products     Product[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
 }
 
 model Customer {
-  id          Int          @id @default(autoincrement())
-  name        String
-  code        Int
-  email       String       @db.VarChar(192)
-  country     String?
-  city        String?
-  phone       String?
-  address     String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  deletedAt   DateTime?    @db.Timestamp(0)
-  quotations  Quotation[]
-  saleReturns SaleReturn[]
-  sales       Sale[]
-  settings    Setting[]
-  tenant      Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId    String
+  id           Int          @id @default(autoincrement())
+  name         String
+  code         Int
+  email        String       @db.VarChar(192)
+  country      String?
+  city         String?
+  phone        String?
+  address      String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  quotations   Quotation[]
+  saleReturns  SaleReturn[]
+  sales        Sale[]
+  settings     Setting[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
 }
@@ -147,7 +149,7 @@ model Company {
   address      String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?     @db.Timestamp(0)
+  recordStatus RecordStatus  @default(ACTIVE)
   attendances  Attendance[]
   departments  Department[]
   designations Designation[]
@@ -155,23 +157,23 @@ model Company {
   holidays     Holiday[]
   leaves       Leave[]
   officeShifts OfficeShift[]
-  tenant       Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant       Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
 }
 
 model Currency {
-  id        Int       @id @default(autoincrement())
-  code      String    @db.VarChar(192)
-  name      String    @db.VarChar(192)
-  symbol    String    @db.VarChar(192)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? @db.Timestamp(0)
-  settings  Setting[]
-  tenant    Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId  String
+  id           Int          @id @default(autoincrement())
+  code         String       @db.VarChar(192)
+  name         String       @db.VarChar(192)
+  symbol       String       @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  settings     Setting[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
 }
@@ -183,13 +185,13 @@ model Department {
   departmentHeadId Int?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?     @db.Timestamp(0)
-  company          Company       @relation(fields: [companyId], references: [id], onUpdate: Restrict, map: "department_company_id")
+  recordStatus     RecordStatus  @default(ACTIVE)
+  company          Company       @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
   departmentHead   Employee?     @relation("departments_department_headToemployees", fields: [departmentHeadId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   designations     Designation[]
   employees        Employee[]    @relation("departmentsToemployees_department_id")
   leaves           Leave[]
-  tenant           Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -198,17 +200,17 @@ model Department {
 }
 
 model Designation {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   companyId    Int
   departmentId Int
-  designation  String     @db.VarChar(192)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?  @db.Timestamp(0)
-  company      Company    @relation(fields: [companyId], references: [id], onUpdate: Restrict)
-  department   Department @relation(fields: [departmentId], references: [id], onUpdate: Restrict)
+  designation  String       @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  company      Company      @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onUpdate: Restrict)
   employees    Employee[]
-  tenant       Tenant     @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
@@ -217,38 +219,38 @@ model Designation {
 }
 
 model EmployeeAccount {
-  id         Int       @id @default(autoincrement())
-  employeeId Int
-  bankName   String    @db.VarChar(192)
-  bankBranch String    @db.VarChar(192)
-  accountNo  String    @db.VarChar(192)
-  note       String?   @db.Text
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime? @db.Timestamp(0)
-  employee   Employee  @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
-  tenant     Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId   String
+  id           Int          @id @default(autoincrement())
+  employeeId   Int
+  bankName     String       @db.VarChar(192)
+  bankBranch   String       @db.VarChar(192)
+  accountNo    String       @db.VarChar(192)
+  note         String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([employeeId])
 }
 
 model EmployeeExperience {
-  id             Int       @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   employeeId     Int
-  title          String    @db.VarChar(192)
-  companyName    String    @db.VarChar(192)
-  location       String?   @db.VarChar(192)
-  employmentType String    @db.VarChar(192)
-  startDate      DateTime  @db.Date
-  endDate        DateTime  @db.Date
-  description    String?   @db.Text
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime? @db.Timestamp(0)
-  employee       Employee  @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
-  tenant         Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  title          String       @db.VarChar(192)
+  companyName    String       @db.VarChar(192)
+  location       String?      @db.VarChar(192)
+  employmentType String       @db.VarChar(192)
+  startDate      DateTime     @db.Date
+  endDate        DateTime     @db.Date
+  description    String?      @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  recordStatus   RecordStatus @default(ACTIVE)
+  employee       Employee     @relation(fields: [employeeId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  tenant         Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId       String
 
   @@index([tenantId])
@@ -291,8 +293,8 @@ model Employee {
   linkedin            String?              @db.VarChar(192)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  deletedAt           DateTime?            @db.Timestamp(0)
-  company             Company              @relation(fields: [companyId], references: [id], onUpdate: Restrict)
+  recordStatus        RecordStatus         @default(ACTIVE)
+  company             Company              @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
   department          Department           @relation("departmentsToemployees_department_id", fields: [departmentId], references: [id], onUpdate: Restrict)
   designation         Designation          @relation(fields: [designationId], references: [id], onUpdate: Restrict)
   officeShift         OfficeShift          @relation(fields: [officeShiftId], references: [id], onUpdate: Restrict)
@@ -301,7 +303,7 @@ model Employee {
   employeeAccounts    EmployeeAccount[]
   employeeExperiences EmployeeExperience[]
   leaves              Leave[]
-  tenant              Tenant               @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant              Tenant               @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId            String
 
   @@index([tenantId])
@@ -312,17 +314,17 @@ model Employee {
 }
 
 model ExpenseCategory {
-  id          Int       @id @default(autoincrement())
-  userId      String
-  name        String    @db.VarChar(192)
-  description String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? @db.Timestamp(0)
-  user        User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  expenses    Expense[]
-  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId    String
+  id           Int          @id @default(autoincrement())
+  userId       String
+  name         String       @db.VarChar(192)
+  description  String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  user         User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  expenses     Expense[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([userId])
@@ -339,11 +341,11 @@ model Expense {
   amount            Float
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
-  deletedAt         DateTime?       @db.Timestamp(0)
+  recordStatus      RecordStatus    @default(ACTIVE)
   expenseCategory   ExpenseCategory @relation(fields: [expenseCategoryId], references: [id], onUpdate: Restrict)
   user              User            @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse         Warehouse       @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
-  tenant            Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant            Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId          String
 
   @@index([tenantId])
@@ -353,57 +355,57 @@ model Expense {
 }
 
 model Holiday {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(192)
-  companyId   Int
-  startDate   DateTime  @db.Date
-  endDate     DateTime  @db.Date
-  description String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? @db.Timestamp(0)
-  company     Company   @relation(fields: [companyId], references: [id], onUpdate: Restrict)
-  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId    String
+  id           Int          @id @default(autoincrement())
+  title        String       @db.VarChar(192)
+  companyId    Int
+  startDate    DateTime     @db.Date
+  endDate      DateTime     @db.Date
+  description  String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  company      Company      @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([companyId])
 }
 
 model leaveType {
-  id        Int       @id @default(autoincrement())
-  title     String    @db.VarChar(192)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? @db.Timestamp(0)
-  leaves    Leave[]
-  tenant    Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId  String
+  id           Int          @id @default(autoincrement())
+  title        String       @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  leaves       Leave[]
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
 }
 
 model Leave {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   employeeId   Int
   companyId    Int
   departmentId Int
   leaveTypeId  Int
-  startDate    DateTime   @db.Date
-  endDate      DateTime   @db.Date
-  days         String     @db.VarChar(192)
-  reason       String?    @db.Text
-  attachment   String?    @db.VarChar(192)
+  startDate    DateTime     @db.Date
+  endDate      DateTime     @db.Date
+  days         String       @db.VarChar(192)
+  reason       String?      @db.Text
+  attachment   String?      @db.VarChar(192)
   halfDay      Boolean?
-  status       String     @db.VarChar(192)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?  @db.Timestamp(0)
-  company      Company    @relation(fields: [companyId], references: [id], onUpdate: Restrict)
-  department   Department @relation(fields: [departmentId], references: [id], onUpdate: Restrict)
-  employee     Employee   @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
-  leaveType    leaveType  @relation(fields: [leaveTypeId], references: [id], onUpdate: Restrict)
-  tenant       Tenant     @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  status       String       @db.VarChar(192)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  company      Company      @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onUpdate: Restrict)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onUpdate: Restrict)
+  leaveType    leaveType    @relation(fields: [leaveTypeId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
@@ -414,7 +416,7 @@ model Leave {
 }
 
 model OfficeShift {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   companyId    Int
   name         String
   mondayIn     String?
@@ -431,12 +433,12 @@ model OfficeShift {
   saturdayOut  String?
   sundayIn     String?
   sundayOut    String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?  @db.Timestamp(0)
-  company      Company    @relation(fields: [companyId], references: [id], onUpdate: Restrict)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  company      Company      @relation(fields: [companyId], references: [id], onUpdate: Restrict, onDelete: Cascade)
   employees    Employee[]
-  tenant       Tenant     @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
@@ -455,10 +457,10 @@ model PaymentPurchaseReturn {
   notes            String?        @db.Text
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  deletedAt        DateTime?      @db.Timestamp(0)
+  recordStatus     RecordStatus   @default(ACTIVE)
   purchaseReturn   PurchaseReturn @relation(fields: [purchaseReturnId], references: [id], onUpdate: Restrict)
   user             User           @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant           Tenant         @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant         @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -467,22 +469,22 @@ model PaymentPurchaseReturn {
 }
 
 model PaymentPurchase {
-  id         Int       @id @default(autoincrement())
-  userId     String
-  date       DateTime  @db.Date
-  ref        String    @db.VarChar(192)
-  purchaseId Int
-  amount     Float
-  change     Float     @default(0)
-  reglement  String    @db.VarChar(192)
-  notes      String?   @db.Text
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime? @db.Timestamp(0)
-  purchase   Purchase  @relation(fields: [purchaseId], references: [id], onUpdate: Restrict)
-  user       User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant     Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId   String
+  id           Int          @id @default(autoincrement())
+  userId       String
+  date         DateTime     @db.Date
+  ref          String       @db.VarChar(192)
+  purchaseId   Int
+  amount       Float
+  change       Float        @default(0)
+  reglement    String       @db.VarChar(192)
+  notes        String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  purchase     Purchase     @relation(fields: [purchaseId], references: [id], onUpdate: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([purchaseId])
@@ -490,21 +492,21 @@ model PaymentPurchase {
 }
 
 model PaymentSaleReturn {
-  id           Int        @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   userId       String
-  date         DateTime   @db.Date
-  ref          String     @db.VarChar(192)
+  date         DateTime     @db.Date
+  ref          String       @db.VarChar(192)
   saleReturnId Int
   amount       Float
-  change       Float      @default(0)
+  change       Float        @default(0)
   reglement    String
-  notes        String?    @db.Text
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  deletedAt    DateTime?  @db.Timestamp(0)
-  saleReturn   SaleReturn @relation(fields: [saleReturnId], references: [id], onUpdate: Restrict)
-  user         User       @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant       Tenant     @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  notes        String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  saleReturn   SaleReturn   @relation(fields: [saleReturnId], references: [id], onUpdate: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
@@ -513,22 +515,22 @@ model PaymentSaleReturn {
 }
 
 model PaymentSale {
-  id        Int       @id @default(autoincrement())
-  userId    String
-  date      DateTime  @db.Date
-  ref       String    @db.VarChar(192)
-  saleId    Int
-  amount    Float
-  change    Float     @default(0)
-  reglement String    @db.VarChar(192)
-  notes     String?   @db.Text
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime? @db.Timestamp(0)
-  sale      Sale      @relation(fields: [saleId], references: [id], onUpdate: Restrict)
-  user      User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant    Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
-  tenantId  String
+  id           Int          @id @default(autoincrement())
+  userId       String
+  date         DateTime     @db.Date
+  ref          String       @db.VarChar(192)
+  saleId       Int
+  amount       Float
+  change       Float        @default(0)
+  reglement    String       @db.VarChar(192)
+  notes        String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  sale         Sale         @relation(fields: [saleId], references: [id], onUpdate: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
+  tenantId     String
 
   @@index([tenantId])
   @@index([saleId])
@@ -536,19 +538,19 @@ model PaymentSale {
 }
 
 model PosSetting {
-  id           Int       @id @default(autoincrement())
-  noteCustomer String    @default("Thank You For Shopping With Us . Please Come Again") @db.VarChar(192)
-  showNote     Boolean   @default(true)
-  showBarcode  Boolean   @default(true)
-  showDiscount Boolean   @default(true)
-  showCustomer Boolean   @default(true)
-  showEmail    Boolean   @default(true)
-  showPhone    Boolean   @default(true)
-  showAddress  Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime? @db.Timestamp(0)
-  tenant       Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  id           Int          @id @default(autoincrement())
+  noteCustomer String       @default("Thank You For Shopping With Us . Please Come Again") @db.VarChar(192)
+  showNote     Boolean      @default(true)
+  showBarcode  Boolean      @default(true)
+  showDiscount Boolean      @default(true)
+  showCustomer Boolean      @default(true)
+  showEmail    Boolean      @default(true)
+  showPhone    Boolean      @default(true)
+  showAddress  Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  recordStatus RecordStatus @default(ACTIVE)
+  tenant       Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId     String
 
   @@index([tenantId])
@@ -556,13 +558,13 @@ model PosSetting {
 
 model ProductVariant {
   id                    Int                    @id @default(autoincrement())
-  productId             Int?
+  productId             Int
   name                  String?                @db.VarChar(192)
   qty                   Decimal?               @default(0.00) @db.Decimal(8, 2)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  deletedAt             DateTime?              @db.Timestamp(0)
-  product               Product?               @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  recordStatus          RecordStatus           @default(ACTIVE)
+  product               Product                @relation(fields: [productId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   adjustmentDetails     AdjustmentDetail[]
   productWarehouse      ProductWarehouse[]
   purchaseDetails       PurchaseDetail[]
@@ -571,7 +573,7 @@ model ProductVariant {
   saleDetails           SaleDetail[]
   saleReturnDetails     SaleReturnDetail[]
   transferDetails       TransferDetail[]
-  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId              String
 
   @@index([tenantId])
@@ -586,11 +588,11 @@ model ProductWarehouse {
   qty              Float
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  deletedAt        DateTime?       @db.Timestamp(0)
+  recordStatus     RecordStatus    @default(ACTIVE)
   product          Product         @relation(fields: [productId], references: [id], onUpdate: Restrict)
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   warehouse        Warehouse       @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -621,12 +623,12 @@ model Product {
   isActive              Boolean?               @default(true)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  deletedAt             DateTime?              @db.Timestamp(0)
-  brand                 Brand?                 @relation(fields: [brandId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  category              Category               @relation(fields: [categoryId], references: [id], onUpdate: Restrict)
-  productUnit           Unit?                  @relation("products_unit_idTounits", fields: [unitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  productPurchaseUnit   Unit?                  @relation("products_unit_purchase_idTounits", fields: [unitPurchaseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  productsSaleUnit      Unit?                  @relation("products_unit_sale_idTounits", fields: [unitSaleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  recordStatus          RecordStatus           @default(ACTIVE)
+  brand                 Brand?                 @relation(fields: [brandId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  category              Category               @relation(fields: [categoryId], references: [id], onDelete:Restrict,onUpdate: Restrict)
+  productUnit           Unit?                  @relation("products_unit_idTounits", fields: [unitId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  productPurchaseUnit   Unit?                  @relation("products_unit_purchase_idTounits", fields: [unitPurchaseId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  productsSaleUnit      Unit?                  @relation("products_unit_sale_idTounits", fields: [unitSaleId], references: [id], onDelete: SetNull, onUpdate: Restrict)
   adjustmentDetails     AdjustmentDetail[]
   productVariants       ProductVariant[]
   productWarehouse      ProductWarehouse[]
@@ -636,7 +638,7 @@ model Product {
   saleDetails           SaleDetail[]
   saleReturnDetails     SaleReturnDetail[]
   transferDetails       TransferDetail[]
-  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId              String
 
   @@index([tenantId])
@@ -647,21 +649,21 @@ model Product {
   @@index([unitPurchaseId])
 }
 
-model Provider {
+model Supplier {
   id              Int              @id @default(autoincrement())
   name            String
   code            Int
-  email           String           @db.VarChar(192)
+  email           String           @db.VarChar(192) @unique
   phone           String?
   country         String?
   city            String?
   address         String?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?        @db.Timestamp(0)
+  recordStatus    RecordStatus     @default(ACTIVE)
   purchaseReturns PurchaseReturn[]
   purchases       Purchase[]
-  tenant          Tenant           @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant          Tenant           @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId        String
 
   @@index([tenantId])
@@ -687,7 +689,7 @@ model PurchaseDetail {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull, onUpdate: SetNull)
   purchase         Purchase        @relation(fields: [purchaseId], references: [id], onUpdate: Restrict)
   unit             Unit?           @relation(fields: [purchaseUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -713,12 +715,12 @@ model PurchaseReturnDetail {
   imeiNumber       String?         @db.Text
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  deletedAt        DateTime?       @db.Timestamp(0)
+  recordStatus     RecordStatus    @default(ACTIVE)
   product          Product         @relation(fields: [productId], references: [id], onUpdate: Restrict)
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   purchaseReturn   PurchaseReturn  @relation(fields: [purchaseReturnId], references: [id], onUpdate: Restrict)
   unit             Unit?           @relation(fields: [purchaseUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -733,7 +735,7 @@ model PurchaseReturn {
   userId                 String
   date                   DateTime                @db.Date
   ref                    String                  @db.VarChar(192)
-  providerId             Int
+  supplierId             Int
   warehouseId            Int
   taxRate                Float?                  @default(0)
   taxNet                 Float?                  @default(0)
@@ -746,17 +748,17 @@ model PurchaseReturn {
   notes                  String?                 @db.Text
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  deletedAt              DateTime?               @db.Timestamp(0)
-  provider               Provider                @relation(fields: [providerId], references: [id], onUpdate: Restrict)
+  recordStatus           RecordStatus            @default(ACTIVE)
+  supplier               Supplier                @relation(fields: [supplierId], references: [id], onUpdate: Restrict)
   user                   User                    @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse              Warehouse               @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
   paymentPurchaseReturns PaymentPurchaseReturn[]
   purchaseReturnDetails  PurchaseReturnDetail[]
-  tenant                 Tenant                  @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant                 Tenant                  @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId               String
 
   @@index([tenantId])
-  @@index([providerId])
+  @@index([supplierId])
   @@index([warehouseId])
   @@index([userId])
 }
@@ -766,7 +768,7 @@ model Purchase {
   userId           String
   ref              String            @db.VarChar(192)
   date             DateTime          @db.Date
-  providerId       Int
+  supplierId       Int
   warehouseId      Int
   taxRate          Float?            @default(0)
   taxNet           Float?            @default(0)
@@ -779,17 +781,17 @@ model Purchase {
   notes            String?           @db.Text
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  deletedAt        DateTime?         @db.Timestamp(0)
-  provider         Provider          @relation(fields: [providerId], references: [id], onUpdate: Restrict)
+  recordStatus     RecordStatus      @default(ACTIVE)
+  supplier         Supplier          @relation(fields: [supplierId], references: [id], onUpdate: Restrict)
   user             User              @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse        Warehouse         @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
   paymentPurchases PaymentPurchase[]
   purchaseDetails  PurchaseDetail[]
-  tenant           Tenant            @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant            @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
-  @@index([providerId])
+  @@index([supplierId])
   @@index([userId])
   @@index([warehouseId])
 }
@@ -814,7 +816,7 @@ model QuotationDetail {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   quotation        Quotation       @relation(fields: [quotationId], references: [id], onUpdate: Restrict)
   unit             Unit?           @relation(fields: [saleUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -840,12 +842,12 @@ model Quotation {
   notes           String?           @db.Text
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  deletedAt       DateTime?         @db.Timestamp(0)
+  recordStatus    RecordStatus      @default(ACTIVE)
   customer        Customer          @relation(fields: [customerId], references: [id], onUpdate: Restrict)
   user            User              @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse       Warehouse         @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
   quotationDetail QuotationDetail[]
-  tenant          Tenant            @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant          Tenant            @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId        String
 
   @@index([tenantId])
@@ -875,7 +877,7 @@ model SaleDetail {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   sale             Sale            @relation(fields: [saleId], references: [id], onUpdate: Restrict)
   unit             Unit?           @relation(fields: [saleUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -905,7 +907,7 @@ model SaleReturnDetail {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   saleReturn       SaleReturn      @relation(fields: [saleReturnId], references: [id], onUpdate: Restrict)
   unit             Unit?           @relation(fields: [saleUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -933,13 +935,13 @@ model SaleReturn {
   notes              String?             @db.Text
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?           @db.Timestamp(0)
+  recordStatus       RecordStatus        @default(ACTIVE)
   customer           Customer            @relation(fields: [clientId], references: [id], onUpdate: Restrict)
   user               User                @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse          Warehouse           @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
   paymentSaleReturns PaymentSaleReturn[]
   saleReturnDetails  SaleReturnDetail[]
-  tenant             Tenant              @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant             Tenant              @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId           String
 
   @@index([tenantId])
@@ -967,7 +969,7 @@ model Sale {
   notes          String?       @db.Text
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  deletedAt      DateTime?     @db.Timestamp(0)
+  recordStatus   RecordStatus  @default(ACTIVE)
   shippingStatus String?
   customer       Customer      @relation(fields: [customerId], references: [id], onUpdate: Restrict)
   user           User          @relation(fields: [userId], references: [id], onUpdate: Restrict)
@@ -975,7 +977,7 @@ model Sale {
   paymentSales   PaymentSale[]
   saleDetails    SaleDetail[]
   shipments      Shipment[]
-  tenant         Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant         Tenant        @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId       String
 
   @@index([tenantId])
@@ -985,25 +987,25 @@ model Sale {
 }
 
 model Setting {
-  id              Int        @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   email           String
   currencyId      Int?
   CompanyName     String
   CompanyPhone    String
   CompanyAdress   String
   logo            String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  deletedAt       DateTime?  @db.Timestamp(0)
-  footer          String     @default("") @db.VarChar(192)
-  developedBy     String     @default("") @db.VarChar(192)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  recordStatus    RecordStatus @default(ACTIVE)
+  footer          String       @default("") @db.VarChar(192)
+  developedBy     String       @default("") @db.VarChar(192)
   customerId      Int?
   warehouseId     Int?
-  defaultLanguage String     @default("en") @db.VarChar(192)
-  customer        Customer?  @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  currency        Currency?  @relation(fields: [currencyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  tenant          Tenant     @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  defaultLanguage String       @default("en") @db.VarChar(192)
+  customer        Customer?    @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  currency        Currency?    @relation(fields: [currencyId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  warehouse       Warehouse?   @relation(fields: [warehouseId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  tenant          Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId        String
 
   @@index([tenantId])
@@ -1013,21 +1015,21 @@ model Setting {
 }
 
 model Shipment {
-  id              Int       @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   userId          String
-  date            DateTime  @default(now()) @db.Timestamp(0)
-  ref             String    @db.VarChar(192)
+  date            DateTime     @default(now()) @db.Timestamp(0)
+  ref             String       @db.VarChar(192)
   saleId          Int
-  deliveredTo     String?   @db.VarChar(192)
-  shippingAddress String?   @db.Text
-  status          String    @db.VarChar(192)
-  shippingDetails String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime? @db.Timestamp(0)
-  sale            Sale      @relation(fields: [saleId], references: [id], onUpdate: Restrict)
-  user            User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
-  tenant          Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  deliveredTo     String?      @db.VarChar(192)
+  shippingAddress String?      @db.Text
+  status          String       @db.VarChar(192)
+  shippingDetails String?      @db.Text
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  recordStatus    RecordStatus @default(ACTIVE)
+  sale            Sale         @relation(fields: [saleId], references: [id], onUpdate: Restrict)
+  user            User         @relation(fields: [userId], references: [id], onUpdate: Restrict)
+  tenant          Tenant       @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId        String
 
   @@index([tenantId])
@@ -1054,7 +1056,7 @@ model TransferDetail {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   unit             Unit?           @relation(fields: [purchaseUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   transfer         Transfer        @relation(fields: [transferId], references: [id], onUpdate: Restrict)
-  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant           Tenant          @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId         String
 
   @@index([tenantId])
@@ -1081,12 +1083,12 @@ model Transfer {
   notes           String?          @db.Text
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?        @db.Timestamp(0)
+  recordStatus    RecordStatus     @default(ACTIVE)
   fromWarehouse   Warehouse        @relation("transfers_from_warehouse_idTowarehouses", fields: [fromWarehouseId], references: [id], onUpdate: Restrict)
   toWarehouse     Warehouse        @relation("transfers_to_warehouse_idTowarehouses", fields: [toWarehouseId], references: [id], onUpdate: Restrict)
   user            User             @relation(fields: [userId], references: [id], onUpdate: Restrict)
   transferDetails TransferDetail[]
-  tenant          Tenant           @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant          Tenant           @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId        String
 
   @@index([tenantId])
@@ -1098,13 +1100,13 @@ model Transfer {
 model Unit {
   id                    Int                    @id @default(autoincrement())
   name                  String                 @db.VarChar(192)
-  ShortName             String                 @db.VarChar(192)
+  shortName             String                 @db.VarChar(192)
   baseUnitId            Int?
   operator              String?                @default("*") @db.Char(192)
   operatorValue         Float?                 @default(1)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  deletedAt             DateTime?              @db.Timestamp(0)
+  recordStatus          RecordStatus           @default(ACTIVE)
   unit                  Unit?                  @relation("unitsTounits_base_unit", fields: [baseUnitId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   products              Product[]              @relation("products_unit_idTounits")
   productsPurchases     Product[]              @relation("products_unit_purchase_idTounits")
@@ -1116,7 +1118,7 @@ model Unit {
   saleReturnDetails     SaleReturnDetail[]
   transferDetails       TransferDetail[]
   otherUnits            Unit[]                 @relation("unitsTounits_base_unit")
-  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant                Tenant                 @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId              String
 
   @@index([tenantId])
@@ -1128,7 +1130,7 @@ model UserWarehouse {
   warehouseId Int
   user        User      @relation(fields: [userId], references: [id], onUpdate: Restrict)
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onUpdate: Restrict)
-  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant      Tenant    @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId    String
 
   @@id([userId, warehouseId])
@@ -1147,7 +1149,7 @@ model Warehouse {
   country           String?            @db.VarChar(192)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  deletedAt         DateTime?          @db.Timestamp(0)
+  recordStatus      RecordStatus       @default(ACTIVE)
   adjustments       Adjustment[]
   expenses          Expense[]
   productWarehouses ProductWarehouse[]
@@ -1160,7 +1162,7 @@ model Warehouse {
   incomingTransfers Transfer[]         @relation("transfers_from_warehouse_idTowarehouses")
   outgoingTransfers Transfer[]         @relation("transfers_to_warehouse_idTowarehouses")
   user_warehouse    UserWarehouse[]
-  tenant            Tenant             @relation(fields: [tenantId], references: [tenantId], onUpdate: Restrict)
+  tenant            Tenant             @relation(fields: [tenantId], references: [tenantId], onUpdate: Cascade, onDelete: Cascade)
   tenantId          String
 
   @@index([tenantId])
@@ -1182,7 +1184,7 @@ model User {
   isAllWarehouses        Boolean                 @default(false)
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  deletedAt              DateTime?               @db.Timestamp(0)
+  recordStatus           RecordStatus            @default(ACTIVE)
   accounts               Account[]
   sessions               Session[]
   sites                  Site[]
@@ -1204,8 +1206,8 @@ model User {
   shipments              Shipment[]
   transfers              Transfer[]
   userWarehouse          UserWarehouse[]
-  
-  TenantInvite           TenantInvite[]
+
+  TenantInvite TenantInvite[]
 }
 
 model Account {
@@ -1227,8 +1229,9 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
@@ -1283,11 +1286,13 @@ model Site {
   userId        String?
   posts         Post[]
 }
+
 enum RecordStatus {
-  ACTIVE 
+  ACTIVE
   DELETED
   EDITING
 }
+
 enum ProcessStatus {
   APPROVED
   DENIED
@@ -1297,31 +1302,32 @@ enum ProcessStatus {
 
 model TenantInvite {
   tenantId  String
-  tenant    Tenant @relation(fields: [tenantId], references: [tenantId])
+  tenant    Tenant        @relation(fields: [tenantId], references: [tenantId], onDelete: Cascade,onUpdate: Cascade)
   email     String
-  invitor   User   @relation(fields: [invitorId], references: [id])
+  invitor   User          @relation(fields: [invitorId], references: [id])
   invitorId String
-  status  ProcessStatus   @default(PENDING)
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  status    ProcessStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
   @@id([tenantId, email])
 }
 
 model Tenant {
-  tenantId      String   @id @default(cuid())
+  tenantId      String       @id @default(cuid())
   name          String?
-  description   String?  @db.Text
+  description   String?      @db.Text
   logo          String?
-  image         String?  @db.Text
+  image         String?      @db.Text
   imageBlurhash String?
-  subdomain     String?  @unique
-  customDomain  String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  subdomain     String?      @unique
+  customDomain  String?      @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   recordStatus  RecordStatus @default(ACTIVE)
   // user                  User?                   @relation(fields: [userId], references: [id],onDelete: Cascade)
   // userId                String?
-  members       User[]   @relation("tenant_members")
+  members       User[]       @relation("tenant_members")
 
   AdjustmentDetail      AdjustmentDetail[]
   Adjustment            Adjustment[]
@@ -1350,7 +1356,7 @@ model Tenant {
   ProductVariant        ProductVariant[]
   ProductWarehouse      ProductWarehouse[]
   Product               Product[]
-  Provider              Provider[]
+  Supplier              Supplier[]
   PurchaseDetail        PurchaseDetail[]
   PurchaseReturnDetail  PurchaseReturnDetail[]
   PurchaseReturn        PurchaseReturn[]
@@ -1385,6 +1391,7 @@ model CasbinRule {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([v0, v1, v2])
   @@map("casbin_rule")
 }
 
@@ -1418,7 +1425,7 @@ model CasbinRule {
 //   description     String?           @db.Text
 //   createdAt     DateTime      @default(now())
 //   updatedAt     DateTime      @updatedAt
-//   deletedAt      DateTime?         @db.Timestamp(0)
+//   recordStatus  RecordStatus @default(ACTIVE)
 //   status          Int               @default(0)
 //   permission_role permission_role[]
 //   role_user       role_user[]
@@ -1442,7 +1449,7 @@ model CasbinRule {
 //   description     String?           @db.Text
 //   createdAt     DateTime      @default(now())
 //   updatedAt     DateTime      @updatedAt
-//   deletedAt      DateTime?         @db.Timestamp(0)
+//   recordStatus  RecordStatus @default(ACTIVE)
 //   permission_role permission_role[]
 // }
 
@@ -1475,7 +1482,7 @@ model CasbinRule {
 //   encryption String
 //   createdAt     DateTime      @default(now())
 //   updatedAt     DateTime      @updatedAt
-//   deletedAt DateTime? @db.Timestamp(0)
+//   recordStatus  RecordStatus @default(ACTIVE)
 // }
 // model oauth_access_tokens {
 //   id         String    @id @db.VarChar(100)
