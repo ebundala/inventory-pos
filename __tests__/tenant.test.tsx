@@ -7,23 +7,20 @@ import { ProcessStatus, RecordStatus } from "@prisma/client";
 
 
 describe("Tenant operations",()=>{
-    let tenantId:string|null;
-const userId = "cl9tkbsxi0012yytsf65mdln5";
+let tenantId:string|null="xx";
+let userId:string;
 const subdomain="pos"
 const tenantName="tenant1"
 const testEmail = "email@example.com";
-    beforeAll(async()=>{
-        const tenant = await prisma!.tenant.findFirst({where:{name:tenantName}})
-        tenantId = tenant?.tenantId??null;
-        
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
-  
-        await prisma!.tenant.deleteMany({
-            where:{
-                subdomain:{equals:subdomain}
-            }
-        })
-    });
+   beforeAll(async()=>{
+    const user = await prisma!.user.create({
+        data: {
+            name: tenantName,
+            email: testEmail,
+        }
+    })
+    userId = user.id;
+   });
     beforeEach(async()=>{     
     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
     })
@@ -37,6 +34,7 @@ const testEmail = "email@example.com";
                 }
             }
         })
+        await prisma!.user.delete({where:{id:userId}}).catch((e)=>{});
         await prisma!.tenant.deleteMany({
             where:{
                 subdomain:{equals:subdomain}

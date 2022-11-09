@@ -1,5 +1,6 @@
 import { prisma, unimplimented } from "@/core";
 import { Prisma, ProcessStatus, RecordStatus, Tenant } from "@prisma/client";
+import cuid from "cuid";
 
 export type TenantCreateInput = {
     /**
@@ -25,12 +26,16 @@ export type TenantCreateInput = {
 };
 export const createTenant = async (input: TenantCreateInput) => {
     const { userId, ...data } = input;
+    const id= cuid();
+    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`)
+
     return prisma!.tenant.create(
         {
             include: {
                 members: true
             },
             data: {
+                tenantId:id,
                 ...data,
                 members: {
                     connect: {

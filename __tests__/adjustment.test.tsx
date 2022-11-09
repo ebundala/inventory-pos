@@ -36,6 +36,7 @@ describe("Adjustments operations", () => {
             }
         })
         userId = user.id;
+
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
 
