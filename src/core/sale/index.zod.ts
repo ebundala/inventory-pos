@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export const createSaleDetailsInputSchema = z.object({
   date: z.date(),
-  saleId: z.number(),
   productId: z.number(),
   productVariantId: z.number().optional(),
   imeiNumber: z.string().optional(),
@@ -18,10 +17,8 @@ export const createSaleDetailsInputSchema = z.object({
 });
 
 export const createPaymentSaleInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
-  saleId: z.number(),
   amount: z.number(),
   change: z.number(),
   reglement: z.string(),
@@ -29,10 +26,8 @@ export const createPaymentSaleInputSchema = z.object({
 });
 
 export const createShipmentInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
-  saleId: z.number(),
   deliveredTo: z.string().optional(),
   shippingAddress: z.string().optional(),
   status: z.string(),
@@ -55,9 +50,9 @@ export const createSaleInputSchema = z.object({
   paymentStatus: z.string(),
   status: z.string(),
   notes: z.string().optional(),
-  saleDetails: z.array(createSaleDetailsInputSchema),
-  paymentSales: z.array(createPaymentSaleInputSchema),
-  shipments: z.array(createShipmentInputSchema),
+  saleDetails: z.array(createSaleDetailsInputSchema).optional(),
+  paymentSales: z.array(createPaymentSaleInputSchema).optional(),
+  shipments: z.array(createShipmentInputSchema).optional(),
   tenantId: z.string(),
 });
 
@@ -102,24 +97,22 @@ export const updateShipmentInputSchema = z.object({
 
 export const updateSaleInputSchema = z.object({
   id: z.number(),
-  userId: z.string(),
-  date: z.date(),
-  ref: z.string(),
+  userId: z.string().optional(),
+  date: z.date().optional(),
+  ref: z.string().optional(),
   isPos: z.boolean().optional(),
-  customerId: z.number(),
-  warehouseId: z.number(),
   taxRate: z.number().optional(),
   taxNet: z.number().optional(),
   discount: z.number().optional(),
   shipping: z.number().optional(),
-  grandTotal: z.number(),
-  paidAmount: z.number(),
+  grandTotal: z.number().optional(),
+  paidAmount: z.number().optional(),
   paymentStatus: z.string(),
-  status: z.string(),
+  status: z.string().optional(),
   notes: z.string().optional(),
-  saleDetails: z.array(updateSaleDetailsInputSchema),
-  paymentSales: z.array(updatePaymentSaleInputSchema),
-  shipments: z.array(updateShipmentInputSchema),
+  saleDetails: z.array(updateSaleDetailsInputSchema).optional(),
+  paymentSales: z.array(updatePaymentSaleInputSchema).optional(),
+  shipments: z.array(updateShipmentInputSchema).optional(),
   tenantId: z.string(),
 });
 

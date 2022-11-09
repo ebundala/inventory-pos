@@ -79,7 +79,7 @@ export const findManyCustomer = async (input: Pick<Prisma.CustomerWhereInput, Pr
     let query: Pick<Prisma.CustomerWhereInput, "OR"> | undefined;
     if (search) {
         const terms = Object.values(Prisma.CustomerScalarFieldEnum)
-        .filter((v) => ["name", "code","email","country","city","phone","address"].includes(v)).map((v) => ({
+        .filter((v) => ["name", "email","country","city","phone","address"].includes(v)).map((v) => ({
             [v]: { contains: search }
         }));
 

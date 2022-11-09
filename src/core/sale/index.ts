@@ -6,11 +6,12 @@ const include = {
     customer: true,
     saleDetails: true,
     paymentSales: true,
+    shipments: true
 };
 
 export type CreateSaleDetailsInput = {
     date: Date
-    saleId: number
+    //saleId: number
     productId: number
     productVariantId?: number
     imeiNumber?: string
@@ -26,20 +27,20 @@ export type CreateSaleDetailsInput = {
 }
 
 export type CreatePaymentSaleInput = {
-    userId: string
+    // userId: string
     date: Date
     ref: string
-    saleId: number
+    // saleId: number
     amount: number
     change: number
     reglement: string
     notes?: string
 }
 export type CreateShipmentInput = {
-    userId: string
+    // userId: string
     date: Date
     ref: string
-    saleId: number
+    // saleId: number
     deliveredTo?: string
     shippingAddress?: string
     status: string
@@ -62,13 +63,13 @@ export type CreateSaleInput = {
     paymentStatus: string
     status: string
     notes?: string
-    saleDetails: Array<CreateSaleDetailsInput>
-    paymentSales: Array<CreatePaymentSaleInput>
-    shipments: Array<CreateShipmentInput>
+    saleDetails?: Array<CreateSaleDetailsInput>
+    paymentSales?: Array<CreatePaymentSaleInput>
+    shipments?: Array<CreateShipmentInput>
     tenantId: string
 }
 export const createSale = async (input: CreateSaleInput) => {
-    const { tenantId, saleDetails, paymentSales, shipments, ...data } = input;
+    const { tenantId, userId, saleDetails, paymentSales, shipments, ...data } = input;
     let saleData = {};
     if (saleDetails && saleDetails.length) {
         saleData = {
@@ -89,7 +90,7 @@ export const createSale = async (input: CreateSaleInput) => {
                 createMany: {
                     skipDuplicates: true,
                     data: paymentSales.map((v) => ({
-                        ...v, tenantId
+                        ...v, tenantId, userId
                     }))
                 }
             }
@@ -98,11 +99,11 @@ export const createSale = async (input: CreateSaleInput) => {
     let shipmentData = {};
     if (shipments && shipments.length) {
         shipmentData = {
-            shipment: {
+            shipments: {
                 createMany: {
                     skipDuplicates: true,
                     data: shipments.map((v) => ({
-                        ...v, tenantId
+                        ...v, tenantId, userId
                     }))
                 }
             }
@@ -111,11 +112,12 @@ export const createSale = async (input: CreateSaleInput) => {
     return prisma!.sale.create({
         include,
         data: {
-            tenantId: tenantId,
+            tenantId,
+            userId,
             ...data,
             ...saleData,
             ...paymentData,
-            ...shipments
+            ...shipmentData
 
         },
     })
@@ -163,28 +165,28 @@ export type UpdateShipmentInput = {
 }
 export type UpdateSaleInput = {
     id: number
-    userId: string
-    date: Date
-    ref: string
+    userId?: string
+    date?: Date
+    ref?: string
     isPos?: boolean
-    customerId: number
-    warehouseId: number
+  //  customerId?: number
+   // warehouseId?: number
     taxRate?: number
     taxNet?: number
     discount?: number
     shipping?: number
-    grandTotal: number
-    paidAmount: number
+    grandTotal?: number
+    paidAmount?: number
     paymentStatus: string
-    status: string
+    status?: string
     notes?: string
-    saleDetails: Array<UpdateSaleDetailsInput>
-    paymentSales: Array<UpdatePaymentSaleInput>
-    shipments: Array<UpdateShipmentInput>
+    saleDetails?: Array<UpdateSaleDetailsInput>
+    paymentSales?: Array<UpdatePaymentSaleInput>
+    shipments?: Array<UpdateShipmentInput>
     tenantId: string
 }
 export const updateSale = async (input: UpdateSaleInput) => {
-    const { tenantId, id, saleDetails, shipments, paymentSales, ...data } = input;
+    const { tenantId, id,userId, saleDetails, shipments, paymentSales, ...data } = input;
     const sale = await prisma!.sale.findUnique({
         where: { id }, include: {
             shipments: true,
@@ -197,15 +199,24 @@ export const updateSale = async (input: UpdateSaleInput) => {
         const savedDetails = sale.saleDetails.map((v) => v.id);
         const detailsToDelete = sale.saleDetails.filter((v) => !saleDetails.find((s) => s.id = v.id))
             .map((v) => ({ id: v.id }));
-        const detailsToCreate = saleDetails.filter((v) => !savedDetails.includes(v.id ?? -1))
-            .map((v) => ({ ...v, tenantId }));
+        const detailsToCreate = saleDetails.filter((v) => !savedDetails.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { ...rest, tenantId };
+            });
+        const detailsToUpdate = saleDetails.filter((v) => !!savedDetails.find((s) => s === v.id))
+            .map((v) => {
+                const { id, productVariantId,...rest } = v;
+                return { where: { id }, data: { ...rest, tenantId } };
+            });
+
         details = {
             saleDetails: {
                 createMany: {
                     data: detailsToCreate
                 },
                 deleteMany: detailsToDelete,
-
+                updateMany: detailsToUpdate
             }
         }
     }
@@ -216,15 +227,23 @@ export const updateSale = async (input: UpdateSaleInput) => {
         const savedDetails = sale.paymentSales.map((v) => v.id);
         const detailsToDelete = sale.paymentSales.filter((v) => !paymentSales.find((s) => s.id = v.id))
             .map((v) => ({ id: v.id }));
-        const detailsToCreate = paymentSales.filter((v) => !savedDetails.includes(v.id ?? -1))
-            .map((v) => ({ ...v, tenantId }));
+        const detailsToCreate = paymentSales.filter((v) => !savedDetails.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { ...rest, userId,tenantId };
+            });
+        const detailsToUpdate = paymentSales.filter((v) => savedDetails.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { where: { id }, data: { ...rest, tenantId } };
+            });
         paymentData = {
             paymentSales: {
                 createMany: {
                     data: detailsToCreate
                 },
                 deleteMany: detailsToDelete,
-
+                updateMany: detailsToUpdate
             }
         }
     }
@@ -236,13 +255,22 @@ export const updateSale = async (input: UpdateSaleInput) => {
         const detailsToDelete = sale.shipments.filter((v) => !shipments.find((s) => s.id = v.id))
             .map((v) => ({ id: v.id }));
         const detailsToCreate = shipments.filter((v) => !savedDetails.includes(v.id ?? -1))
-            .map((v) => ({ ...v, tenantId }));
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { ...rest, userId,tenantId };
+            });
+        const detailsToUpdate = shipments.filter((v) => savedDetails.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { where: { id }, data: { ...rest, tenantId } };
+            });
         shipmentData = {
             shipments: {
                 createMany: {
                     data: detailsToCreate
                 },
-                deleteMany: detailsToDelete,
+                deleteMany: detailsToDelete, 
+                updateMany: detailsToUpdate
 
             }
         }
@@ -307,7 +335,7 @@ export const findManySale = async (input: Pick<Prisma.SaleWhereInput, Prisma.Sal
     let query: Pick<Prisma.SaleWhereInput, "OR"> | undefined;
     if (search) {
         const terms = Object.values(Prisma.SaleScalarFieldEnum)
-            .filter((v) => ["ref", "userId", "notes","paymentStatus","status","shippingStatus"].includes(v))
+            .filter((v) => ["ref", "userId", "notes", "paymentStatus", "status", "shippingStatus"].includes(v))
             .map((v) => ({
                 [v]: { contains: search }
             }));

@@ -11,7 +11,6 @@ export type CreateAdjustmentDetailsInput = {
     productVariantId?: number
     quantity: number
     type: string
-    tenantId: string
 }
 export type CreateAdjustmentInput = {
     userId: string
@@ -32,7 +31,7 @@ export const createAdjustment = async (input: CreateAdjustmentInput) => {
             tenantId: tenantId, ...data,
             adjustmentDetails: {
                 createMany: {
-                    data: adjustmentDetails
+                    data: adjustmentDetails.map((v)=>({tenantId,...v}))
                 }
             },
         },
@@ -55,15 +54,18 @@ export type UpdateAdjustmentInput = {
     items?: number
     notes?: string
     adjustmentDetails?: Array<UpdateAdjustmentDetailsInput>
-    tenantId: string
+   // tenantId: string
 }
 export const updateAdjustment = async (input: UpdateAdjustmentInput) => {
-    const { tenantId, id, adjustmentDetails, ...data } = input;
+    const {id, adjustmentDetails, ...data } = input;
     let details = {};
     if (adjustmentDetails && adjustmentDetails.length) {
         details = {
             adjustmentDetails: {
-                updateMany: adjustmentDetails.map((v) => ({ where: { id: v.id }, data: v }))
+                updateMany: adjustmentDetails.map((v) => {
+                    const {id,...rest}=v;
+                    return { where: { id: id }, data: rest };
+                })
             }
         }
     }
@@ -122,7 +124,7 @@ export const findManyAdjustment = async (input: Pick<Prisma.AdjustmentWhereInput
     let query: Pick<Prisma.AdjustmentWhereInput, "OR"> | undefined;
     if (search) {
         const terms = Object.values(Prisma.AdjustmentScalarFieldEnum)
-            .filter((v) => ["type"].includes(v))
+            .filter((v) => ["notes","ref"].includes(v))
             .map((v) => ({
                 [v]: { contains: search }
             }));

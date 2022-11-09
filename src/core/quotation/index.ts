@@ -19,7 +19,6 @@ export type CreateQuotationDetailsInput = {
   productId        :number
   productVariantId ?:number
   imeiNumber       ?:string  
-  tenantId: string
 }
 export type CreateQuotationInput = {
     userId: string
@@ -44,20 +43,27 @@ export const createQuotation = async (input: CreateQuotationInput) => {
         include,
         data: {
             tenantId: tenantId, ...data,
-            quotationDetail: {
+            quotationDetails: {
                 createMany: {
-                    data: quotationDetails
+                    data: quotationDetails.map((v)=>({tenantId,...v}))
                 }
             },
         },
     })
 }
 export type UpdateQuotationDetailsInput = {
-    id: number
-    productId?: number
-    productVariantId?: number
-    quantity?: number
-    type?: string
+    id?: number
+    price            ?:number 
+  saleUnitId       ?:number 
+  taxNet          ?:number 
+  taxMethod        ?:string  
+  discount         ?:number
+  discountMethod   ?:string
+  total            ?:number
+  quantity         ?:number
+  productId        ?:number
+  productVariantId ?:number
+  imeiNumber       ?:string 
 
 }
 export type UpdateQuotationInput = {
@@ -79,11 +85,36 @@ export type UpdateQuotationInput = {
 }
 export const updateQuotation = async (input: UpdateQuotationInput) => {
     const { tenantId, id, quotationDetails, ...data } = input;
+    const quotation = await prisma!.quotation.findUnique({
+        where: { id }, include: {
+            quotationDetails: true,
+        }
+    });
     let details = {};
-    if (quotationDetails && quotationDetails.length) {
+    if (quotationDetails &&quotation&& quotationDetails.length) {
+        const savedDetails = quotation.quotationDetails.map((v) => v.id);
+        const detailsToDelete = quotation.quotationDetails.filter((v) => !quotationDetails.find((s) => s.id = v.id))
+        .map((v) => ({ id: v.id }));
+    const detailsToCreate = quotationDetails
+        .filter((v) => !savedDetails.find((s) => v.id === s))
+        .map((v) => {
+            const { id, ...rest } = v;
+           return { ...rest, tenantId };
+        });
+    const detailsToUpdate = quotationDetails
+        .filter((v) => savedDetails.find((s) => v.id === s))
+        .map((v) => {
+            const { id, ...rest } = v;
+            return { where: { id: id }, data: rest };
+        })
         details = {
-            QuotationDetails: {
-                updateMany: quotationDetails.map((v) => ({ where: { id: v.id }, data: v }))
+            quotationDetails: {
+                updateMany: detailsToUpdate,
+                deleteMany:detailsToDelete,
+                createMany:{
+                skipDuplicates:true,
+                data:detailsToCreate
+               }
             }
         }
     }
@@ -142,7 +173,7 @@ export const findManyQuotation = async (input: Pick<Prisma.QuotationWhereInput, 
     let query: Pick<Prisma.QuotationWhereInput, "OR"> | undefined;
     if (search) {
         const terms = Object.values(Prisma.QuotationScalarFieldEnum)
-            .filter((v) => ["ref","userId","notes"].includes(v))
+            .filter((v) => ["ref","status","userId","notes"].includes(v))
             .map((v) => ({
                 [v]: { contains: search }
             }));

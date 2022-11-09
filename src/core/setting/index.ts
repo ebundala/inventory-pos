@@ -4,9 +4,9 @@ import { Prisma, RecordStatus } from "@prisma/client";
 export type CreateSettingInput = {
     email           :string
     currencyId      ?:number
-    CompanyName     :string
-    CompanyPhone    :string
-    CompanyAdress   :string
+    companyName     :string
+    companyPhone    :string
+    companyAddress   :string
     logo            ?:string   
     footer          :string      
     developedBy     :string       
@@ -25,9 +25,9 @@ export type UpdateSettingInput = {
   id: number
   email           ?:string
   currencyId      ?:number
-  CompanyName     ?:string
-  CompanyPhone    ?:string
-  CompanyAdress   ?:string
+  companyName     ?:string
+  companyPhone    ?:string
+  companyAddress   ?:string
   logo            ?:string   
   footer          ?:string      
   developedBy     ?:string       

@@ -13,7 +13,6 @@ export const createQuotationDetailsInputSchema = z.object({
   productId: z.number(),
   productVariantId: z.number().optional(),
   imeiNumber: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const createQuotationInputSchema = z.object({
@@ -34,11 +33,18 @@ export const createQuotationInputSchema = z.object({
 });
 
 export const updateQuotationDetailsInputSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
+  price: z.number().optional(),
+  saleUnitId: z.number().optional(),
+  taxNet: z.number().optional(),
+  taxMethod: z.string().optional(),
+  discount: z.number().optional(),
+  discountMethod: z.string().optional(),
+  total: z.number().optional(),
+  quantity: z.number().optional(),
   productId: z.number().optional(),
   productVariantId: z.number().optional(),
-  quantity: z.number().optional(),
-  type: z.string().optional(),
+  imeiNumber: z.string().optional(),
 });
 
 export const updateQuotationInputSchema = z.object({

@@ -1,15 +1,15 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
-const include={
-    productVariants:true,
-    productUnit:true,
-    productPurchaseUnit:true,
-    productsSaleUnit:true,
-    category:true,
-    brand:true
+const include = {
+    productVariants: true,
+    productUnit: true,
+    productPurchaseUnit: true,
+    productsSaleUnit: true,
+    category: true,
+    brand: true
 };
-export type CreateProductVariantInput={
-   
+export type CreateProductVariantInput = {
+
     name?: string
     qty?: number
 }
@@ -37,25 +37,27 @@ export type CreateProductInput = {
 }
 export const createProduct = async (input: CreateProductInput) => {
     const { tenantId, productVariants, ...data } = input;
-    let variants={};
-    if(productVariants&&productVariants.length){
-        variants={
-            productVariants:{
-            createMany:{
-            skipDuplicates:true,
-            data:productVariants.map((v)=>({...v,tenantId}))
-        }   
-    }}
-        
+    let variants = {};
+    if (productVariants && productVariants.length) {
+        variants = {
+            productVariants: {
+                createMany: {
+                    skipDuplicates: true,
+                    data: productVariants.map((v) => ({ ...v, tenantId }))
+                }
+            }
+        }
+
     }
     return prisma!.product.create({
-       include,
-        data: { tenantId: tenantId, ...data, ...variants}})
+        include,
+        data: { tenantId: tenantId, ...data, ...variants }
+    })
 }
-export type UpdateProductVariantInput={
+export type UpdateProductVariantInput = {
     id?: number
     name?: string
-    qty?: number   
+    qty?: number
 }
 export type UpdateProductInput = {
     id: number
@@ -81,29 +83,48 @@ export type UpdateProductInput = {
     tenantId: string
 }
 export const updateProduct = async (input: UpdateProductInput) => {
-    const {tenantId, id, productVariants,...data} = input;
-    const product = await prisma!.product.findUnique({where:{id},include:{
-        productVariants:true
-    }});
-   let variants = {};
-    if(productVariants&&product&&product.productVariants&&product.productVariants.length){
-        const savedVariants=product.productVariants.map((v)=>v.id);
-        const variantToDelete = product.productVariants.filter((v)=>!productVariants.find((s)=>s.id===v.id))
-        .map((v)=>({id:v.id}));
-        const variantsToCreate = productVariants.filter((v)=>!savedVariants.find((s)=>s===v.id)).map((v)=>({...v,tenantId}));
-       variants= { 
-            productVariants:{
-            createMany:{data:variantsToCreate},
-            deleteMany:variantToDelete,
+    const { tenantId, id, productVariants, ...data } = input;
+    const product = await prisma!.product.findUnique({
+        where: { id }, include: {
+            productVariants: true
+        }
+    });
+    let variants = {};
+    if (productVariants && product && product.productVariants && product.productVariants.length) {
+        const savedVariants = product.productVariants.map((v) => v.id);
+        const variantToDelete = product.productVariants
+            .filter((v) => !productVariants.find((s) => s.id === v.id))
+            .map((v) => ({ id: v.id }));
+
+        const variantToUpdate = product.productVariants
+            .filter((v) => productVariants.find((s) => s.id === v.id))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { where: { id: id }, data: rest };
+            });
             
-        } }
+        const variantsToCreate = productVariants
+            .filter((v) => !savedVariants.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v
+                return { ...rest, tenantId };
+            });
+        variants = {
+            productVariants: {
+                createMany: { 
+                    skipDuplicates:true,
+                    data: variantsToCreate },
+                deleteMany: variantToDelete,
+                updateMany: variantToUpdate
+            }
+        }
     }
     return prisma!.product.update({
         include,
         where: {
             id: id
         },
-        data: {...data,...variants}
+        data: { ...data, ...variants }
     })
 };
 type ProductId = number
@@ -161,7 +182,8 @@ export const findManyProduct = async (input: Pick<Prisma.ProductWhereInput, Pris
         };
     };
     return prisma!.product.findMany(
-        { include,
+        {
+            include,
             where: query ?? where,
             orderBy: orderBy,
             take, skip,

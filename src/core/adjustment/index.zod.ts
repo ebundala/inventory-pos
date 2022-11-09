@@ -6,7 +6,6 @@ export const createAdjustmentDetailsInputSchema = z.object({
   productVariantId: z.number().optional(),
   quantity: z.number(),
   type: z.string(),
-  tenantId: z.string(),
 });
 
 export const createAdjustmentInputSchema = z.object({
@@ -37,7 +36,6 @@ export const updateAdjustmentInputSchema = z.object({
   items: z.number().optional(),
   notes: z.string().optional(),
   adjustmentDetails: z.array(updateAdjustmentDetailsInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 const adjustmentIdSchema = z.number();

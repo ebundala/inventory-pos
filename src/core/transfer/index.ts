@@ -4,7 +4,7 @@ const include={
     fromWarehouse:true,
     toWarehouse:true,
     user:true,
-    TransferDetails:true,    
+    transferDetails:true,    
 };
 export type CreateTransferDetailInput = {
   productId        :number
@@ -88,19 +88,37 @@ export type UpdateTransferInput = {
 }
 export const updateTransfer = async (input: UpdateTransferInput) => {
     const {tenantId, id, transferDetails,...data} = input;
+
     const transfer = await prisma!.transfer.findUnique({where:{id},include:{
         transferDetails:true
     }});
+
    let details = {};
     if(transferDetails&&transfer&&transferDetails.length){
-        const savedVariants=transfer.transferDetails.map((v)=>v.id);
-        const variantToDelete = transfer.transferDetails.filter((v)=>!transferDetails.find((s)=>s.id===v.id??""))
+        const savedDetails=transfer.transferDetails.map((v)=>v.id);
+        const detailsToDelete = transfer.transferDetails
+        .filter((v)=>!transferDetails.find((s)=>s.id===v.id))
         .map((v)=>({id:v.id}));
-        const variantsToCreate = transferDetails.filter((v)=>!savedVariants.includes(v.id??-1)).map((v)=>({...v,tenantId}));
-       details= { 
+
+        const detailsToCreate = transferDetails
+        .filter((v)=>!savedDetails.find((s)=>s===v.id))
+        .map((v) => {
+            const { id, ...rest } = v;
+           return { ...rest, tenantId };
+        });
+
+    const detailsToUpdate = transferDetails
+        .filter((v) => savedDetails.find((s) => v.id === s))
+        .map((v) => {
+            const { id, productVariantId,...rest } = v;
+            return { where: { id: id }, data: rest };
+        })
+      
+        details= { 
         transferDetails:{
-            createMany:{data:variantsToCreate},
-            deleteMany:variantToDelete,
+            createMany:{data:detailsToCreate},
+            deleteMany:detailsToDelete,
+            updateMany:detailsToUpdate
             
         } }
     }
@@ -157,7 +175,7 @@ export const findManyTransfer = async (input: Pick<Prisma.TransferWhereInput, Pr
     let query: Pick<Prisma.TransferWhereInput, "OR"> | undefined;
     if (search) {
         const terms = Object.values(Prisma.TransferScalarFieldEnum)
-            .filter((v) => ["taxMethod", "discountMethod"].includes(v))
+            .filter((v) => ["taxMethod", "discountMethod","ref"].includes(v))
             .map((v) => ({
                 [v]: { contains: search }
             }));

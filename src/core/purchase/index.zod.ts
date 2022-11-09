@@ -16,7 +16,6 @@ export const createPurchaseDetailsInputSchema = z.object({
 });
 
 export const createPaymentPurchaseInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   amount: z.number(),
@@ -46,14 +45,14 @@ export const createPurchaseInputSchema = z.object({
 });
 
 export const updatePurchaseDetailsInputSchema = z.object({
-  id: z.number(),
-  cost: z.number(),
+  id: z.number().optional(),
+  cost: z.number().optional(),
   purchaseUnitId: z.number().optional(),
   taxNet: z.number().optional(),
   taxMethod: z.string().optional(),
   discount: z.number().optional(),
   discountMethod: z.string().optional(),
-  productId: z.number(),
+  productId: z.number().optional(),
   productVariantId: z.number().optional(),
   imeiNumber: z.string().optional(),
   total: z.number().optional(),
@@ -61,7 +60,7 @@ export const updatePurchaseDetailsInputSchema = z.object({
 });
 
 export const updatePaymentPurchaseInputSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   userId: z.string().optional(),
   date: z.date().optional(),
   ref: z.string().optional(),
@@ -72,7 +71,7 @@ export const updatePaymentPurchaseInputSchema = z.object({
 });
 
 export const updatePurchaseInputSchema = z.object({
-  id: z.number().optional(),
+  id: z.number(),
   userId: z.string().optional(),
   ref: z.string().optional(),
   date: z.date().optional(),
