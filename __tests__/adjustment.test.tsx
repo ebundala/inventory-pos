@@ -159,7 +159,7 @@ describe("Adjustments operations", () => {
 
     test("find many Adjustment", async () => {
         const Adjustment = await findManyAdjustment({
-            search: "test".substring(2, 3)
+            where:{ref: {equals:"test"}}
         });
         expect(Adjustment.length).toBeGreaterThan(0)
         expect(Adjustment[0].ref).toBe("test")

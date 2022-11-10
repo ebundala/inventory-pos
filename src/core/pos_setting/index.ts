@@ -38,8 +38,8 @@ export const updatePosSetting = async (input: UpdatePosSettingInput) => {
         data: { ...data }
     })
 };
-type PosSettingId = number
-type PosSettingsId = Array<number>
+export type PosSettingId = number
+export type PosSettingIds = Array<number>
 export const getUniquePosSetting = async (id: PosSettingId) => {
     return prisma!.posSetting.findUnique({
         where: {
@@ -58,7 +58,7 @@ export const deletePosSetting = async (id: PosSettingId) => {
         }
     })
 };
-export const deleteManyPosSetting = async (ids: PosSettingsId) => {
+export const deleteManyPosSetting = async (ids: PosSettingIds) => {
     return prisma!.posSetting.updateMany({
         where: {
             id: { in: ids }
@@ -69,34 +69,9 @@ export const deleteManyPosSetting = async (ids: PosSettingsId) => {
     })
 };
 
-export const findManyPosSetting = async (input: Pick<Prisma.PosSettingWhereInput, Prisma.PosSettingScalarFieldEnum> & {
+export const findManyPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include"> ) => {
     
-    orderBy?: [Pick<Prisma.PosSettingOrderByWithRelationInput, Prisma.PosSettingScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.PosSettingWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.PosSettingScalarFieldEnum)
-        .filter((v) => ["noteCustomer"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.posSetting.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }

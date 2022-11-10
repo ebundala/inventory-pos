@@ -25,6 +25,6 @@ export const updatePosSettingInputSchema = z.object({
   showAddress: z.boolean().optional(),
 });
 
-const posSettingIdSchema = z.number();
+export const posSettingIdSchema = z.number();
 
-const posSettingsIdSchema = z.array(z.number());
+export const posSettingIdsSchema = z.array(z.number());

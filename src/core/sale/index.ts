@@ -169,8 +169,8 @@ export type UpdateSaleInput = {
     date?: Date
     ref?: string
     isPos?: boolean
-  //  customerId?: number
-   // warehouseId?: number
+    //  customerId?: number
+    // warehouseId?: number
     taxRate?: number
     taxNet?: number
     discount?: number
@@ -186,7 +186,7 @@ export type UpdateSaleInput = {
     tenantId: string
 }
 export const updateSale = async (input: UpdateSaleInput) => {
-    const { tenantId, id,userId, saleDetails, shipments, paymentSales, ...data } = input;
+    const { tenantId, id, userId, saleDetails, shipments, paymentSales, ...data } = input;
     const sale = await prisma!.sale.findUnique({
         where: { id }, include: {
             shipments: true,
@@ -206,7 +206,7 @@ export const updateSale = async (input: UpdateSaleInput) => {
             });
         const detailsToUpdate = saleDetails.filter((v) => !!savedDetails.find((s) => s === v.id))
             .map((v) => {
-                const { id, productVariantId,...rest } = v;
+                const { id, productVariantId, ...rest } = v;
                 return { where: { id }, data: { ...rest, tenantId } };
             });
 
@@ -230,7 +230,7 @@ export const updateSale = async (input: UpdateSaleInput) => {
         const detailsToCreate = paymentSales.filter((v) => !savedDetails.find((s) => s === v.id))
             .map((v) => {
                 const { id, ...rest } = v;
-                return { ...rest, userId,tenantId };
+                return { ...rest, userId, tenantId };
             });
         const detailsToUpdate = paymentSales.filter((v) => savedDetails.find((s) => s === v.id))
             .map((v) => {
@@ -257,7 +257,7 @@ export const updateSale = async (input: UpdateSaleInput) => {
         const detailsToCreate = shipments.filter((v) => !savedDetails.includes(v.id ?? -1))
             .map((v) => {
                 const { id, ...rest } = v;
-                return { ...rest, userId,tenantId };
+                return { ...rest, userId, tenantId };
             });
         const detailsToUpdate = shipments.filter((v) => savedDetails.find((s) => s === v.id))
             .map((v) => {
@@ -269,7 +269,7 @@ export const updateSale = async (input: UpdateSaleInput) => {
                 createMany: {
                     data: detailsToCreate
                 },
-                deleteMany: detailsToDelete, 
+                deleteMany: detailsToDelete,
                 updateMany: detailsToUpdate
 
             }
@@ -290,8 +290,8 @@ export const updateSale = async (input: UpdateSaleInput) => {
     })
 }
 
-type SaleId = number
-type SalesId = Array<number>
+export type SaleId = number
+export type SaleIds = Array<number>
 export const getUniqueSale = async (id: SaleId) => {
 
     return prisma!.sale.findUnique({
@@ -313,7 +313,7 @@ export const deleteSale = async (id: SaleId) => {
         }
     })
 };
-export const deleteManySale = async (ids: SalesId) => {
+export const deleteManySale = async (ids: SaleIds) => {
     return prisma!.sale.updateMany({
         where: {
             id: { in: ids }
@@ -324,35 +324,12 @@ export const deleteManySale = async (ids: SalesId) => {
     })
 };
 
-export const findManySale = async (input: Pick<Prisma.SaleWhereInput, Prisma.SaleScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.SaleOrderByWithRelationInput, Prisma.SaleScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.SaleWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.SaleScalarFieldEnum)
-            .filter((v) => ["ref", "userId", "notes", "paymentStatus", "status", "shippingStatus"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
+export const findManySale = async (input: Omit<Prisma.SaleFindManyArgs, "select" | "include">) => {
 
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.sale.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
+            ...input
         }
     );
 }

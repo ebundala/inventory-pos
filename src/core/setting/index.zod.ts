@@ -31,6 +31,6 @@ export const updateSettingInputSchema = z.object({
   defaultLanguage: z.string().optional(),
 });
 
-const settingIdSchema = z.number();
+export const settingIdSchema = z.number();
 
-const settingsIdSchema = z.array(z.number());
+export const settingIdsSchema = z.array(z.number());

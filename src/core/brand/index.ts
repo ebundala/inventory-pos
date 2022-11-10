@@ -28,8 +28,8 @@ export const updateBrand = async (input: UpdateBrandInput) => {
         data: { ...data }
     })
 };
-type BrandId = number
-type BrandsId = Array<number>
+export type BrandId = number
+export type BrandIds = Array<number>
 export const getUniqueBrand = async (id: BrandId) => {
     return prisma!.brand.findUnique({
         where: {
@@ -48,7 +48,7 @@ export const deleteBrand = async (id: BrandId) => {
         }
     })
 };
-export const deleteManyBrand = async (ids: BrandsId) => {
+export const deleteManyBrand = async (ids: BrandIds) => {
     return prisma!.brand.updateMany({
         where: {
             id: { in: ids }
@@ -59,33 +59,9 @@ export const deleteManyBrand = async (ids: BrandsId) => {
     })
 };
 
-export const findManyBrand = async (input: Pick<Prisma.BrandWhereInput, Prisma.BrandScalarFieldEnum> & {
+export const findManyBrand = async  (input: Omit<Prisma.BrandFindManyArgs, "select"|"include"> ) => {
     
-    orderBy?: [Pick<Prisma.BrandOrderByWithRelationInput, Prisma.BrandScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.BrandWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.BrandScalarFieldEnum).filter((v) => ["name", "description","image"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.brand.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+       input
     );
 }

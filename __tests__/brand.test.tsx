@@ -64,7 +64,7 @@ describe("Brands operations",()=>{
 
     test("find many Brand",async ()=>{
         const brand = await findManyBrand({
-            search:brandName.substring(2,4)
+            where:{name: {equals:brandName}}
         });
         expect(brand.length).toBeGreaterThan(0)
         expect(brand[0].name).toBe(brandName)

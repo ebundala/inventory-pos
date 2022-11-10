@@ -8,7 +8,7 @@ module.exports=[
   "adjustment","brand","category","company","currency","customer","expense",
   "pos_setting","product","purchase","purchase_return","quotation",
   "sale","sale_return","setting","supplier","tenant","transfer",
-  "unit","pos_setting"
+  "unit","pos_setting","warehouse"
 ].map(function(v){
   return {
     name: "ts-to-zod.config",

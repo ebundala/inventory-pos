@@ -19,6 +19,6 @@ export const updateUnitInputSchema = z.object({
   operatorValue: z.number().optional(),
 });
 
-const unitIdSchema = z.number();
+export const unitIdSchema = z.number();
 
-const unitsIdSchema = z.array(z.number());
+export const unitIdsSchema = z.array(z.number());

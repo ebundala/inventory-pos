@@ -100,7 +100,7 @@
 //     })
 // };
 // type ProductId = number
-// type ProductsId = Array<number>
+// type ProductIds = Array<number>
 // export const getUniqueProduct = async (id: ProductId) => {
 
 //     return prisma!.product.findUnique({
@@ -122,7 +122,7 @@
 //         }
 //     })
 // };
-// export const deleteManyProduct = async (ids: ProductsId) => {
+// export const deleteManyProduct = async (ids: ProductIds) => {
 //     return prisma!.product.updateMany({
 //         where: {
 //             id: { in: ids }

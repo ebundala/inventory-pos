@@ -13,6 +13,6 @@ export const updateCategoryInputSchema = z.object({
   code: z.string().optional(),
 });
 
-const categoryIdSchema = z.number();
+export const categoryIdSchema = z.number();
 
-const categorysIdSchema = z.array(z.number());
+export const categoryIdsSchema = z.array(z.number());

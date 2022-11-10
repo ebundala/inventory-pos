@@ -67,7 +67,7 @@ describe("Units operations",()=>{
 
     test("find many Unit",async ()=>{
         const units = await findManyUnit({
-            search:"kg"
+            where:{shortName:{equals:ShortName}}
         });
         expect(units.length).toBeGreaterThan(0)
         expect(units[0].shortName).toBe(ShortName)

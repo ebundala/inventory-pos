@@ -183,8 +183,8 @@ export const updatePurchaseReturn = async (input: UpdatePurchaseReturnInput) => 
             ...paymentData }
     })
 };
-type PurchaseReturnId = number
-type PurchaseReturnsId = Array<number>
+export type PurchaseReturnId = number
+export type PurchaseReturnIds = Array<number>
 export const getUniquePurchaseReturn = async (id: PurchaseReturnId) => {
 
     return prisma!.purchaseReturn.findUnique({
@@ -206,7 +206,7 @@ export const deletePurchaseReturn = async (id: PurchaseReturnId) => {
         }
     })
 };
-export const deleteManyPurchaseReturn = async (ids: PurchaseReturnsId) => {
+export const deleteManyPurchaseReturn = async (ids: PurchaseReturnIds) => {
     return prisma!.purchaseReturn.updateMany({
         where: {
             id: { in: ids }
@@ -217,34 +217,12 @@ export const deleteManyPurchaseReturn = async (ids: PurchaseReturnsId) => {
     })
 };
 
-export const findManyPurchaseReturn = async (input: Pick<Prisma.PurchaseReturnWhereInput, Prisma.PurchaseReturnScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.PurchaseReturnOrderByWithRelationInput, Prisma.PurchaseReturnScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.PurchaseReturnWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.PurchaseReturnScalarFieldEnum)
-            .filter((v) => ["ref", "userId", "status","paymentStatus", "notes"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyPurchaseReturn = async  (input: Omit<Prisma.PurchaseReturnFindManyArgs, "select"|"include"> ) => {
+    
     return prisma!.purchaseReturn.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
+           ...input
 
         }
     );

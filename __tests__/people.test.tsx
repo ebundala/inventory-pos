@@ -83,7 +83,7 @@ describe("Customers operations", () => {
 
     test("find many Customer", async () => {
         const customer = await findManyCustomer({
-            search: customerName.substring(2, 4)
+            where:{name:{equals:customerName}}
         });
         expect(customer.length).toBeGreaterThan(0)
         expect(customer[0].name).toBe(customerName)

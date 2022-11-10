@@ -21,6 +21,6 @@ export const updateCompanyInputSchema = z.object({
   address: z.string().optional(),
 });
 
-const companyIdSchema = z.number();
+export const companyIdSchema = z.number();
 
-const companysIdSchema = z.array(z.number());
+export const companyIdsSchema = z.array(z.number());

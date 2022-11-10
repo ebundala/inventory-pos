@@ -35,8 +35,8 @@ export const updateWarehouse = async (input: UpdateWarehouseInput) => {
         data: { ...data }
     })
 };
-type WarehouseId = number
-type WarehousesId = Array<number>
+export type WarehouseId = number
+export type WarehouseIds = Array<number>
 export const getUniqueWarehouse = async (id: WarehouseId) => {
 
     return prisma!.warehouse.findUnique({
@@ -56,7 +56,7 @@ export const deleteWarehouse = async (id: WarehouseId) => {
         }
     })
 };
-export const deleteManyWarehouse = async (ids: WarehousesId) => {
+export const deleteManyWarehouse = async (ids: WarehouseIds) => {
     return prisma!.warehouse.updateMany({
         where: {
             id: { in: ids }
@@ -67,33 +67,10 @@ export const deleteManyWarehouse = async (ids: WarehousesId) => {
     })
 };
 
-export const findManyWarehouse = async (input: Pick<Prisma.WarehouseWhereInput, Prisma.WarehouseScalarFieldEnum> & {
-    
-    orderBy?: [Pick<Prisma.WarehouseOrderByWithRelationInput, Prisma.WarehouseScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.WarehouseWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.WarehouseScalarFieldEnum).filter((v) => ["name", "email","phone","country","city","address"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
+export const findManyWarehouse = async (input: Omit<Prisma.WarehouseFindManyArgs,"select"|"include">) => {
 
-        query = {
-            OR: terms
-        };
-    };
+   
     return prisma!.warehouse.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }

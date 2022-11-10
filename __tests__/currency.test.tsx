@@ -67,7 +67,7 @@ describe("Currencys operations",()=>{
 
     test("find many Currency",async ()=>{
         const currency = await findManyCurrency({
-            search:CurrencyName.substring(2,4)
+            where:{name:{equals:CurrencyName}}
         });
         expect(currency.length).toBeGreaterThan(0)
         expect(currency[0].name).toBe(CurrencyName)

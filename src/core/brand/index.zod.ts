@@ -15,6 +15,6 @@ export const updateBrandInputSchema = z.object({
   image: z.string().optional(),
 });
 
-const brandIdSchema = z.number();
+export const brandIdSchema = z.number();
 
-const brandsIdSchema = z.array(z.number());
+export const brandIdsSchema = z.array(z.number());

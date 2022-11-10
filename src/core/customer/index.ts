@@ -36,8 +36,8 @@ export const updateCustomer = async (input: UpdateCustomerInput) => {
         data: { ...data }
     })
 };
-type CustomerId = number
-type CustomersId = Array<number>
+export type CustomerId = number
+export type CustomerIds = Array<number>
 export const getUniqueCustomer = async (id: CustomerId) => {
     return prisma!.customer.findUnique({
         where: {
@@ -56,7 +56,7 @@ export const deleteCustomer = async (id: CustomerId) => {
         }
     })
 };
-export const deleteManyCustomer = async (ids: CustomersId) => {
+export const deleteManyCustomer = async (ids: CustomerIds) => {
     return prisma!.customer.updateMany({
         where: {
             id: { in: ids }
@@ -67,34 +67,9 @@ export const deleteManyCustomer = async (ids: CustomersId) => {
     })
 };
 
-export const findManyCustomer = async (input: Pick<Prisma.CustomerWhereInput, Prisma.CustomerScalarFieldEnum> & {
+export const findManyCustomer = async  (input: Omit<Prisma.CustomerFindManyArgs, "select"|"include"> ) => {
     
-    orderBy?: [Pick<Prisma.CustomerOrderByWithRelationInput, Prisma.CustomerScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.CustomerWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.CustomerScalarFieldEnum)
-        .filter((v) => ["name", "email","country","city","phone","address"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.customer.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }

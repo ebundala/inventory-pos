@@ -38,6 +38,6 @@ export const updateAdjustmentInputSchema = z.object({
   adjustmentDetails: z.array(updateAdjustmentDetailsInputSchema).optional(),
 });
 
-const adjustmentIdSchema = z.number();
+export const adjustmentIdSchema = z.number();
 
-const adjustmentsIdSchema = z.array(z.number());
+export const adjustmentIdsSchema = z.array(z.number());

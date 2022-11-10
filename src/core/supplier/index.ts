@@ -36,8 +36,8 @@ export const updateSupplier = async (input: UpdateSupplierInput) => {
         data: { ...data }
     })
 };
-type SupplierId = number
-type SuppliersId = Array<number>
+export type SupplierId = number
+export type SupplierIds = Array<number>
 export const getUniqueSupplier = async (id: SupplierId) => {
 
     return prisma!.supplier.findUnique({
@@ -57,7 +57,7 @@ export const deleteSupplier = async (id: SupplierId) => {
         }
     })
 };
-export const deleteManySupplier = async (ids: SuppliersId) => {
+export const deleteManySupplier = async (ids: SupplierIds) => {
     return prisma!.supplier.updateMany({
         where: {
             id: { in: ids }
@@ -68,33 +68,9 @@ export const deleteManySupplier = async (ids: SuppliersId) => {
     })
 };
 
-export const findManySupplier = async (input: Pick<Prisma.SupplierWhereInput, Prisma.SupplierScalarFieldEnum> & {
-    
-    orderBy?: [Pick<Prisma.SupplierOrderByWithRelationInput, Prisma.SupplierScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.SupplierWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.SupplierScalarFieldEnum).filter((v) => ["name", "email","phone","country","city","address"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManySupplier = async (input: Omit<Prisma.SupplierFindManyArgs, "select"|"include"> ) => {
+   
     return prisma!.supplier.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }

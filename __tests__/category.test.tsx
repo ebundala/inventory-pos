@@ -66,7 +66,7 @@ describe("Categorys operations",()=>{
 
     test("find many Category",async ()=>{
         const category = await findManyCategory({
-            search:categoryName.substring(2,4)
+            where:{name:{equals:categoryName}}
         });
         expect(category.length).toBeGreaterThan(0)
         expect(category[0].name).toBe(categoryName)

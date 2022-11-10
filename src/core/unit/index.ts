@@ -38,8 +38,8 @@ export const updateUnit = async (input:UpdateUnitInput)=>{
      data:{...data}
     })
  };
- type UnitId=number
- type UnitsId=Array<number>
+ export type UnitId=number
+ export type UnitIds=Array<number>
 export const getUniqueUnit = async (id:UnitId)=>{
    
     return prisma!.unit.findUnique({
@@ -65,7 +65,7 @@ export const deleteUnit = async (id:UnitId)=>{
      } 
     })
  };
-export const deleteManyUnit = async (ids:UnitsId)=>{
+export const deleteManyUnit = async (ids:UnitIds)=>{
     return prisma!.unit.updateMany({
         where:{
             id:{in:ids}
@@ -76,33 +76,8 @@ export const deleteManyUnit = async (ids:UnitsId)=>{
     })
  };
  
-export const findManyUnit =async( input: Pick<Prisma.UnitWhereInput, Prisma.UnitScalarFieldEnum> & {
-    
-    orderBy?: [Pick<Prisma.UnitOrderByWithRelationInput, Prisma.UnitScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.UnitWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.UnitScalarFieldEnum).filter((v)=>["name","shortName"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyUnit =async(input: Omit<Prisma.UnitFindManyArgs,"select"|"include">) => {
     return prisma!.unit.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }

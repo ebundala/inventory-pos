@@ -185,8 +185,8 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput) => {
             ...paymentData }
     })
 };
-type SaleReturnId = number
-type SaleReturnsId = Array<number>
+export type SaleReturnId = number
+export type SaleReturnIds = Array<number>
 export const getUniqueSaleReturn = async (id: SaleReturnId) => {
 
     return prisma!.saleReturn.findUnique({
@@ -208,7 +208,7 @@ export const deleteSaleReturn = async (id: SaleReturnId) => {
         }
     })
 };
-export const deleteManySaleReturn = async (ids: SaleReturnsId) => {
+export const deleteManySaleReturn = async (ids: SaleReturnIds) => {
     return prisma!.saleReturn.updateMany({
         where: {
             id: { in: ids }
@@ -219,35 +219,11 @@ export const deleteManySaleReturn = async (ids: SaleReturnsId) => {
     })
 };
 
-export const findManySaleReturn = async (input: Pick<Prisma.SaleReturnWhereInput, Prisma.SaleReturnScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.SaleReturnOrderByWithRelationInput, Prisma.SaleReturnScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.SaleReturnWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.SaleReturnScalarFieldEnum)
-            .filter((v) => ["ref", "paymentStatus", "status", "notes"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
-    return prisma!.saleReturn.findMany(
-        {
-            include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+export const findManySaleReturn =  (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include"> ) => {
+    
+    return prisma!.saleReturn.findMany({
+        include,
+        ...input
+     }
     );
 }

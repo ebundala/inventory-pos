@@ -134,36 +134,13 @@ export const deleteManyTenant = async (ids: TenantIds) => {
 
 
 
-export const findManyTenant = async (input: Pick<Prisma.TenantWhereInput, Prisma.TenantScalarFieldEnum> & {
-    members?: Array<string>,
-    orderBy?: [Pick<Prisma.TenantOrderByWithRelationInput, Prisma.TenantScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: string,
-    search?: string,
-}) => {
-    const { members, orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.TenantWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.TenantScalarFieldEnum).filter((v)=>!["createdAt","updatedAt","recordStatus"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    }
-
+export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select"|"include"> ) => {
+   
     return prisma!.tenant.findMany(
         {  include:{
             members:true
            },
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { tenantId: cursor } : undefined,
-
-
+           ...input,
         }
     );
 };

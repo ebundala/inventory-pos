@@ -23,6 +23,6 @@ export const updateSupplierInputSchema = z.object({
   address: z.string().optional(),
 });
 
-const supplierIdSchema = z.number();
+export const supplierIdSchema = z.number();
 
-const suppliersIdSchema = z.array(z.number());
+export const supplierIdsSchema = z.array(z.number());

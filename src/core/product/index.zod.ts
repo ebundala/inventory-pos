@@ -59,6 +59,6 @@ export const updateProductInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const productIdSchema = z.number();
+export const productIdSchema = z.number();
 
-const productsIdSchema = z.array(z.number());
+export const productIdsSchema = z.array(z.number());

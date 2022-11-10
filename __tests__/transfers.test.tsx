@@ -229,7 +229,7 @@ describe("Transfers operations", () => {
 
     test("find many Transfer", async () => {
         const transfer = await findManyTransfer({
-            search: "test".substring(2, 3)
+            where:{ref:{equals:"test"}}
         });
         expect(transfer.length).toBeGreaterThan(0)
         expect(transfer[0].ref).toBe("test")

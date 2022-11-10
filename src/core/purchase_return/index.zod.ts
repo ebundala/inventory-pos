@@ -92,6 +92,6 @@ export const updatePurchaseReturnInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const purchaseReturnIdSchema = z.number();
+export const purchaseReturnIdSchema = z.number();
 
-const purchaseReturnsIdSchema = z.array(z.number());
+export const purchaseReturnIdsSchema = z.array(z.number());

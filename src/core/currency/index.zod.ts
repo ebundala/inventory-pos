@@ -14,6 +14,6 @@ export const updateCurrencyInputSchema = z.object({
   code: z.string().optional(),
 });
 
-const currencyIdSchema = z.number();
+export const currencyIdSchema = z.number();
 
-const currencysIdSchema = z.array(z.number());
+export const currencyIdsSchema = z.array(z.number());

@@ -23,6 +23,6 @@ export const updateCustomerInputSchema = z.object({
   address: z.string().optional(),
 });
 
-const customerIdSchema = z.number();
+export const customerIdSchema = z.number();
 
-const customersIdSchema = z.array(z.number());
+export const customerIdsSchema = z.array(z.number());

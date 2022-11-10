@@ -84,7 +84,7 @@ describe("Products operations",()=>{
            price: 0,
            isVariant: true,
            isImei: false,
-           productVariants:[{name:"green",qty:10,tenantId:tenantId!},{name:"yellow",tenantId:tenantId!}]
+           productVariants:[{name:"green",qty:10,},{name:"yellow",}]
        });
         expect(product.name).toBe(productName)
         expect(product.cost).toBe(5000);       
@@ -121,7 +121,7 @@ describe("Products operations",()=>{
 
     test("find many Product",async ()=>{
         const product = await findManyProduct({
-            search:productName.substring(2,4)
+            where:{name:{equals:productName}}
         });
         expect(product.length).toBeGreaterThan(0)
         expect(product[0].name).toBe(productName)

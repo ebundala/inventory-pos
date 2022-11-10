@@ -79,8 +79,8 @@ export const updateAdjustment = async (input: UpdateAdjustmentInput) => {
         }
     })
 };
-type AdjustmentId = number
-type AdjustmentsId = Array<number>
+export type AdjustmentId = number
+export type AdjustmentIds = Array<number>
 export const getUniqueAdjustment = async (id: AdjustmentId) => {
 
     return prisma!.adjustment.findUnique({
@@ -102,7 +102,7 @@ export const deleteAdjustment = async (id: AdjustmentId) => {
         }
     })
 };
-export const deleteManyAdjustment = async (ids: AdjustmentsId) => {
+export const deleteManyAdjustment = async (ids: AdjustmentIds) => {
     return prisma!.adjustment.updateMany({
         where: {
             id: { in: ids }
@@ -113,35 +113,12 @@ export const deleteManyAdjustment = async (ids: AdjustmentsId) => {
     })
 };
 
-export const findManyAdjustment = async (input: Pick<Prisma.AdjustmentWhereInput, Prisma.AdjustmentScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.AdjustmentOrderByWithRelationInput, Prisma.AdjustmentScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.AdjustmentWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.AdjustmentScalarFieldEnum)
-            .filter((v) => ["notes","ref"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyAdjustment = async  (input: Omit<Prisma.AdjustmentFindManyArgs, "select"|"include"> ) => {
+   
     return prisma!.adjustment.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
+            ...input
         }
     );
 }

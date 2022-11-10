@@ -193,7 +193,7 @@ describe("Quotations operations", () => {
 
     test("find many Quotation", async () => {
         const Quotation = await findManyQuotation({
-            search: "test".substring(2, 3)
+            where:{ref:{equals:"test"}}
         });
         expect(Quotation.length).toBeGreaterThan(0)
         expect(Quotation[0].ref).toBe("test")

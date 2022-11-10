@@ -91,6 +91,6 @@ export const updatePurchaseInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const purchaseIdSchema = z.number();
+export const purchaseIdSchema = z.number();
 
-const purchasesIdSchema = z.array(z.number());
+export const purchaseIdsSchema = z.array(z.number());

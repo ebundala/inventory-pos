@@ -27,8 +27,8 @@ export const updateCurrency = async (input: UpdateCurrencyInput) => {
         data: { ...data }
     })
 };
-type CurrencyId = number
-type CurrencysId = Array<number>
+export type CurrencyId = number
+export type CurrencyIds = Array<number>
 export const getUniqueCurrency = async (id: CurrencyId) => {
     return prisma!.currency.findUnique({
         where: {
@@ -47,7 +47,7 @@ export const deleteCurrency = async (id: CurrencyId) => {
         }
     })
 };
-export const deleteManyCurrency = async (ids: CurrencysId) => {
+export const deleteManyCurrency = async (ids: CurrencyIds) => {
     return prisma!.currency.updateMany({
         where: {
             id: { in: ids }
@@ -58,33 +58,9 @@ export const deleteManyCurrency = async (ids: CurrencysId) => {
     })
 };
 
-export const findManyCurrency = async (input: Pick<Prisma.CurrencyWhereInput, Prisma.CurrencyScalarFieldEnum> & {
+export const findManyCurrency = async  (input: Omit<Prisma.CurrencyFindManyArgs, "select"|"include"> ) => {
     
-    orderBy?: [Pick<Prisma.CurrencyOrderByWithRelationInput, Prisma.CurrencyScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.CurrencyWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.CurrencyScalarFieldEnum).filter((v) => ["name", "code"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.currency.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+       input
     );
 }

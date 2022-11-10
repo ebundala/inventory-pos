@@ -65,6 +65,6 @@ export const updateTransferInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const transferIdSchema = z.number();
+export const transferIdSchema = z.number();
 
-const transfersIdSchema = z.array(z.number());
+export const transferIdsSchema = z.array(z.number());

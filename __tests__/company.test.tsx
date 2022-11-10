@@ -67,7 +67,7 @@ describe("Companys operations",()=>{
 
     test("find many Company",async ()=>{
         const company = await findManyCompany({
-            search:companyName.substring(2,4)
+            where:{name:{equals:companyName}}
         });
         expect(company.length).toBeGreaterThan(0)
         expect(company[0].name).toBe(companyName)

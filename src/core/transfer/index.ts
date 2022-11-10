@@ -130,8 +130,8 @@ export const updateTransfer = async (input: UpdateTransferInput) => {
         data: {...data,...details}
     })
 };
-type TransferId = number
-type TransfersId = Array<number>
+export type TransferId = number
+export type TransferIds = Array<number>
 export const getUniqueTransfer = async (id: TransferId) => {
 
     return prisma!.transfer.findUnique({
@@ -153,7 +153,7 @@ export const deleteTransfer = async (id: TransferId) => {
         }
     })
 };
-export const deleteManyTransfer = async (ids: TransfersId) => {
+export const deleteManyTransfer = async (ids: TransferIds) => {
     return prisma!.transfer.updateMany({
         where: {
             id: { in: ids }
@@ -164,34 +164,11 @@ export const deleteManyTransfer = async (ids: TransfersId) => {
     })
 };
 
-export const findManyTransfer = async (input: Pick<Prisma.TransferWhereInput, Prisma.TransferScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.TransferOrderByWithRelationInput, Prisma.TransferScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.TransferWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.TransferScalarFieldEnum)
-            .filter((v) => ["taxMethod", "discountMethod","ref"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyTransfer = async (input: Omit<Prisma.TransferFindManyArgs, "select"|"include"> ) => {
+    
     return prisma!.transfer.findMany(
         { include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
+           ...input
         }
     );
 }

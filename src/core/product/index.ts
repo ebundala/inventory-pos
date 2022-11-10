@@ -127,8 +127,8 @@ export const updateProduct = async (input: UpdateProductInput) => {
         data: { ...data, ...variants }
     })
 };
-type ProductId = number
-type ProductsId = Array<number>
+export type ProductId = number
+export type ProductIds = Array<number>
 export const getUniqueProduct = async (id: ProductId) => {
 
     return prisma!.product.findUnique({
@@ -150,7 +150,7 @@ export const deleteProduct = async (id: ProductId) => {
         }
     })
 };
-export const deleteManyProduct = async (ids: ProductsId) => {
+export const deleteManyProduct = async (ids: ProductIds) => {
     return prisma!.product.updateMany({
         where: {
             id: { in: ids }
@@ -161,33 +161,12 @@ export const deleteManyProduct = async (ids: ProductsId) => {
     })
 };
 
-export const findManyProduct = async (input: Pick<Prisma.ProductWhereInput, Prisma.ProductScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.ProductOrderByWithRelationInput, Prisma.ProductScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.ProductWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.ProductScalarFieldEnum)
-            .filter((v) => ["code", "typeBarcode", "name", "taxMethod", "image", "note"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyProduct = async  (input: Omit<Prisma.ProductFindManyArgs, "select"|"include"> ) => {
+    
     return prisma!.product.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
+            ...input
 
 
         }

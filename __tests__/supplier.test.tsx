@@ -67,7 +67,7 @@ describe("Suppliers operations",()=>{
 
     test("find many Supplier",async ()=>{
         const supplier = await findManySupplier({
-            search:SupplierName.substring(2,4)
+            where:{name:{equals:SupplierName}}
         });
         expect(supplier.length).toBeGreaterThan(0)
         expect(supplier[0].name).toBe(SupplierName)

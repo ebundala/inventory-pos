@@ -44,8 +44,8 @@ export const updateSetting = async (input: UpdateSettingInput) => {
         data: { ...data }
     })
 };
-type SettingId = number
-type SettingsId = Array<number>
+export type SettingId = number
+export type SettingIds = Array<number>
 export const getUniqueSetting = async (id: SettingId) => {
     return prisma!.setting.findUnique({
         where: {
@@ -64,7 +64,7 @@ export const deleteSetting = async (id: SettingId) => {
         }
     })
 };
-export const deleteManySetting = async (ids: SettingsId) => {
+export const deleteManySetting = async (ids: SettingIds) => {
     return prisma!.setting.updateMany({
         where: {
             id: { in: ids }
@@ -75,34 +75,9 @@ export const deleteManySetting = async (ids: SettingsId) => {
     })
 };
 
-export const findManySetting = async (input: Pick<Prisma.SettingWhereInput, Prisma.SettingScalarFieldEnum> & {
+export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include"> ) => {
     
-    orderBy?: [Pick<Prisma.SettingOrderByWithRelationInput, Prisma.SettingScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.SettingWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.SettingScalarFieldEnum)
-        .filter((v) => ["email", "companyName","CompanyPhone","CompanyAdress","logo","footer","developedBy","defaultLanguage"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.setting.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+       input
     );
 }

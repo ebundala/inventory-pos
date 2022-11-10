@@ -91,7 +91,7 @@ describe("PosSettings operations", () => {
 
     test("find many PosSetting", async () => {
         const posSetting = await findManyPosSetting({
-            search: "test".substring(2, 4)
+            where:{noteCustomer:{equals:"hello world2 test"}}
         });
         expect(posSetting.length).toBeGreaterThan(0)
         expect(posSetting[0].noteCustomer).toBe("hello world2 test")

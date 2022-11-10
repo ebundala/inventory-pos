@@ -74,21 +74,10 @@ const testEmail = "email@example.com";
     })
     test("find many tenant",async ()=>{
         const tenant = await findManyTenant({
-            search:tenantName
+            where:{name:{equals:tenantName}}
         });       
         expect(tenant[0].tenantId).toBe(tenantId)
-        const tenant2 = await findManyTenant({
-            search:tenantId!
-        });       
-        expect(tenant2[0].tenantId).toBe(tenantId)
-        const tenant3 = await findManyTenant({
-            search:tenantId!
-        });       
-        expect(tenant3[0].tenantId).toBe(tenantId)
-        const tenant4 = await findManyTenant({
-            name:tenantName!
-        });       
-        expect(tenant4[0].tenantId).toBe(tenantId)
+        
     })
     test("invite members",async ()=>{
         

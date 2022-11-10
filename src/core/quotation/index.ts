@@ -128,8 +128,8 @@ export const updateQuotation = async (input: UpdateQuotationInput) => {
         }
     })
 };
-type QuotationId = number
-type QuotationsId = Array<number>
+export type QuotationId = number
+export type QuotationIds = Array<number>
 export const getUniqueQuotation = async (id: QuotationId) => {
 
     return prisma!.quotation.findUnique({
@@ -151,7 +151,7 @@ export const deleteQuotation = async (id: QuotationId) => {
         }
     })
 };
-export const deleteManyQuotation = async (ids: QuotationsId) => {
+export const deleteManyQuotation = async (ids: QuotationIds) => {
     return prisma!.quotation.updateMany({
         where: {
             id: { in: ids }
@@ -162,35 +162,12 @@ export const deleteManyQuotation = async (ids: QuotationsId) => {
     })
 };
 
-export const findManyQuotation = async (input: Pick<Prisma.QuotationWhereInput, Prisma.QuotationScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.QuotationOrderByWithRelationInput, Prisma.QuotationScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.QuotationWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.QuotationScalarFieldEnum)
-            .filter((v) => ["ref","status","userId","notes"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyQuotation = async  (input: Omit<Prisma.QuotationFindManyArgs, "select"|"include"> ) => {
+    
     return prisma!.quotation.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
+           ...input
         }
     );
 }

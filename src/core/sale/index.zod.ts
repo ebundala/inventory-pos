@@ -116,6 +116,6 @@ export const updateSaleInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const saleIdSchema = z.number();
+export const saleIdSchema = z.number();
 
-const salesIdSchema = z.array(z.number());
+export const saleIdsSchema = z.array(z.number());

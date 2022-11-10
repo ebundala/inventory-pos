@@ -320,7 +320,7 @@ describe("Sales operations", () => {
 
     test("find many Sale", async () => {
         const Sale = await findManySale({
-            search: "test".substring(2, 3)
+            where:{ref:{equals:"test"}}
         });
         expect(Sale.length).toBeGreaterThan(0)
         expect(Sale[0].ref).toBe("test")

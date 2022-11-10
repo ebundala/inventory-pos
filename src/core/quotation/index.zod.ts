@@ -65,6 +65,6 @@ export const updateQuotationInputSchema = z.object({
   tenantId: z.string(),
 });
 
-const quotationIdSchema = z.number();
+export const quotationIdSchema = z.number();
 
-const quotationsIdSchema = z.array(z.number());
+export const quotationIdsSchema = z.array(z.number());

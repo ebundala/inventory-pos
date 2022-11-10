@@ -211,8 +211,8 @@ export const updatePurchase = async (input: UpdatePurchaseInput) => {
          }
     })
 };
-type PurchaseId = number
-type PurchasesId = Array<number>
+export type PurchaseId = number
+export type PurchaseIds = Array<number>
 export const getUniquePurchase = async (id: PurchaseId) => {
 
     return prisma!.purchase.findUnique({
@@ -234,7 +234,7 @@ export const deletePurchase = async (id: PurchaseId) => {
         }
     })
 };
-export const deleteManyPurchase = async (ids: PurchasesId) => {
+export const deleteManyPurchase = async (ids: PurchaseIds) => {
     return prisma!.purchase.updateMany({
         where: {
             id: { in: ids }
@@ -245,33 +245,12 @@ export const deleteManyPurchase = async (ids: PurchasesId) => {
     })
 };
 
-export const findManyPurchase = async (input: Pick<Prisma.PurchaseWhereInput, Prisma.PurchaseScalarFieldEnum> & {
-    orderBy?: [Pick<Prisma.PurchaseOrderByWithRelationInput, Prisma.PurchaseScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.PurchaseWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.PurchaseScalarFieldEnum)
-            .filter((v) => ["ref", "userId", "status", "paymentStatus", "note"].includes(v))
-            .map((v) => ({
-                [v]: { contains: search }
-            }));
-
-        query = {
-            OR: terms
-        };
-    };
+export const findManyPurchase = async  (input: Omit<Prisma.PurchaseFindManyArgs, "select"|"include"> ) => {
+   
     return prisma!.purchase.findMany(
         {
             include,
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
+            ...input
 
 
         }

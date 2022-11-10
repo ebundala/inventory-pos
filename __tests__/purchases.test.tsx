@@ -285,7 +285,7 @@ describe("Purchases operations", () => {
 
     test("find many Purchase", async () => {
         const Purchase = await findManyPurchase({
-            search: "hello".substring(2, 3)
+            where:{notes:{equals:"hello world"}}
         });
         expect(Purchase.length).toBeGreaterThan(0)
         expect(Purchase[0].notes).toBe("hello world")

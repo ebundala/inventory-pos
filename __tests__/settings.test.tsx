@@ -131,7 +131,7 @@ describe("Settings operations", () => {
 
     test("find many Setting", async () => {
         const setting = await findManySetting({
-            search: settingName.substring(2, 4)
+            where:{companyName:{equals:settingName}}
         });
         expect(setting.length).toBeGreaterThan(0)
         expect(setting[0].companyName).toBe(settingName)

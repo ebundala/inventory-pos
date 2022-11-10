@@ -67,7 +67,7 @@ describe("Warehouses operations",()=>{
 
     test("find many Warehouse",async ()=>{
         const Warehouse = await findManyWarehouse({
-            search:warehouseName.substring(2,4)
+            where:{name:{equals:warehouseName}}
         });
         expect(Warehouse.length).toBeGreaterThan(0)
         expect(Warehouse[0].name).toBe(warehouseName)

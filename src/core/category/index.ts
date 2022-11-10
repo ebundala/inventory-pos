@@ -26,8 +26,8 @@ export const updateCategory = async (input: UpdateCategoryInput) => {
         data: { ...data }
     })
 };
-type CategoryId = number
-type CategorysId = Array<number>
+export type CategoryId = number
+export type CategoryIds = Array<number>
 export const getUniqueCategory = async (id: CategoryId) => {
     return prisma!.category.findUnique({
         where: {
@@ -46,7 +46,7 @@ export const deleteCategory = async (id: CategoryId) => {
         }
     })
 };
-export const deleteManyCategory = async (ids: CategorysId) => {
+export const deleteManyCategory = async (ids: CategoryIds) => {
     return prisma!.category.updateMany({
         where: {
             id: { in: ids }
@@ -57,33 +57,9 @@ export const deleteManyCategory = async (ids: CategorysId) => {
     })
 };
 
-export const findManyCategory = async (input: Pick<Prisma.CategoryWhereInput, Prisma.CategoryScalarFieldEnum> & {
+export const findManyCategory = async  (input: Omit<Prisma.CategoryFindManyArgs, "select"|"include"> ) => {
    
-    orderBy?: [Pick<Prisma.CategoryOrderByWithRelationInput, Prisma.CategoryScalarFieldEnum>]
-    take?: number,
-    skip?: number,
-    cursor?: number,
-    search?: string,
-}) => {
-    const { orderBy, take, skip, cursor, search, ...where } = input;
-    let query: Pick<Prisma.CategoryWhereInput, "OR"> | undefined;
-    if (search) {
-        const terms = Object.values(Prisma.CategoryScalarFieldEnum).filter((v) => ["name", "code"].includes(v)).map((v) => ({
-            [v]: { contains: search }
-        }));
-
-        query = {
-            OR: terms
-        };
-    };
     return prisma!.category.findMany(
-        {
-            where: query ?? where,
-            orderBy: orderBy,
-            take, skip,
-            cursor: cursor ? { id: cursor } : undefined,
-
-
-        }
+        input
     );
 }
