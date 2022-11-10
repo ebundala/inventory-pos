@@ -1,8 +1,7 @@
 import { createTenant } from "@/core/tenant";
-import { createPosSetting, deleteManyPosSetting, deletePosSetting, findManyPosSetting, getUniquePosSetting, updatePosSetting } from "@/core/pos_setting";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createPosSettingInputSchema, updatePosSettingInputSchema } from "@/core/pos_setting/index.zod";
+import { appRouter } from "@/lib/routers";
 
 describe("PosSettings operations", () => {
     let tenantId: string | null;
@@ -13,6 +12,8 @@ describe("PosSettings operations", () => {
     const tenantName = "tenantPosSettings"
     const testEmail = "email3@example.com";
     const posSettingName = "Tesla";
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async () => {
         const user = await prisma!.user.create({
             data: {
@@ -23,17 +24,17 @@ describe("PosSettings operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
-
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router = appRouter.createCaller({session:null,tenantId});
    
         
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
         await prisma!.posSetting.delete({ where: { id: posSettingId } }).catch((e)=>{})
         await prisma!.user.delete({ where: { id: userId } }).catch((e)=>{})
         await prisma!.tenant.deleteMany({
@@ -43,7 +44,7 @@ describe("PosSettings operations", () => {
         }).catch((e)=>{})
     });
     test("create new PosSetting", async () => {
-        const input = createPosSettingInputSchema.parse({
+        const input = {
             noteCustomer :"hello world",     
             showNote     :false,      
             showBarcode  :false,      
@@ -52,9 +53,9 @@ describe("PosSettings operations", () => {
             showEmail    :false,      
             showPhone    :false,      
             showAddress  :false,
-            tenantId: tenantId
-        })
-        const posSetting = await createPosSetting(input);
+            tenantId: tenantId!
+        }
+        const posSetting = await router.setting.pos.create(input);
         expect(posSetting.noteCustomer).toBe(input.noteCustomer)
         expect(posSetting.showNote).toBe(input.showNote);
         expect(posSetting.showBarcode).toBe(input.showBarcode);
@@ -63,7 +64,7 @@ describe("PosSettings operations", () => {
 
     });
     test("update PosSetting", async () => {
-        const input = updatePosSettingInputSchema.parse({
+        const input = {
             id: posSettingId,
             noteCustomer :"hello world2 test",     
 
@@ -74,9 +75,9 @@ describe("PosSettings operations", () => {
             showEmail    :true,      
             showPhone    :true,      
             showAddress  :true,
-        })
+        }
 
-        const posSetting = await updatePosSetting(input);
+        const posSetting = await router.setting.pos.update(input);
         expect(posSetting.noteCustomer).toBe(input.noteCustomer)
         expect(posSetting.showNote).toBe(input.showNote);
         expect(posSetting.showBarcode).toBe(input.showBarcode); 
@@ -84,26 +85,26 @@ describe("PosSettings operations", () => {
     });
 
     test("get unique PosSetting", async () => {
-        const posSetting = await getUniquePosSetting(posSettingId);
+        const posSetting = await router.setting.pos.get(posSettingId);
         expect(posSetting?.id).toBe(posSettingId)
         expect(posSetting?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many PosSetting", async () => {
-        const posSetting = await findManyPosSetting({
+        const posSetting = await router.setting.pos.search({
             where:{noteCustomer:{equals:"hello world2 test"}}
         });
         expect(posSetting.length).toBeGreaterThan(0)
         expect(posSetting[0].noteCustomer).toBe("hello world2 test")
     })
     test("delete PosSetting ", async () => {
-        const PosSetting = await deletePosSetting(posSettingId);
+        const PosSetting = await router.setting.pos.delete(posSettingId);
         expect(PosSetting?.id).toBe(posSettingId)
         expect(PosSetting.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many PosSetting ", async () => {
-        const PosSetting = await deleteManyPosSetting([posSettingId]);
+        const PosSetting = await router.setting.pos.deleteMany([posSettingId]);
         expect(PosSetting).toStrictEqual({ count: 1 })
     })
 

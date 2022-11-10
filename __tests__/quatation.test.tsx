@@ -1,14 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createQuotation, deleteManyQuotation, deleteQuotation, findManyQuotation, getUniqueQuotation, updateQuotation } from "@/core/quotation";
+import { createTenant } from "@/core/tenant";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createQuotationInputSchema, updateQuotationInputSchema } from "@/core/quotation/index.zod";
-import { createProduct } from "@/core/product";
-import { createCategory } from "@/core/category";
-import { createBrand } from "@/core/brand";
-import { createUnit } from "@/core/unit";
-import { createWarehouse } from "@/core/warehouse";
-import { createCustomer } from "@/core/customer";
+import { appRouter } from "@/lib/routers";
 
 describe("Quotations operations", () => {
     let tenantId: string | null;
@@ -27,6 +20,7 @@ describe("Quotations operations", () => {
     const testEmail = "quotation@example.com";
     const quotationName = "Tesla";
     const productName = "TestProduct";
+    let router: ReturnType<typeof appRouter.createCaller>
 
 
     beforeAll(async () => {
@@ -39,19 +33,19 @@ describe("Quotations operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
+        router =appRouter.createCaller({session:null,tenantId});
 
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
         //create test category
-        const category = await createCategory({ name: tenantName, code: "123", tenantId });
+        const category = await router.product.category.create({ name: tenantName, code: "123", tenantId });
         categoryId = category?.id ?? null;
         //create test brand
-        const brand = await createBrand({ name: tenantName, tenantId });
+        const brand = await router.product.brand.create({ name: tenantName, tenantId });
         brandId = brand?.id ?? null;
         //create test unit
-        const unit = await createUnit({ name: "pieces", shortName: "pc", tenantId });
+        const unit = await router.product.unit.create({ name: "pieces", shortName: "pc", tenantId });
         unitId = unit?.id ?? null;
         // create test product
-        const product = await createProduct({
+        const product = await router.product.create({
             name: productName,
             note: "good description",
             typeBarcode: "EAN-13",
@@ -73,7 +67,7 @@ describe("Quotations operations", () => {
         });
         productId = product.id ?? null;
         productVariantId = product.productVariants[0].id ?? null
-        const warehouse = await createWarehouse({
+        const warehouse = await router.setting.warehouse.create({
             name: "warehouseName",
             city: testEmail,
             mobile: "tests",
@@ -82,7 +76,7 @@ describe("Quotations operations", () => {
         warehouseId = warehouse.id ?? null;
 
         //create customer
-        const customer = await createCustomer({
+        const customer = await router.people.create({
             tenantId: tenantId,
             email: "quote@customer.com",
             name: "wark in customer",
@@ -95,11 +89,13 @@ describe("Quotations operations", () => {
         customerId = customer.id ?? null;
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         //delete product
         await prisma!.product.delete({ where: { id: productId } })
 
@@ -126,11 +122,11 @@ describe("Quotations operations", () => {
     });
 
     test("create new Quotation", async () => {
-        const input = createQuotationInputSchema.parse({
+        const input = {
             status: "pending",
             items: 5,
             notes: "hellow world",
-            tenantId: tenantId,
+            tenantId: tenantId!,
             date: new Date(),
             userId: userId,
             ref: "xxx",
@@ -146,9 +142,9 @@ describe("Quotations operations", () => {
                 productId: productId,
                 productVariantId: productVariantId
             }]
-        })
+        }
 
-        const quotation = await createQuotation(input);
+        const quotation = await router.quotation.create(input);
         expect(quotation.grandTotal).toBe(5000)
         expect(quotation.notes).toBe(input.notes);
         expect(quotation.tenantId).toBe(tenantId)
@@ -158,10 +154,10 @@ describe("Quotations operations", () => {
     });
 
     test("update Quotation", async () => {
-        const input = updateQuotationInputSchema.parse({
+        const input = {
             id: quotationId,
             ref: "test",
-            tenantId: tenantId,
+            tenantId: tenantId!,
             quotationDetails: [
                 {
                     id: quotationDetailId,
@@ -177,8 +173,8 @@ describe("Quotations operations", () => {
                     productVariantId: productVariantId
                 }
             ]
-        })
-        const quotation2 = await updateQuotation(input);
+        }
+        const quotation2 = await router.quotation.update(input);
         expect(quotation2.ref?.trim()).toBe("test")
         expect(quotation2.quotationDetails.find((v) => v.id === quotationDetailId)?.quantity).toBe(input.quotationDetails![0].quantity)
         expect(quotation2.quotationDetails.find((v) => v.id !== quotationDetailId)?.quantity).toBe(input.quotationDetails![1].quantity)
@@ -186,26 +182,26 @@ describe("Quotations operations", () => {
 
     });
     test("get unique Quotation", async () => {
-        const Quotation = await getUniqueQuotation(quotationId);
+        const Quotation = await router.quotation.get(quotationId);
         expect(Quotation?.id).toBe(quotationId)
         expect(Quotation?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Quotation", async () => {
-        const Quotation = await findManyQuotation({
+        const Quotation = await router.quotation.search({
             where:{ref:{equals:"test"}}
         });
         expect(Quotation.length).toBeGreaterThan(0)
         expect(Quotation[0].ref).toBe("test")
     })
     test("delete Quotation ", async () => {
-        const Quotation = await deleteQuotation(quotationId);
+        const Quotation = await router.quotation.delete(quotationId);
         expect(Quotation?.id).toBe(quotationId)
         expect(Quotation.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Quotation ", async () => {
-        const Quotation = await deleteManyQuotation([quotationId]);
+        const Quotation = await router.quotation.deleteMany([quotationId]);
         expect(Quotation).toStrictEqual({ count: 1 })
     })
 

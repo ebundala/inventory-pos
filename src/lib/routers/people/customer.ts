@@ -25,5 +25,6 @@ export const customerRouter = router({
    deleteMany: privateProcedure
     .input(customerIdsSchema)
     .mutation(({ input, ctx }) => deleteManyCustomer(input)),
-    supplier:supplierRouter
+    supplier:supplierRouter,
+   
 })

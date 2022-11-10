@@ -1,7 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createCompany ,deleteManyCompany,deleteCompany,findManyCompany,getUniqueCompany,updateCompany} from "@/core/company";
+import { createTenant } from "@/core/tenant";
 import {prisma} from "@/core"
 import { RecordStatus } from "@prisma/client";
+import { appRouter } from "@/lib/routers";
 
 describe("Companys operations",()=>{
     let tenantId:string | null;
@@ -11,7 +11,8 @@ describe("Companys operations",()=>{
     const tenantName="tenantCompanys"
     const testEmail = "Company@example.com";
     const companyName = "TestCompany";
-   
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async()=>{
         const user = await prisma!.user.create({
             data:{
@@ -22,15 +23,16 @@ describe("Companys operations",()=>{
         userId=user.id;
         const tenant = await createTenant({subdomain,name:tenantName,userId:userId});
         tenantId = tenant?.tenantId??null;
-        
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router = appRouter.createCaller({session:null,tenantId});
     });
 
-    beforeEach(async()=>{     
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async()=>{     
+    // await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async()=>{
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.user.delete({where:{id:userId}})
         await prisma!.tenant.deleteMany({
             where:{
@@ -39,7 +41,7 @@ describe("Companys operations",()=>{
         })
     });
     test("create new Company",async()=>{
-       const company= await  createCompany({
+       const company= await  router.hrm.create({
         name:companyName,
        
        city:testEmail,
@@ -53,33 +55,33 @@ describe("Companys operations",()=>{
 
     });
     test("update Company",async()=>{
-        const company2 = await updateCompany({
+        const company2 = await router.hrm.update({
             id:CompanyId,
            city:"test",
         });
         expect(company2.city?.trim()).toBe("test")
     });
     test("get unique Company",async ()=>{
-        const company = await getUniqueCompany(CompanyId);
+        const company = await router.hrm.get(CompanyId);
         expect(company?.id).toBe(CompanyId)
         expect(company?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Company",async ()=>{
-        const company = await findManyCompany({
+        const company = await router.hrm.search({
             where:{name:{equals:companyName}}
         });
         expect(company.length).toBeGreaterThan(0)
         expect(company[0].name).toBe(companyName)
     })
     test("delete Company ",async ()=>{
-        const company = await deleteCompany(CompanyId);
+        const company = await router.hrm.delete(CompanyId);
         expect(company?.id).toBe(CompanyId)
         expect(company.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Company ",async ()=>{
-        const company = await deleteManyCompany([CompanyId]);
+        const company = await router.hrm.deleteMany([CompanyId]);
         expect(company).toStrictEqual({count:1})
     })
     

@@ -1,7 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createSupplier ,deleteManySupplier,deleteSupplier,findManySupplier,getUniqueSupplier,updateSupplier} from "@/core/supplier";
+import { createTenant } from "@/core/tenant";
 import {prisma} from "@/core"
 import { RecordStatus } from "@prisma/client";
+import { appRouter } from "@/lib/routers";
 
 describe("Suppliers operations",()=>{
     let tenantId:string | null;
@@ -11,7 +11,8 @@ describe("Suppliers operations",()=>{
     const tenantName="tenantSuppliers"
     const testEmail = "Supplier@example.com";
     const SupplierName = "TestSupplier";
-   
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async()=>{
         const user = await prisma!.user.create({
             data:{
@@ -22,15 +23,17 @@ describe("Suppliers operations",()=>{
         userId=user.id;
         const tenant = await createTenant({subdomain,name:tenantName,userId:userId});
         tenantId = tenant?.tenantId??null;
-        
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router =appRouter.createCaller({session:null,tenantId});
+
     });
 
-    beforeEach(async()=>{     
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async()=>{     
+    // await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async()=>{
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.user.delete({where:{id:userId}})
         await prisma!.tenant.deleteMany({
             where:{
@@ -39,7 +42,7 @@ describe("Suppliers operations",()=>{
         })
     });
     test("create new Supplier",async()=>{
-       const Supplier= await  createSupplier({
+       const Supplier= await  router.people.supplier.create({
         name:SupplierName,
         code:56,
         email:testEmail,
@@ -53,33 +56,33 @@ describe("Suppliers operations",()=>{
 
     });
     test("update Supplier",async()=>{
-        const Supplier2 = await updateSupplier({
+        const Supplier2 = await router.people.supplier.update({
             id:supplierId,
            city:"test",
         });
         expect(Supplier2.city?.trim()).toBe("test")
     });
     test("get unique Supplier",async ()=>{
-        const supplier = await getUniqueSupplier(supplierId);
+        const supplier = await router.people.supplier.get(supplierId);
         expect(supplier?.id).toBe(supplierId)
         expect(supplier?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Supplier",async ()=>{
-        const supplier = await findManySupplier({
+        const supplier = await router.people.supplier.search({
             where:{name:{equals:SupplierName}}
         });
         expect(supplier.length).toBeGreaterThan(0)
         expect(supplier[0].name).toBe(SupplierName)
     })
     test("delete Supplier ",async ()=>{
-        const supplier = await deleteSupplier(supplierId);
+        const supplier = await router.people.supplier.delete(supplierId);
         expect(supplier?.id).toBe(supplierId)
         expect(supplier.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Supplier ",async ()=>{
-        const supplier = await deleteManySupplier([supplierId]);
+        const supplier = await router.people.supplier.deleteMany([supplierId]);
         expect(supplier).toStrictEqual({count:1})
     })
     

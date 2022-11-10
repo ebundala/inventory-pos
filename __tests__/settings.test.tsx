@@ -1,11 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createSetting, deleteManySetting, deleteSetting, findManySetting, getUniqueSetting, updateSetting } from "@/core/setting";
+import { createTenant } from "@/core/tenant";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createSettingInputSchema, updateSettingInputSchema } from "@/core/setting/index.zod";
-import { createCustomer } from "@/core/customer";
-import { createWarehouse } from "@/core/warehouse";
-import { createCurrency } from "@/core/currency";
+import { appRouter } from "@/lib/routers";
 
 describe("Settings operations", () => {
     let tenantId: string | null;
@@ -18,6 +14,8 @@ describe("Settings operations", () => {
     const tenantName = "tenantSettings"
     const testEmail = "email3@example.com";
     const settingName = "Tesla";
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async () => {
         const user = await prisma!.user.create({
             data: {
@@ -28,10 +26,10 @@ describe("Settings operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
+        router =appRouter.createCaller({session:null,tenantId});
 
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
    
-        const warehouse = await createWarehouse({
+        const warehouse = await router.setting.warehouse.create({
             name: "warehouseName",
             city: testEmail,
             mobile: "tests",
@@ -40,7 +38,7 @@ describe("Settings operations", () => {
         warehouseId = warehouse.id ?? null;
 
         //create customer
-        const customer = await createCustomer({
+        const customer = await router.people.create({
             tenantId: tenantId,
             email: "quote@customer.com",
             name: "wark in customer",
@@ -52,7 +50,7 @@ describe("Settings operations", () => {
         })
         customerId = customer.id ?? null;
         //create currency
-        const currency = await createCurrency({
+        const currency = await router.setting.currency.create({
             tenantId: tenantId,
             name: "Tanzanian shilling",
             code: "1",
@@ -61,11 +59,13 @@ describe("Settings operations", () => {
         currencyId = currency.id ?? null;
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.setting.delete({ where: { id: settingId } }).catch((e)=>{})
 
         await prisma!.customer.delete({ where: { id: customerId } }).catch((e)=>{})
@@ -80,7 +80,7 @@ describe("Settings operations", () => {
         }).catch((e)=>{})
     });
     test("create new Setting", async () => {
-        const input = createSettingInputSchema.parse({
+        const input = {
             email: testEmail,
             currencyId: currencyId,
             companyName: settingName,
@@ -92,9 +92,9 @@ describe("Settings operations", () => {
             customerId: customerId,
             warehouseId: warehouseId,
             defaultLanguage: "en",
-            tenantId: tenantId
-        })
-        const setting = await createSetting(input);
+            tenantId: tenantId!
+        }
+        const setting = await router.setting.create(input);
         expect(setting.email).toBe(input.email)
         expect(setting.customerId).toBe(input.customerId);
         expect(setting.defaultLanguage).toBe(input.defaultLanguage);
@@ -103,7 +103,7 @@ describe("Settings operations", () => {
 
     });
     test("update Setting", async () => {
-        const input = updateSettingInputSchema.parse({
+        const input = {
             id: settingId,
             email: testEmail,          
             companyName: settingName,
@@ -113,9 +113,9 @@ describe("Settings operations", () => {
             footer: "hello world",
             developedBy: "hello world2",            
             defaultLanguage: "sw",
-        })
+        }
 
-        const setting = await updateSetting(input);
+        const setting = await router.setting.update(input);
         expect(setting.developedBy).toBe(input.developedBy)
         expect(setting.customerId).toBe(customerId);
         expect(setting.defaultLanguage).toBe(input.defaultLanguage);
@@ -124,26 +124,26 @@ describe("Settings operations", () => {
     });
 
     test("get unique Setting", async () => {
-        const setting = await getUniqueSetting(settingId);
+        const setting = await router.setting.get(settingId);
         expect(setting?.id).toBe(settingId)
         expect(setting?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Setting", async () => {
-        const setting = await findManySetting({
+        const setting = await router.setting.search({
             where:{companyName:{equals:settingName}}
         });
         expect(setting.length).toBeGreaterThan(0)
         expect(setting[0].companyName).toBe(settingName)
     })
     test("delete Setting ", async () => {
-        const Setting = await deleteSetting(settingId);
+        const Setting = await router.setting.delete(settingId);
         expect(Setting?.id).toBe(settingId)
         expect(Setting.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Setting ", async () => {
-        const Setting = await deleteManySetting([settingId]);
+        const Setting = await router.setting.deleteMany([settingId]);
         expect(Setting).toStrictEqual({ count: 1 })
     })
 

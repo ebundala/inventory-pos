@@ -1,7 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createUnit ,deleteManyUnit,deleteUnit,findManyUnit,getUniqueUnit,updateUnit} from "@/core/unit";
+import { createTenant } from "@/core/tenant";
 import {prisma} from "@/core"
-import { Prisma,RecordStatus } from "@prisma/client";
+import { RecordStatus } from "@prisma/client";
+import { appRouter } from "@/lib/routers";
 
 describe("Units operations",()=>{
     let tenantId:string|null;
@@ -12,6 +12,8 @@ describe("Units operations",()=>{
     const testEmail = "email2@example.com";
     const unitName = "kilogram";
     const ShortName= "kg";
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async()=>{
         const user = await prisma!.user.create({
             data:{
@@ -22,16 +24,18 @@ describe("Units operations",()=>{
         userId=user.id;
         const tenant = await createTenant({subdomain,name:tenantName,userId:userId});
         tenantId = tenant?.tenantId??null;
-        
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router =appRouter.createCaller({session:null,tenantId});
+
   
         
     });
-    beforeEach(async()=>{     
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async()=>{     
+    // await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async()=>{
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.user.delete({where:{id:userId}})
         await prisma!.tenant.deleteMany({
             where:{
@@ -40,7 +44,7 @@ describe("Units operations",()=>{
         })
     });
     test("create new Unit",async()=>{
-       const unit= await  createUnit({
+       const unit= await  router.product.unit.create({
         name:"kilogram",shortName:"kg",tenantId:tenantId!
        });
         expect(unit.shortName).toBe(ShortName)
@@ -50,7 +54,7 @@ describe("Units operations",()=>{
 
     });
     test("update Unit",async()=>{
-        const unit2 = await updateUnit({
+        const unit2 = await router.product.unit.update({
             id:unitId,
             operator:"+",
             operatorValue:5
@@ -60,26 +64,26 @@ describe("Units operations",()=>{
 
     });
     test("get unique Unit",async ()=>{
-        const unit = await getUniqueUnit(unitId);
+        const unit = await router.product.unit.get(unitId);
         expect(unit?.id).toBe(unitId)
         expect(unit?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Unit",async ()=>{
-        const units = await findManyUnit({
+        const units = await router.product.unit.search({
             where:{shortName:{equals:ShortName}}
         });
         expect(units.length).toBeGreaterThan(0)
         expect(units[0].shortName).toBe(ShortName)
     })
     test("delete Unit ",async ()=>{
-        const unit = await deleteUnit(unitId);
+        const unit = await router.product.unit.delete(unitId);
         expect(unit?.id).toBe(unitId)
         expect(unit.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Unit ",async ()=>{
-        const unit = await deleteManyUnit([unitId]);
+        const unit = await router.product.unit.deleteMany([unitId]);
         expect(unit).toStrictEqual({count:1})
     })
     

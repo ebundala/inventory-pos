@@ -2,6 +2,7 @@ import { createTenant, deleteManyTenant } from "@/core/tenant";
 import { createCurrency ,deleteManyCurrency,deleteCurrency,findManyCurrency,getUniqueCurrency,updateCurrency} from "@/core/currency";
 import {prisma} from "@/core"
 import { RecordStatus } from "@prisma/client";
+import { appRouter } from "@/lib/routers";
 
 describe("Currencys operations",()=>{
     let tenantId:string | null;
@@ -11,7 +12,8 @@ describe("Currencys operations",()=>{
     const tenantName="tenantCurrencys"
     const testEmail = "Currency@example.com";
     const CurrencyName = "TestCurrency";
-   
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async()=>{
         const user = await prisma!.user.create({
             data:{
@@ -22,15 +24,17 @@ describe("Currencys operations",()=>{
         userId=user.id;
         const tenant = await createTenant({subdomain,name:tenantName,userId:userId});
         tenantId = tenant?.tenantId??null;
-        
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router = appRouter.createCaller({session:null,tenantId});
+
     });
 
-    beforeEach(async()=>{     
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async()=>{     
+    // await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async()=>{
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.user.delete({where:{id:userId}})
         await prisma!.tenant.deleteMany({
             where:{
@@ -39,7 +43,7 @@ describe("Currencys operations",()=>{
         })
     });
     test("create new Currency",async()=>{
-       const Currency= await  createCurrency({
+       const Currency= await  router.setting.currency.create({
         name:CurrencyName,
         symbol:"$",
         code:"xvx",
@@ -52,7 +56,7 @@ describe("Currencys operations",()=>{
 
     });
     test("update Currency",async()=>{
-        const currency2 = await updateCurrency({
+        const currency2 = await router.setting.currency.update({
             id:currencyId,
            code:"test",
            
@@ -60,26 +64,26 @@ describe("Currencys operations",()=>{
         expect(currency2.code?.trim()).toBe("test")
     });
     test("get unique Currency",async ()=>{
-        const currency = await getUniqueCurrency(currencyId);
+        const currency = await router.setting.currency.get(currencyId);
         expect(currency?.id).toBe(currencyId)
         expect(currency?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Currency",async ()=>{
-        const currency = await findManyCurrency({
+        const currency = await router.setting.currency.search({
             where:{name:{equals:CurrencyName}}
         });
         expect(currency.length).toBeGreaterThan(0)
         expect(currency[0].name).toBe(CurrencyName)
     })
     test("delete Currency ",async ()=>{
-        const currency = await deleteCurrency(currencyId);
+        const currency = await router.setting.currency.delete(currencyId);
         expect(currency?.id).toBe(currencyId)
         expect(currency.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Currency ",async ()=>{
-        const currency = await deleteManyCurrency([currencyId]);
+        const currency = await router.setting.currency.deleteMany([currencyId]);
         expect(currency).toStrictEqual({count:1})
     })
     

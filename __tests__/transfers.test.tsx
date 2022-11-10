@@ -1,15 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createTransfer, deleteManyTransfer, deleteTransfer, findManyTransfer, getUniqueTransfer, updateTransfer } from "@/core/transfer";
+import { createTenant } from "@/core/tenant";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createTransferInputSchema, updateTransferInputSchema } from "@/core/transfer/index.zod";
-import { createProduct } from "@/core/product";
-import { createCategory } from "@/core/category";
-import { createBrand } from "@/core/brand";
-import { createUnit } from "@/core/unit";
-import { createWarehouse } from "@/core/warehouse";
-import { createCustomer } from "@/core/customer";
-import { z } from "zod";
+import { appRouter } from "@/lib/routers";
 
 describe("Transfers operations", () => {
     let tenantId: string | null;
@@ -29,6 +21,7 @@ describe("Transfers operations", () => {
     const testEmail = "transfer@example.com";
     const transferName = "Tesla";
     const productName = "TestProduct";
+    let router: ReturnType<typeof appRouter.createCaller>
 
 
     beforeAll(async () => {
@@ -41,19 +34,19 @@ describe("Transfers operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
+        router =appRouter.createCaller({session:null,tenantId});
 
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
         //create test category
-        const category = await createCategory({ name: tenantName, code: "123", tenantId });
+        const category = await router.product.category.create({ name: tenantName, code: "123", tenantId });
         categoryId = category?.id ?? null;
         //create test brand
-        const brand = await createBrand({ name: tenantName, tenantId });
+        const brand = await router.product.brand.create({ name: tenantName, tenantId });
         brandId = brand?.id ?? null;
         //create test unit
-        const unit = await createUnit({ name: "pieces", shortName: "pc", tenantId });
+        const unit = await router.product.unit.create({ name: "pieces", shortName: "pc", tenantId });
         unitId = unit?.id ?? null;
         // create test product
-        const product = await createProduct({
+        const product = await router.product.create({
             name: productName,
             note: "good description",
             typeBarcode: "EAN-13",
@@ -76,7 +69,7 @@ describe("Transfers operations", () => {
         });
         productId = product.id ?? null;
         productVariantId = product.productVariants[0].id ?? null
-        const warehouse = await createWarehouse({
+        const warehouse = await router.setting.warehouse.create({
             name: "warehouseName1",
             city: testEmail,
             mobile: "tests",
@@ -84,7 +77,7 @@ describe("Transfers operations", () => {
         });
         warehouseId = warehouse.id ?? null;
 
-        const warehouse2 = await createWarehouse({
+        const warehouse2 = await router.setting.warehouse.create({
             name: "warehouseName1",
             city: testEmail,
             mobile: "tests",
@@ -93,11 +86,13 @@ describe("Transfers operations", () => {
         warehouseId2 = warehouse2.id ?? null;
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         //delete transfer
         await prisma!.transfer.delete({ where: { id: transferId } })
 
@@ -123,7 +118,7 @@ describe("Transfers operations", () => {
     });
 
     test("create new Transfer", async () => {
-        const input = createTransferInputSchema.parse({
+        const input = {
             userId: userId,
             ref: "nnnn",
             date: new Date(),
@@ -151,10 +146,10 @@ describe("Transfers operations", () => {
                     total: 3000
                 }
             ],
-            tenantId: tenantId
-        })
+            tenantId: tenantId!
+        }
 
-        const transfer = await createTransfer(input);
+        const transfer = await router.transfer.create(input);
         expect(transfer.grandTotal).toBe(input.grandTotal)
         expect(transfer.notes).toBe(input.notes);
         expect(transfer.tenantId).toBe(tenantId)
@@ -166,9 +161,9 @@ describe("Transfers operations", () => {
     });
 
     test("update Transfer", async () => {
-        const input = updateTransferInputSchema.parse({
+        const input = {
             id: transferId,
-            tenantId: tenantId,
+            tenantId: tenantId!,
             userId: userId,
             ref: "test",
             date: new Date(),
@@ -211,8 +206,8 @@ describe("Transfers operations", () => {
                 }
             ],
 
-        })
-        const transfer2 = await updateTransfer(input);
+        }
+        const transfer2 = await router.transfer.update(input);
         expect(transfer2.ref?.trim()).toBe("test")
         expect(transfer2.transferDetails.find((v) => v.id === transferDetailId)?.quantity).toBe(input.transferDetails![0].quantity)
         expect(transfer2.transferDetails.find((v) => v.id !== transferDetailId)?.quantity).toBe(input.transferDetails![1].quantity)
@@ -222,26 +217,26 @@ describe("Transfers operations", () => {
 
     });
     test("get unique Transfer", async () => {
-        const Transfer = await getUniqueTransfer(transferId);
+        const Transfer = await router.transfer.get(transferId);
         expect(Transfer?.id).toBe(transferId)
         expect(Transfer?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Transfer", async () => {
-        const transfer = await findManyTransfer({
+        const transfer = await router.transfer.search({
             where:{ref:{equals:"test"}}
         });
         expect(transfer.length).toBeGreaterThan(0)
         expect(transfer[0].ref).toBe("test")
     })
     test("delete Transfer ", async () => {
-        const transfer = await deleteTransfer(transferId);
+        const transfer = await router.transfer.delete(transferId);
         expect(transfer?.id).toBe(transferId)
         expect(transfer.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Transfer ", async () => {
-        const Transfer = await deleteManyTransfer([transferId]);
+        const Transfer = await router.transfer.deleteMany([transferId]);
         expect(Transfer).toStrictEqual({ count: 1 })
     })
 

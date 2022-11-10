@@ -1,15 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createPurchase, deleteManyPurchase, deletePurchase, findManyPurchase, getUniquePurchase, updatePurchase } from "@/core/purchase";
+import { createTenant } from "@/core/tenant";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createPurchaseInputSchema, updatePurchaseInputSchema } from "@/core/purchase/index.zod";
-import { createProduct } from "@/core/product";
-import { createCategory } from "@/core/category";
-import { createBrand } from "@/core/brand";
-import { createUnit } from "@/core/unit";
-import { createWarehouse } from "@/core/warehouse";
-import { createCustomer } from "@/core/customer";
-import { createSupplier } from "@/core/supplier";
+import { appRouter } from "@/lib/routers";
 
 describe("Purchases operations", () => {
     let tenantId: string | null;
@@ -31,6 +23,7 @@ describe("Purchases operations", () => {
     const testEmail = "purchase@example.com";
     const purchaseName = "Tesla";
     const productName = "TestProduct";
+    let router: ReturnType<typeof appRouter.createCaller>
 
 
     beforeAll(async () => {
@@ -43,19 +36,19 @@ describe("Purchases operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
+        router =appRouter.createCaller({session:null,tenantId});
 
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
         //create test category
-        const category = await createCategory({ name: tenantName, code: "123", tenantId });
+        const category = await router.product.category.create({ name: tenantName, code: "123", tenantId });
         categoryId = category?.id ?? null;
         //create test brand
-        const brand = await createBrand({ name: tenantName, tenantId });
+        const brand = await router.product.brand.create({ name: tenantName, tenantId });
         brandId = brand?.id ?? null;
         //create test unit
-        const unit = await createUnit({ name: "pieces", shortName: "pc", tenantId });
+        const unit = await router.product.unit.create({ name: "pieces", shortName: "pc", tenantId });
         unitId = unit?.id ?? null;
         // create test product
-        const product = await createProduct({
+        const product = await router.product.create({
             name: productName,
             note: "good description",
             typeBarcode: "EAN-13",
@@ -80,7 +73,7 @@ describe("Purchases operations", () => {
         productVariantId2 = product.productVariants[1].id ?? null
 
         //create warehouse
-        const warehouse = await createWarehouse({
+        const warehouse = await router.setting.warehouse.create({
             name: "warehouseName",
             city: testEmail,
             mobile: "tests",
@@ -89,7 +82,7 @@ describe("Purchases operations", () => {
         warehouseId = warehouse.id ?? null;
 
         //create customer
-        const customer = await createCustomer({
+        const customer = await router.people.create({
             tenantId: tenantId,
             email: "quote@customer.com",
             name: "wark in customer",
@@ -101,7 +94,7 @@ describe("Purchases operations", () => {
         })
         customerId = customer.id ?? null;
         //create supplier
-        const supplier = await createSupplier({
+        const supplier = await router.people.supplier.create({
             name: "supplierx", email: "supplierx@example.com",
             code: 234,
             address: "kibaha tc",
@@ -110,12 +103,13 @@ describe("Purchases operations", () => {
         supplierId = supplier.id ?? null;
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
-       
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         //delete purchase
         await prisma!.purchase.delete({ where: { id: purchaseId } }).catch((e)=>{})
         //delete customer
@@ -144,11 +138,11 @@ describe("Purchases operations", () => {
 
     test("create new Purchase", async () => {
         
-        const input = createPurchaseInputSchema.parse({
+        const input = {
             userId: userId,
             ref: "xcvc",
             date: new Date(),
-            tenantId:tenantId,
+            tenantId:tenantId!,
             supplierId: supplierId,
             warehouseId: warehouseId,
             taxRate: 5,
@@ -186,9 +180,9 @@ describe("Purchases operations", () => {
                     
                 }
             ],
-        })
+        }
 
-        const purchase = await createPurchase(input);
+        const purchase = await router.purchase.create(input);
         expect(purchase.grandTotal).toBe(input.grandTotal)
         expect(purchase.notes).toBe(input.notes);
         expect(purchase.tenantId).toBe(tenantId)
@@ -201,7 +195,7 @@ describe("Purchases operations", () => {
     });
 
     test("update Purchase", async () => {
-        const input = updatePurchaseInputSchema.parse({
+        const input = {
             id: purchaseId,
             taxRate: 15,
             taxNet: 150,
@@ -212,7 +206,7 @@ describe("Purchases operations", () => {
             status: "completed",
             paymentStatus: "partial",
             notes: "hello world",
-            tenantId: tenantId,
+            tenantId: tenantId!,
             paymentPurchases: [
                 {
                     id: purchasePaymentId,
@@ -265,8 +259,8 @@ describe("Purchases operations", () => {
                     
                 }
             ],
-        })
-        const purchase2 = await updatePurchase(input);
+        }
+        const purchase2 = await  router.purchase.update(input);
         expect(purchase2.taxRate).toBe(input.taxRate)
         expect(purchase2.paymentPurchases.find((v)=>v.id===purchasePaymentId)?.change).toBe(input.paymentPurchases![0].change)
         expect(purchase2.purchaseDetails.find((v)=>v.id===purchaseDetailId)?.quantity).toBe(input.purchaseDetails![0].quantity)
@@ -278,26 +272,26 @@ describe("Purchases operations", () => {
 
     });
     test("get unique Purchase", async () => {
-        const Purchase = await getUniquePurchase(purchaseId);
+        const Purchase = await  router.purchase.get(purchaseId);
         expect(Purchase?.id).toBe(purchaseId)
         expect(Purchase?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Purchase", async () => {
-        const Purchase = await findManyPurchase({
+        const Purchase = await  router.purchase.search({
             where:{notes:{equals:"hello world"}}
         });
         expect(Purchase.length).toBeGreaterThan(0)
         expect(Purchase[0].notes).toBe("hello world")
     })
     test("delete Purchase ", async () => {
-        const Purchase = await deletePurchase(purchaseId);
+        const Purchase = await  router.purchase.delete(purchaseId);
         expect(Purchase?.id).toBe(purchaseId)
         expect(Purchase.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Purchase ", async () => {
-        const Purchase = await deleteManyPurchase([purchaseId]);
+        const Purchase = await  router.purchase.deleteMany([purchaseId]);
         expect(Purchase).toStrictEqual({ count: 1 })
     })
 

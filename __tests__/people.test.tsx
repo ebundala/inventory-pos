@@ -1,8 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createCustomer, deleteManyCustomer, deleteCustomer, findManyCustomer, getUniqueCustomer, updateCustomer } from "@/core/customer";
+import { createTenant } from "@/core/tenant";
 import { prisma } from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createCustomerInputSchema, updateCustomerInputSchema } from "@/core/customer/index.zod";
+import { appRouter } from "@/lib/routers";
 
 describe("Customers operations", () => {
     let tenantId: string | null;
@@ -12,6 +11,8 @@ describe("Customers operations", () => {
     const tenantName = "tenantCustomers"
     const testEmail = "email3@example.com";
     const customerName = "Tesla";
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async () => {
         const user = await prisma!.user.create({
             data: {
@@ -22,15 +23,16 @@ describe("Customers operations", () => {
         userId = user.id;
         const tenant = await createTenant({ subdomain, name: tenantName, userId: userId });
         tenantId = tenant?.tenantId ?? null;
-
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+        router = appRouter.createCaller({tenantId,session:null});
     });
 
-    beforeEach(async () => {
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async () => {
+    //     await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async () => {
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
+
         await prisma!.user.delete({ where: { id: userId } })
         await prisma!.tenant.deleteMany({
             where: {
@@ -39,17 +41,17 @@ describe("Customers operations", () => {
         })
     });
     test("create new Customer", async () => {
-        const input = createCustomerInputSchema.parse({
+        const input = {
             name: customerName,
             code: 123,
-            email: "email@test.com",
+            email: testEmail,
             country: "tanzania",
             city: "dar es salaam",
             phone: "123456",
             address: "kibaha",
-            tenantId: tenantId
-        })
-        const customer = await createCustomer(input);
+            tenantId: tenantId!
+        }
+        const customer = await router.people.create(input);
         expect(customer.name).toBe(input.name)
         expect(customer.email).toBe(input.email);
         expect(customer.address).toBe(input.address);
@@ -58,7 +60,7 @@ describe("Customers operations", () => {
 
     });
     test("update Customer", async () => {
-        const input = updateCustomerInputSchema.parse({
+        const input = {
             id: customerId,           
             code: 124,
             email: "email@test.com",
@@ -67,8 +69,8 @@ describe("Customers operations", () => {
             phone: "123456",
             address: "test",
 
-        })
-        const customer = await updateCustomer(input);
+        }
+        const customer = await router.people.update(input);
         expect(customer.city).toBe(input.city)
         expect(customer.code).toBe(input.code)
         expect(customer.email).toBe(input.email);
@@ -76,26 +78,26 @@ describe("Customers operations", () => {
         expect(customer.id).toBe(customerId)
     });
     test("get unique Customer", async () => {
-        const customer = await getUniqueCustomer(customerId);
+        const customer = await router.people.get(customerId);
         expect(customer?.id).toBe(customerId)
         expect(customer?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Customer", async () => {
-        const customer = await findManyCustomer({
+        const customer = await router.people.search({
             where:{name:{equals:customerName}}
         });
         expect(customer.length).toBeGreaterThan(0)
         expect(customer[0].name).toBe(customerName)
     })
     test("delete Customer ", async () => {
-        const Customer = await deleteCustomer(customerId);
+        const Customer = await router.people.delete(customerId);
         expect(Customer?.id).toBe(customerId)
         expect(Customer.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Customer ", async () => {
-        const Customer = await deleteManyCustomer([customerId]);
+        const Customer = await router.people.deleteMany([customerId]);
         expect(Customer).toStrictEqual({ count: 1 })
     })
 

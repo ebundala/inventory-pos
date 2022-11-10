@@ -1,11 +1,7 @@
-import { createTenant, deleteManyTenant } from "@/core/tenant";
-import { createProduct ,deleteManyProduct,deleteProduct,findManyProduct,
-    getUniqueProduct,updateProduct} from "@/core/product";
+import { createTenant } from "@/core/tenant";
 import {prisma} from "@/core"
 import { RecordStatus } from "@prisma/client";
-import { createCategory } from "@/core/category";
-import { createBrand } from "@/core/brand";
-import { createUnit } from "@/core/unit";
+import { appRouter } from "@/lib/routers";
 
 describe("Products operations",()=>{
     let tenantId:string | null;
@@ -18,7 +14,8 @@ describe("Products operations",()=>{
     const tenantName="tenantProducts"
     const testEmail = "Product@example.com";
     const productName = "TestProduct";
- 
+    let router: ReturnType<typeof appRouter.createCaller>
+
     beforeAll(async()=>{
         //create test user
         const user = await prisma!.user.create({
@@ -31,23 +28,24 @@ describe("Products operations",()=>{
         //create test tenant
         const tenant = await createTenant({subdomain,name:tenantName,userId:userId});
         tenantId = tenant?.tenantId??null;
+        router =appRouter.createCaller({session:null,tenantId});
         //create test category
-        const category = await createCategory({name:tenantName,code:"123",tenantId});
+        const category = await router.product.category.create({name:tenantName,code:"123",tenantId});
         categoryId = category?.id??null;
         //create test brand
-        const brand = await createBrand({name:tenantName,tenantId});
+        const brand = await router.product.brand.create({name:tenantName,tenantId});
         brandId = brand?.id??null;
          //create test unit
-         const unit = await createUnit({name:"pieces",shortName:"pc",tenantId});
+         const unit = await router.product.unit.create({name:"pieces",shortName:"pc",tenantId});
          unitId = unit?.id??null;
-        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
     });
 
-    beforeEach(async()=>{     
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
-    })
+    // beforeEach(async()=>{     
+    // await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`);
+    // })
 
     afterAll(async()=>{
+        await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${tenantId}"`)
         //delete user
         await prisma!.user.delete({where:{id:userId}})
         //delete product
@@ -69,7 +67,7 @@ describe("Products operations",()=>{
        
     });
     test("create new Product",async()=>{
-       const product= await  createProduct({
+       const product= await  router.product.create({
            name: productName,
            note: "good description",
            typeBarcode: "EAN-13",
@@ -96,7 +94,7 @@ describe("Products operations",()=>{
 
     });
     test("update Product",async()=>{
-        const product = await updateProduct({
+        const product = await router.product.update({
             id: productId,
             code: "test",           
             typeBarcode: "ean13",           
@@ -114,26 +112,26 @@ describe("Products operations",()=>{
         expect(product.productVariants.length).toBe(3)
     });
     test("get unique Product",async ()=>{
-        const product = await getUniqueProduct(productId);
+        const product = await router.product.get(productId);
         expect(product?.id).toBe(productId)
         expect(product?.recordStatus).toBe(RecordStatus.ACTIVE)
     })
 
     test("find many Product",async ()=>{
-        const product = await findManyProduct({
+        const product = await router.product.search({
             where:{name:{equals:productName}}
         });
         expect(product.length).toBeGreaterThan(0)
         expect(product[0].name).toBe(productName)
     })
     test("delete Product ",async ()=>{
-        const product = await deleteProduct(productId);
+        const product = await router.product.delete(productId);
         expect(product?.id).toBe(productId)
         expect(product.recordStatus).toBe(RecordStatus.DELETED)
 
     })
     test("delete many Product ",async ()=>{
-        const product = await deleteManyProduct([productId]);
+        const product = await router.product.deleteMany([productId]);
         expect(product).toStrictEqual({count:1})
     })
     
