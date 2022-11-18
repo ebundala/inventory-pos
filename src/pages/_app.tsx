@@ -5,8 +5,9 @@ import type { Session } from "next-auth";
 import "@/styles/globals.css";
 
 import type { AppProps } from "next/app";
+import { trpc } from "src/utils/trpc";
 
-export default function App({
+export default trpc.withTRPC(function App({
   Component,
   pageProps: { session, ...pageProps },
 }: AppProps<{ session: Session }>) {
@@ -17,4 +18,4 @@ export default function App({
       </SessionProvider>
     </PlausibleProvider>
   );
-}
+})

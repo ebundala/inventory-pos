@@ -1,7 +1,7 @@
 import useSWR, { mutate } from "swr";
 import { useState } from "react";
 import LoadingDots from "@/components/app/loading-dots";
-import { fetcher } from "@/lib/fetcher";
+import { fetcher } from "@/core";
 import { HttpMethod } from "@/types";
 
 import type { Site } from "@prisma/client";

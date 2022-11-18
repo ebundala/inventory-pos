@@ -1,28 +1,28 @@
 import { createCustomer, deleteManyCustomer, deleteCustomer, findManyCustomer, getUniqueCustomer, updateCustomer } from "@/core/customer";
 import { createCustomerInputSchema, customerIdSchema, customerIdsSchema, updateCustomerInputSchema } from "@/core/customer/index.zod";
-import { router, privateProcedure } from "@/core/trpc";
+import { router, privateProcedureWithTx } from "@/core/trpc";
 import { CustomerFindManySchema } from "prisma/generated/schemas/findManyCustomer.schema";
 import { supplierRouter } from "./supplier";
 
 
 
 export const customerRouter = router({
-    create: privateProcedure
+    create: privateProcedureWithTx
         .input(createCustomerInputSchema)
         .mutation(({ input, ctx }) => createCustomer(input)),
 
-    update: privateProcedure
+    update: privateProcedureWithTx
         .input(updateCustomerInputSchema)
         .mutation((({ input, ctx }) => updateCustomer(input))),
-    get: privateProcedure
+    get: privateProcedureWithTx
     .input(customerIdSchema)
     .query(({ input, ctx }) => getUniqueCustomer(input)),
-    search: privateProcedure.input(CustomerFindManySchema)
+    search: privateProcedureWithTx.input(CustomerFindManySchema)
     .query(({ input, ctx }) => findManyCustomer(input)),
-    delete: privateProcedure
+    delete: privateProcedureWithTx
     .input(customerIdSchema)
     .mutation(({ input, ctx }) => deleteCustomer(input)),
-   deleteMany: privateProcedure
+   deleteMany: privateProcedureWithTx
     .input(customerIdsSchema)
     .mutation(({ input, ctx }) => deleteManyCustomer(input)),
     supplier:supplierRouter,

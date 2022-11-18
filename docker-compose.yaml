@@ -4,8 +4,6 @@ networks:
 volumes:
   PGDATA:
 services:
-  
- 
   db:
     image: ${POSTGRES_TAG}
     ports:

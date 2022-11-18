@@ -1,6 +1,10 @@
-import { prisma, unimplimented } from "@/core";
+import { prisma, prismaAdmin, unimplimented } from "@/core";
 import { Prisma, ProcessStatus, RecordStatus, Tenant } from "@prisma/client";
+import initJackson from '@/core/auth/jackson';
 import cuid from "cuid";
+import { OIDCSSOConnection } from "@boxyhq/saml-jackson";
+import { oidcDiscoveryUrl, product, secrets } from "../util";
+
 
 export type TenantCreateInput = {
     /**
@@ -26,25 +30,26 @@ export type TenantCreateInput = {
 };
 export const createTenant = async (input: TenantCreateInput) => {
     const { userId, ...data } = input;
-    const id= cuid();
-    await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`)
-
-    return prisma!.tenant.create(
-        {
-            include: {
-                members: true
-            },
-            data: {
-                tenantId:id,
-                ...data,
-                members: {
-                    connect: {
-                        id: userId
+    const id = cuid();
+    return prisma!.$transaction(async (tx) => {
+        await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`)
+        return tx!.tenant.create(
+            {
+                include: {
+                    members: true
+                },
+                data: {
+                    tenantId: id,
+                    ...data,
+                    members: {
+                        connect: {
+                            id: userId
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+    })
 };
 
 
@@ -134,13 +139,14 @@ export const deleteManyTenant = async (ids: TenantIds) => {
 
 
 
-export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select"|"include"> ) => {
-   
-    return prisma!.tenant.findMany(
-        {  include:{
-            members:true
-           },
-           ...input,
+export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select" | "include">) => {
+
+    return prismaAdmin!.tenant.findMany(
+        {
+            include: {
+                members: true
+            },
+            ...input,
         }
     );
 };
@@ -253,8 +259,89 @@ export const leaveTenant = async (input: TenantMemberWhereInput) => {
         }
     })
 };
-
+export type DomainSearchInput = string;
+export const checkDomain = async (domain: DomainSearchInput) => {
+    return prismaAdmin!.tenant.findFirst({
+        select: {
+            customDomain: true
+        },
+        where: {
+            customDomain: {
+                equals: domain
+            }
+        }
+    })
+}
+export const checkSubdomain = async (subdomain: DomainSearchInput) => {
+    return prismaAdmin!.tenant.findFirst({
+        select: {
+            subdomain: true
+        },
+        where: {
+            subdomain: {
+                equals: subdomain
+            }
+        }
+    })
+}
 // TODO add billing and analytics for tenant
 export const subscribeToPlan = unimplimented;
 export const cancelSubscriptionPlan = unimplimented;
 
+
+const redirectUrl = (subdomain: string) => {
+    return `http://${subdomain}.localhost:3000/api/outh/oidc/callback`
+}
+prisma!.$use(async (opts: Prisma.MiddlewareParams, next) => {
+    const { action, args, runInTransaction, model, dataPath } = opts;
+    if (model !== "Tenant" || !["update", "create", "delete"].includes(action)) {
+        return next(opts);
+    }
+
+    if (action === "update" || action === "create" || action === "delete") {
+        const tenant: Tenant = await next(opts);
+        const { connectionAPIController } = await initJackson();
+        const oidcData: OIDCSSOConnection = {
+            defaultRedirectUrl: redirectUrl(tenant.subdomain!),
+            redirectUrl: [redirectUrl(tenant.subdomain!)],
+            tenant: tenant.tenantId,
+            product: product,
+            name: tenant.name ?? undefined,
+            description: tenant.description ?? undefined,
+            oidcDiscoveryUrl: oidcDiscoveryUrl,
+            oidcClientId: secrets.client_id,
+            oidcClientSecret: secrets.client_secret
+        }
+        const oidcCon = await connectionAPIController.getConnections({
+            tenant: tenant.tenantId,
+            product: product
+        });
+        let clientIds: {
+            clientID: string;
+            clientSecret: string;
+        } | null;
+        if (oidcCon.length && oidcCon.at(0)?.clientID && oidcCon.at(0)?.clientSecret) {
+            clientIds = {
+                clientID: oidcCon.at(0)!.clientID,
+                clientSecret: oidcCon.at(0)!.clientSecret
+            }
+        }
+        else {
+            clientIds = null;
+        }
+        if (action === "create") {
+            await connectionAPIController.createOIDCConnection(oidcData);
+        } else if (action === "update" && clientIds) {
+            await connectionAPIController.updateOIDCConnection({ ...oidcData, ...clientIds });
+        }
+        else if (action === "delete" && clientIds !== null) {
+            await connectionAPIController.deleteConnections({
+                ...clientIds!
+            });
+
+        }
+        return tenant;
+    }
+    return next(opts);
+
+})

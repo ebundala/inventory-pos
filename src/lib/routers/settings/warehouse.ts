@@ -1,27 +1,27 @@
 import { createWarehouse, deleteManyWarehouse, deleteWarehouse, findManyWarehouse, getUniqueWarehouse, updateWarehouse } from "@/core/warehouse";
 import { createWarehouseInputSchema, warehouseIdSchema, warehouseIdsSchema, updateWarehouseInputSchema } from "@/core/warehouse/index.zod";
-import { router, privateProcedure } from "@/core/trpc";
+import { router, privateProcedureWithTx } from "@/core/trpc";
 import { WarehouseFindManySchema } from "prisma/generated/schemas/findManyWarehouse.schema";
 
 
 
 export const warehouseRouter = router({
-    create: privateProcedure
+    create: privateProcedureWithTx
         .input(createWarehouseInputSchema)
         .mutation(({ input, ctx }) => createWarehouse(input)),
 
-    update: privateProcedure
+    update: privateProcedureWithTx
         .input(updateWarehouseInputSchema)
         .mutation((({ input, ctx }) => updateWarehouse(input))),
-    get: privateProcedure
+    get: privateProcedureWithTx
     .input(warehouseIdSchema)
     .query(({ input, ctx }) => getUniqueWarehouse(input)),
-    search: privateProcedure.input(WarehouseFindManySchema)
+    search: privateProcedureWithTx.input(WarehouseFindManySchema)
     .query(({ input, ctx }) => findManyWarehouse(input)),
-    delete: privateProcedure
+    delete: privateProcedureWithTx
     .input(warehouseIdSchema)
     .mutation(({ input, ctx }) => deleteWarehouse(input)),
-   deleteMany: privateProcedure
+   deleteMany: privateProcedureWithTx
     .input(warehouseIdsSchema)
     .mutation(({ input, ctx }) => deleteManyWarehouse(input))
 })

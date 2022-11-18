@@ -5,7 +5,7 @@ import BlurImage from "@/components/BlurImage";
 import BlogCard from "@/components/BlogCard";
 import Loader from "@/components/sites/Loader";
 import Date from "@/components/Date";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/core/prisma/prisma";
 
 import type { GetStaticPaths, GetStaticProps } from "next";
 import type { _SiteData, Meta } from "@/types";

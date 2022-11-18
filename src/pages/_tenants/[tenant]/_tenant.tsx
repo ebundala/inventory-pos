@@ -1,0 +1,1 @@
+console.log("tenant tsx hello")

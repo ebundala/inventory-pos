@@ -13,3 +13,6 @@ prisma/schemad.prisma
 .swc
 prisma/generated
 coverage
+src/client_secret.json
+public/img
+public/site

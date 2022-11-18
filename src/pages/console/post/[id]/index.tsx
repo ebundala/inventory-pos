@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/app/Layout";
 import Loader from "@/components/app/Loader";
 import LoadingDots from "@/components/app/loading-dots";
-import { fetcher } from "@/lib/fetcher";
+import { fetcher } from "@/core/fetcher/fetcher";
 import { HttpMethod } from "@/types";
 
 import type { ChangeEvent } from "react";

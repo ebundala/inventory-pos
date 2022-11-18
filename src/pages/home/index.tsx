@@ -5,16 +5,16 @@ export default function Home() {
   return (
     <div className="flex h-screen bg-black">
       <Head>
-        <title>Platforms on Vercel</title>
+        <title>Yavin shopcare home</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="m-auto w-48">
+      <div className="m-auto w-48 ">
         <Image
           width={512}
           height={512}
           src="/logo.png"
-          alt="Platforms on Vercel"
+          alt="yavin shop home"
         />
       </div>
     </div>

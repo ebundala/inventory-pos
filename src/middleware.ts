@@ -17,7 +17,6 @@ export const config = {
 
 export default function middleware(req: NextRequest) {
   const url = req.nextUrl;
- debugger;
   // Get hostname of request (e.g. demo.vercel.pub, demo.localhost:3000)
   const hostname = req.headers.get("host") || "demo.vercel.pub";
 
@@ -51,13 +50,16 @@ export default function middleware(req: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+ 
+
   // rewrite root application to `/home` folder
-  if (hostname === APP_HOST || hostname === "platformize.vercel.app") {
+  if (hostname === APP_HOST) {
     url.pathname = `/home${url.pathname}`;
     return NextResponse.rewrite(url);
   }
 
   // rewrite everything else to `/_sites/[site] dynamic route
-  url.pathname = `/_sites/${currentHost}${url.pathname}`;
+ // url.pathname = `/_sites/${currentHost}${url.pathname}`;
+ url.pathname = `/_tenants/${currentHost}${url.pathname}`
   return NextResponse.rewrite(url);
 }

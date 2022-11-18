@@ -11,7 +11,7 @@ import Layout from "@/components/app/Layout";
 import LoadingDots from "@/components/app/loading-dots";
 import Modal from "@/components/Modal";
 
-import { fetcher } from "@/lib/fetcher";
+import { fetcher } from "@/core/fetcher/fetcher";
 import { HttpMethod } from "@/types";
 
 import type { Site } from "@prisma/client";

@@ -1,27 +1,27 @@
 import { createSale, deleteManySale, deleteSale, findManySale, getUniqueSale, updateSale } from "@/core/sale";
 import { createSaleInputSchema, saleIdSchema, saleIdsSchema, updateSaleInputSchema } from "@/core/sale/index.zod";
-import { router, privateProcedure } from "@/core/trpc";
+import { router, privateProcedureWithTx } from "@/core/trpc";
 import { SaleFindManySchema } from "prisma/generated/schemas/findManySale.schema";
 
 
 
 export const saleRouter = router({
-    create: privateProcedure
+    create: privateProcedureWithTx
         .input(createSaleInputSchema)
         .mutation(({ input, ctx }) => createSale(input)),
 
-    update: privateProcedure
+    update: privateProcedureWithTx
         .input(updateSaleInputSchema)
         .mutation((({ input, ctx }) => updateSale(input))),
-    get: privateProcedure
+    get: privateProcedureWithTx
     .input(saleIdSchema)
     .query(({ input, ctx }) => getUniqueSale(input)),
-    search: privateProcedure.input(SaleFindManySchema)
+    search: privateProcedureWithTx.input(SaleFindManySchema)
     .query(({ input, ctx }) => findManySale(input)),
-    delete: privateProcedure
+    delete: privateProcedureWithTx
     .input(saleIdSchema)
     .mutation(({ input, ctx }) => deleteSale(input)),
-   deleteMany: privateProcedure
+   deleteMany: privateProcedureWithTx
     .input(saleIdsSchema)
     .mutation(({ input, ctx }) => deleteManySale(input))
 })

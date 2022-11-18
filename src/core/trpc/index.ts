@@ -23,7 +23,8 @@ export const publicProcedure = t.procedure
 
 export const isAuthed = middleware(({ next, ctx }) => {
     if (!ctx.session?.user) {
-        // throw new TRPCError({code:'UNAUTHORIZED'});
+        //TODO uncomment below in production
+       //  throw new TRPCError({code:'UNAUTHORIZED'});
     }
     return next({ ctx })
 })
@@ -44,4 +45,5 @@ export const useInteractiveTransaction = middleware(async ({ next, ctx }) => {
     }
     return result;
 })
-export const privateProcedure = t.procedure.use(isAuthed).use(useInteractiveTransaction)
+export const privateProcedure=t.procedure.use(isAuthed)
+export const privateProcedureWithTx = privateProcedure.use(useInteractiveTransaction)

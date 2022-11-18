@@ -1,6 +1,6 @@
 import { createSetting, deleteManySetting, deleteSetting, findManySetting, getUniqueSetting, updateSetting } from "@/core/setting";
 import { createSettingInputSchema, settingIdSchema, settingIdsSchema, updateSettingInputSchema } from "@/core/setting/index.zod";
-import { router, privateProcedure } from "@/core/trpc";
+import { router, privateProcedureWithTx } from "@/core/trpc";
 import { SettingFindManySchema } from "prisma/generated/schemas/findManySetting.schema";
 import { currencyRouter } from "./currency";
 import { posSettingRouter } from "./pos.setting";
@@ -9,22 +9,22 @@ import { warehouseRouter } from "./warehouse";
 
 
 export const settingRouter = router({
-    create: privateProcedure
+    create: privateProcedureWithTx
         .input(createSettingInputSchema)
         .mutation(({ input, ctx }) => createSetting(input)),
 
-    update: privateProcedure
+    update: privateProcedureWithTx
         .input(updateSettingInputSchema)
         .mutation((({ input, ctx }) => updateSetting(input))),
-    get: privateProcedure
+    get: privateProcedureWithTx
     .input(settingIdSchema)
     .query(({ input, ctx }) => getUniqueSetting(input)),
-    search: privateProcedure.input(SettingFindManySchema)
+    search: privateProcedureWithTx.input(SettingFindManySchema)
     .query(({ input, ctx }) => findManySetting(input)),
-    delete: privateProcedure
+    delete: privateProcedureWithTx
     .input(settingIdSchema)
     .mutation(({ input, ctx }) => deleteSetting(input)),
-   deleteMany: privateProcedure
+   deleteMany: privateProcedureWithTx
     .input(settingIdsSchema)
     .mutation(({ input, ctx }) => deleteManySetting(input)),
     pos:posSettingRouter,

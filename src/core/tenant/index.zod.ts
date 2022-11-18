@@ -43,3 +43,5 @@ export const tenantMemberWhereInputSchema = z.object({
   tenantId: z.string(),
   userId: z.string(),
 });
+
+export const domainSearchInputSchema = z.string();

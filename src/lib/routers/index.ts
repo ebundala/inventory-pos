@@ -1,4 +1,4 @@
-import { router, privateProcedure } from "@/core/trpc";
+import { router, privateProcedureWithTx, publicProcedure } from "@/core/trpc";
 import { adjustmentRouter } from "./adjustments/adjustment";
 import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";
@@ -9,7 +9,7 @@ import { saleRouter } from "./sales/sale";
 import { settingRouter } from "./settings/setting";
 import { tenantRouter } from "./tenants/tenant";
 import { transferRouter } from "./transfers/transfer";
-
+export {createContext} from '@/core/trpc';
 
 export const appRouter = router({
     tenant:tenantRouter,
@@ -22,6 +22,7 @@ export const appRouter = router({
     transfer:transferRouter,
     people:customerRouter,
     hrm:companyRouter,
+    version:publicProcedure.query(()=>({version:10}))
 })
 
 export type AppRouter = typeof appRouter;
