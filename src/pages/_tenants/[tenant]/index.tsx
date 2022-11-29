@@ -1,86 +1,71 @@
-import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import type { ParsedUrlQuery } from "querystring";
-import { Prisma, Tenant } from "@prisma/client"
+import type { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
-import { unstable_getServerSession } from "next-auth";
-import { authOptions } from "@/core/index";
+import { useHost } from "@/lib/hooks/useHost";
+import useRequireAuth from "@/lib/useRequireAuth";
+import { useTenant } from "@/lib/hooks/useTenant";
+import { WithChildren } from "@/types";
+import { ReactNode } from "react";
 
-interface PathProps extends ParsedUrlQuery {
-    tenant: string;
-}
 
-interface IndexProps {
-    tenant: Tenant;
-}
 
-export const getServerSideProps: GetServerSideProps<{ tenant: Pick<Tenant,"tenantId"|"customDomain"|"name"|"subdomain"|"image"|"imageBlurhash"> }, PathProps> = async (context) => {
-    const domains = context.params?.tenant;
-    const session = await unstable_getServerSession(context.req, context.res, authOptions);
-    if(!session?.user){
-        return {
-            redirect:{
-                destination:"/login",
-                permanent:true
 
-            }
-        }
-    }
-    const mode = Prisma.QueryMode.insensitive;
-    const tenant = await prismaAdmin!.tenant.findFirst({
-        select: {
-            tenantId: true,
-            name: true,
-            customDomain: true,
-            subdomain: true,
-            image:true,
-            imageBlurhash:true
-        },
-        where: {
-            AND: [
-                // {
-                //     members: {
-                //         some: {
-                //             id: session!.user!.id!
-                //         }
-                //     }
-                // },
-                {
-                    OR: [
-                        {
-                            subdomain: {
-                                equals: domains, mode: mode
-                            }
-                        },
-                        {
-                            customDomain: {
-                                equals: domains, mode: mode
-                            }
-                        }
-                    ]
-                }]
-        }
-    })
-    if (tenant) {
-        return {
-            props: { tenant },
-        }
-    }
-    return {
-        notFound: true
-    }
-}
-
-function TenantIndex({ tenant }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+function TenantIndex() {
     const router = useRouter();
+    const tenant = useTenant();
+    const session = useRequireAuth();
+    const host = useHost();
+
     if (router.isFallback) return <Loader />;
-
-
     return (
-        <div>
-            {JSON.stringify(tenant)}
+        <div className="flex flex-row flex-wrap w-full h-full justify-between">
+            <FormSection >
+                {/* <div className="flex flex-col  h-full py-2 m-4 bg-gray-300 rounded-lg">
+                    <div className=" flex px-4 justify-start font-semibold text-sm text-gray-800">
+                        System settings
+                    </div>
+                    <div className="flex px-4 py-4 h-[340px] bg-white ">
+                        <FormInput></FormInput>
+                    </div>
+                </div> */}
+                <FormContainer title={<h3>System Settings</h3>}>
+                <FormInput label={"Input label"}/>
+                <FormInput label="label input"/>
+                </FormContainer>
+            </FormSection>
         </div>
     );
 }
 
 export default TenantIndex;
+
+function FormSection({ children }: WithChildren) {
+    return (
+        <div className="m-auto  bg-gray-100 w-full h-full">
+            {children}
+        </div>
+    )
+}
+function FormContainer({ className, contentClassName, titleClassName, title, children }: {
+    className?: string, contentClassName?: string, titleClassName?: string, title: ReactNode, children: ReactNode
+}) {
+    return (
+        <div className={`flex flex-col  h-full py-2 m-4 bg-gray-300 rounded-lg ${className ?? ''}`}>
+            <div className={`flex px-4 pb-2 justify-start font-semibold text-sm text-gray-800 ${titleClassName ?? ""}`}>
+                {title}
+            </div>
+            <div className={`flex px-4 py-4 h-fit bg-white ${contentClassName ?? ''}`}>
+                {children}
+            </div>
+        </div>
+    )
+}
+function FormInput({ className, labelClassName, inputClassName,label, ...props }: {label?:string, className?: string, labelClassName?: string, inputClassName?: string }) {
+    // todo add errors props
+    return (
+        <div className={`flex flex-col justify-start items-start ${className ?? ''}`}>
+            <span className={`text-left text-sm font-medium font-sans ${labelClassName ?? ''}`}> {label}</span>
+            <input {...props} id="_input" type="text" className={`mt-2 h-8 text-gray-700 bg-white border-solid border-gray-400 focus:outline-none focus:ring-0 rounded-md placeholder-gray-400 ${inputClassName ?? ''}`}></input>
+        </div>
+    )
+}

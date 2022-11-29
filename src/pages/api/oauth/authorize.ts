@@ -7,11 +7,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const jacksonConfig = await jackson();
+  // const jacksonConfig = await jackson();
 
-  const { redirect_url } = await jacksonConfig.oauthController.authorize(
-    req.query as unknown as OAuthReq
-  );
+  // const { redirect_url } = await jacksonConfig.oauthController.authorize(
+  //   req.query as unknown as OAuthReq
+  // );
 
-  return res.redirect(302, redirect_url as string);
+  // return res.redirect(302, redirect_url as string);
+  console.log("hit tested")
+  res.end();
 }

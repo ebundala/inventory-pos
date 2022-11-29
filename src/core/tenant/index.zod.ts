@@ -13,7 +13,6 @@ export const tenantCreateInputSchema = z.object({
 });
 
 export const tenantUpdateInputSchema = z.object({
-  tenantId: z.string(),
   name: z.string().max(50).optional(),
   description: z.string().max(160).optional(),
   logo: z.string().optional(),
@@ -29,18 +28,15 @@ export const tenantIdsSchema = z.array(z.string());
 
 export const inviteMemberInputSchema = z.object({
   message: z.string().max(160).optional(),
-  tenantId: z.string(),
   userId: z.string(),
   email: z.string().email(),
 });
 
 export const tenantEmailWhereInputSchema = z.object({
   email: z.string().email(),
-  tenantId: z.string(),
 });
 
 export const tenantMemberWhereInputSchema = z.object({
-  tenantId: z.string(),
   userId: z.string(),
 });
 

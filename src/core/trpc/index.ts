@@ -1,13 +1,53 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { initTRPC, inferAsyncReturnType, TRPCError } from '@trpc/server';
 import * as TRPCNext from '@trpc/server/adapters/next';
 import { getSession } from 'next-auth/react';
 import { prisma } from '@/core/prisma/prisma';
+import { unstable_getServerSession } from 'next-auth';
+import { authOptions } from '../auth/auth';
+import { APP_HOST } from '@/lib/util';
 
-export async function createContext(opts: TRPCNext.CreateNextContextOptions) {
-    const session = await getSession({ req: opts.req });
-    //TODO get tenant here
-    const tenantId = "xxxxx"
+export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
+    const session = await unstable_getServerSession(req,res,authOptions);
+    const hostname = req?.headers?.host||APP_HOST!;
+    const domains = hostname.replace(`.${APP_HOST}`, "")
+    const mode = Prisma.QueryMode.insensitive;
+    const tenant = await prismaAdmin!.tenant.findFirst({
+        select: {
+            tenantId: true,
+            name: true,
+            customDomain: true,
+            subdomain: true,
+            image:true,
+            imageBlurhash:true
+        },
+        where: {
+            AND: [
+                // {
+                //     members: {
+                //         some: {
+                //             id: session!.user!.id!
+                //         }
+                //     }
+                // },
+                {
+                    OR: [
+                        {
+                            subdomain: {
+                                equals: domains, mode: mode
+                            }
+                        },
+                        {
+                            customDomain: {
+                                equals: domains, mode: mode
+                            }
+                        }
+                    ]
+                }]
+        }
+    })
+    const tenantId = tenant?.tenantId || "app";
+    
     return {
         session, tenantId
     }
@@ -39,7 +79,7 @@ export const useInteractiveTransaction = middleware(async ({ next, ctx }) => {
         },)
     }
     catch (e) {
-        e as Error;
+        
         console.error(e)
         throw new TRPCError({ message: "Error", code: "INTERNAL_SERVER_ERROR" })
     }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { APP_HOST } from "./lib/util";
+import { APP_HOST } from "@/lib/util";
 
 export const config = {
   matcher: [
@@ -11,7 +11,7 @@ export const config = {
      * 4. /examples (inside /public)
      * 5. all root files inside /public (e.g. /favicon.ico)
      */
-    "/((?!api|_next|fonts|examples|[\\w-]+\\.\\w+).*)",
+    "/((?!api|_next|fonts|img|examples|[\\w-]+\\.\\w+).*)",
   ],
 };
 

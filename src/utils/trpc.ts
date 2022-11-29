@@ -3,12 +3,13 @@ import { createTRPCNext } from "@trpc/next";
 //import superjson from "superjson";
 import { AppRouter } from "@/lib/routers";
 
-export const trpc = createTRPCNext<AppRouter>({
-  config({ ctx }) {
-    
+export const trpc =createTRPCNext<AppRouter>({
+  config({ctx}) {
+  
     // Get hostname of request (e.g. demo.vercel.pub, demo.localhost:3000)
-    const hostname = ctx?.req?.headers?.host??"app.localhost:3000";
-    const url = `http://${hostname}/api/trpc/`;
+    const hostname = ctx?.req?.headers?.host;
+    const url =`http://${hostname}/api/trpc/`;
+    console.log(url);
 // TODO use context to construct url
     return {
     //   queryClientConfig: {
@@ -43,4 +44,4 @@ export const trpc = createTRPCNext<AppRouter>({
     };
   },
   ssr: true,
-});
+})

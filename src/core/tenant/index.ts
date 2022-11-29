@@ -3,7 +3,8 @@ import { Prisma, ProcessStatus, RecordStatus, Tenant } from "@prisma/client";
 import initJackson from '@/core/auth/jackson';
 import cuid from "cuid";
 import { OIDCSSOConnection } from "@boxyhq/saml-jackson";
-import { oidcDiscoveryUrl, product, secrets } from "../util";
+import { googleOidcDiscoveryUrl, product, secrets } from "../util";
+import { TenantContext } from "../trpc";
 
 
 export type TenantCreateInput = {
@@ -28,33 +29,34 @@ export type TenantCreateInput = {
      */
     subdomain: string
 };
-export const createTenant = async (input: TenantCreateInput) => {
+export const createTenant = async (input: TenantCreateInput, ctx: TenantContext) => {
     const { userId, ...data } = input;
+    const { tx } = ctx;
     const id = cuid();
-    return prisma!.$transaction(async (tx) => {
-        await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`)
-        return tx!.tenant.create(
-            {
-                include: {
-                    members: true
-                },
-                data: {
-                    tenantId: id,
-                    ...data,
-                    members: {
-                        connect: {
-                            id: userId
-                        }
+
+    await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`)
+    return tx!.tenant.create(
+        {
+            include: {
+                members: true
+            },
+            data: {
+                tenantId: id,
+                ...data,
+                members: {
+                    connect: {
+                        id: userId
                     }
                 }
             }
-        )
-    })
+        }
+    )
+
 };
 
 
 export type TenantUpdateInput = {
-    tenantId: string
+   // tenantId: string
     /**
      * 
      * @maxLength 50
@@ -75,10 +77,11 @@ export type TenantUpdateInput = {
      */
     subdomain?: string
 }
-export const updateTenant = async (input: TenantUpdateInput) => {
-    const { tenantId, ...data } = input;
+export const updateTenant = async (input: TenantUpdateInput, ctx: TenantContext) => {
+    const {...data } = input;
+    const { tx,tenantId } = ctx;
     //TODO handle images uploads
-    return prisma!.tenant.update(
+    return tx!.tenant.update(
         {
             include: {
                 members: true
@@ -91,8 +94,9 @@ export const updateTenant = async (input: TenantUpdateInput) => {
     )
 }
 export type TenantId = string;
-export const getUniqueTenant = async (id: TenantId) => {
-    return prisma!.tenant.findUnique(
+export const getUniqueTenant = async (id: TenantId, ctx: TenantContext) => {
+    const { tx } = ctx;
+    return tx!.tenant.findUnique(
         {
             include: {
                 members: true,
@@ -105,8 +109,9 @@ export const getUniqueTenant = async (id: TenantId) => {
     )
 };
 
-export const deleteTenant = async (id: TenantId) => {
-    return prisma!.tenant.update(
+export const deleteTenant = async (id: TenantId, ctx: TenantContext) => {
+    const { tx } = ctx;
+    return tx!.tenant.update(
         {
             include: {
                 members: true
@@ -121,8 +126,9 @@ export const deleteTenant = async (id: TenantId) => {
     )
 };
 export type TenantIds = Array<string>
-export const deleteManyTenant = async (ids: TenantIds) => {
-    return prisma!.tenant.updateMany(
+export const deleteManyTenant = async (ids: TenantIds, ctx: TenantContext) => {
+    const { tx } = ctx;
+    return tx!.tenant.updateMany(
         {
 
             where: {
@@ -139,14 +145,26 @@ export const deleteManyTenant = async (ids: TenantIds) => {
 
 
 
-export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select" | "include">) => {
-
+export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select" | "include">, ctx: TenantContext) => {
+    const { session } = ctx;
+    const { where, ...rest } = input;
     return prismaAdmin!.tenant.findMany(
         {
             include: {
                 members: true
             },
-            ...input,
+            ...rest,
+            where: {
+                ... (where || {}),
+                AND: [
+                    {
+                        members: {
+                            some: { id: { equals: session!.user.id! } }
+                        }
+                    },
+
+                ]
+            }
         }
     );
 };
@@ -156,7 +174,7 @@ export type InviteMemberInput = {
      * @maxLength 160
      */
     message?: string,
-    tenantId: string,
+    //tenantId: string,
     userId: string,
     /**
      * 
@@ -164,10 +182,11 @@ export type InviteMemberInput = {
      */
     email: string
 }
-export const inviteMember = async (input: InviteMemberInput) => {
+export const inviteMember = async (input: InviteMemberInput, ctx: TenantContext) => {
+    const {tx,tenantId}=ctx;
     //Todo add message field
-    const { tenantId, userId, email, message } = input;
-    return prisma!.tenantInvite.create({
+    const { userId, email, message } = input;
+    return tx!.tenantInvite.create({
         include: {
             tenant: true,
             invitor: true
@@ -185,31 +204,33 @@ export type TenantEmailWhereInput = {
      * @format email
      */
     email: string,
-    tenantId: string
+    // tenantId: string
 }
-export const acceptInvite = async (input: TenantEmailWhereInput) => {
+export const acceptInvite = async (input: TenantEmailWhereInput,ctx:TenantContext) => {
+    const {tx,tenantId}=ctx;
     //TODO link user to tenant
-    return prisma!.tenantInvite.update({
+    return tx!.tenantInvite.update({
         include: {
             tenant: true,
             invitor: true
         },
         where: {
-            tenantId_email: input
+            tenantId_email: {...input,tenantId}
         },
         data: {
             status: ProcessStatus.APPROVED
         }
     })
 };
-export const rejectInvite = async (input: TenantEmailWhereInput) => {
-    return prisma!.tenantInvite.update({
+export const rejectInvite = async (input: TenantEmailWhereInput,ctx:TenantContext) => {
+    const {tx,tenantId}=ctx;
+    return tx!.tenantInvite.update({
         include: {
             tenant: true,
             invitor: true
         },
         where: {
-            tenantId_email: input
+            tenantId_email: {...input,tenantId}
         },
         data: {
             status: ProcessStatus.DENIED
@@ -218,13 +239,14 @@ export const rejectInvite = async (input: TenantEmailWhereInput) => {
 };
 
 export type TenantMemberWhereInput = {
-    tenantId: string,
+   // tenantId: string,
     userId: string
 }
 
-export const removeMember = async (input: TenantMemberWhereInput) => {
-    const { tenantId, userId } = input;
-    return prisma!.tenant.update({
+export const removeMember = async (input: TenantMemberWhereInput, ctx: TenantContext) => {
+   const {tx,tenantId}=ctx;
+    const { userId } = input;
+    return tx!.tenant.update({
         include: {
             members: true
         },
@@ -241,8 +263,9 @@ export const removeMember = async (input: TenantMemberWhereInput) => {
     })
 };
 
-export const leaveTenant = async (input: TenantMemberWhereInput) => {
-    const { tenantId, userId } = input;
+export const leaveTenant = async (input: TenantMemberWhereInput, ctx: TenantContext) => {
+    const {tx,tenantId}=ctx;
+    const { userId } = input;
     return prisma!.user.update({
         include: {
             tenants: true
@@ -290,8 +313,10 @@ export const cancelSubscriptionPlan = unimplimented;
 
 
 const redirectUrl = (subdomain: string) => {
-    return `http://${subdomain}.localhost:3000/api/outh/oidc/callback`
+    return `http://localhost:3000/api/outh/oidc/callback`
 }
+
+
 prisma!.$use(async (opts: Prisma.MiddlewareParams, next) => {
     const { action, args, runInTransaction, model, dataPath } = opts;
     if (model !== "Tenant" || !["update", "create", "delete"].includes(action)) {
@@ -308,7 +333,7 @@ prisma!.$use(async (opts: Prisma.MiddlewareParams, next) => {
             product: product,
             name: tenant.name ?? undefined,
             description: tenant.description ?? undefined,
-            oidcDiscoveryUrl: oidcDiscoveryUrl,
+            oidcDiscoveryUrl: googleOidcDiscoveryUrl,
             oidcClientId: secrets.client_id,
             oidcClientSecret: secrets.client_secret
         }

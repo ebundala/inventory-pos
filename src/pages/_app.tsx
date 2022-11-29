@@ -1,21 +1,27 @@
-import PlausibleProvider from "next-plausible";
-import { SessionProvider } from "next-auth/react";
-import type { Session } from "next-auth";
+import App, { AppContext } from 'next/app'
+import { Session } from "next-auth";
 
 import "@/styles/globals.css";
-
 import type { AppProps } from "next/app";
-import { trpc } from "src/utils/trpc";
+import React from "react";
+import { getTenantAsMemberByDomain } from "../lib/getTenantAsMemberByDomain";
+import { TenantProp } from "@/types/TenantProp";
+import { useAppProviders } from "../lib/hooks/useAppProviders";
 
-export default trpc.withTRPC(function App({
-  Component,
-  pageProps: { session, ...pageProps },
-}: AppProps<{ session: Session }>) {
-  return (
-    <PlausibleProvider domain="demo.vercel.pub">
-      <SessionProvider session={session}>
-        <Component {...pageProps} />
-      </SessionProvider>
-    </PlausibleProvider>
-  );
-})
+export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, host: string, tenant: TenantProp }>) {
+  const AppWrapper = useAppProviders(pageProps.host);
+  const props = { ...rest, pageProps };
+
+  return (<AppWrapper  {...props as any} />);
+};
+
+
+Index.getInitialProps = async (ctx: AppContext) => {
+  const { pageProps, ...rest } = await App.getInitialProps(ctx);
+  const host = new URL(`http://${ctx.ctx.req!.headers.host}`);
+  const domain = host.hostname.split(".").slice(0, -2).join(".");
+  const tenant = await getTenantAsMemberByDomain(domain, ctx.ctx);
+  return { ...rest, pageProps: { ...pageProps, host: host.hostname, tenant } };
+}
+
+

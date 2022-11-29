@@ -1,4 +1,4 @@
-import { router, privateProcedureWithTx, publicProcedure } from "@/core/trpc";
+import { router, publicProcedure } from "@/core/trpc";
 import { adjustmentRouter } from "./adjustments/adjustment";
 import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";

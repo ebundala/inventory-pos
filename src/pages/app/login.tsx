@@ -82,7 +82,12 @@ export default function Login() {
             disabled={loading}
             onClick={() => {
               setLoading(true);
-              signIn("github");
+              //signIn("github");
+              signIn("boxyhq-saml",{
+                tenant:"clasohpfc00005rts4jdt99nc",            
+                product:"google-oidc",
+                callbackUrl:"http://pos1.ebundala.dev:3000/"
+              },);
             }}
             className={`${
               loading ? "cursor-not-allowed bg-gray-600" : "bg-black"

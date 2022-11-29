@@ -3,7 +3,7 @@ import jackson, {
     type JacksonOption,
   } from "@boxyhq/saml-jackson";
 import { inferAsyncReturnType } from "@trpc/server";
-  
+import jwtSigningKeys from 'keys/openid_key.json';  
   const samlAudience = "https://saml.boxyhq.com";
   const samlPath = "/api/auth/saml/acs";
   const oidcPath ="/api/outh/oidc/callback"
@@ -12,8 +12,11 @@ import { inferAsyncReturnType } from "@trpc/server";
    // samlAudience,
     samlPath,
     oidcPath,
-  
+     openid:{
+      jwtSigningKeys
+     },
     db: {
+     // encryptionKey:process.env.DB_ENCRYPTION_KEY,
       engine: "sql",
       type: "postgres",
       url: process.env.DATABASE_URL,
