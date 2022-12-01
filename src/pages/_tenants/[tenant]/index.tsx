@@ -1,4 +1,3 @@
-import type { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
 import { useHost } from "@/lib/hooks/useHost";
