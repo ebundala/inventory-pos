@@ -1,43 +1,50 @@
 import createFastContext from "@/core/util/createFastContext";
 import { WithChildren } from "@/types";
+import { Model } from "casbin";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import Link from "next/link";
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { Component, FC, ReactNode, useRef } from "react";
+import { DrawerData } from "./DrawerData";
+import { DrawerNavMenuItem } from "./DrawerNavMenuItem";
+import { EndDrawer } from "./EndDrawer";
+import { EndDrawerContainerProps } from "./EndDrawerContainerProps";
 import { menus } from "./menus";
+import { Modal } from "./Modal";
+import { ModalData } from "./ModalData";
+import { ModalPosition } from "./ModalPosition";
+import { ProgressIndicator } from "./ProgressIndicator";
+import { ProgressIndicatorData } from "./ProgressIndicatorData";
+import { Toast } from "./Toast";
+import { ToastMessage } from "./ToastMessage";
+import { useDrawer } from "./useDrawer";
+import { useEndDrawer } from "./useEndDrawer";
+import { useModel } from "./useModel";
+
+export type WithShow = {
+    show: boolean;
+};
 
 interface AppState {
-    menus: LinkMenuData[]
-    drawerIsOpen: boolean,
-    drawerMenus: [],
-    drawerActiveMenu: number[],
-    drawerFocusedMenuKey?: string,
-    progressIndicator?: ProgressIndicatorData & { show: boolean }
-
-    // endDrawer: {
-    //     drawerIsOpen: boolean,
-    //     drawerMenus: [],
-    //     activeMenu: number[]
-    // },
-    // toast: {
-    //     toastIsOpen: boolean,
-    //     toastMessage: string,
-    //     toastType: "error" | "success" | "warning" | "info"
-    // },
-    // modal: {
-    //     modalIsOpen: boolean,
-    //     modalMessage: string,
-    //     modalType: "error" | "success" | "warning" | "info"
-    // },
-    // notifications:{}
+    drawerFocusedMenuKey: string | null,
+    progressIndicator: ProgressIndicatorData & WithShow | null
+    toastMessages: Set<ToastMessage>,
+    modalData: ModalData & WithShow | null,
+    endDrawerData: EndDrawerData & WithShow | null;
+    drawerData: DrawerData & WithShow | null;
 }
-const { Provider, useStore } = createFastContext<AppState>({
-    menus,
-    drawerIsOpen: false,
-    drawerMenus: [],
-    drawerActiveMenu: []
-
+ export const { Provider, useStore } = createFastContext<AppState>({
+    modalData:null,
+    drawerFocusedMenuKey:null,
+    progressIndicator:null,
+    endDrawerData:null,
+    drawerData:{
+        menus,
+        show:false
+    },
+    toastMessages: new Set(),
 })
+
+
 
 export type LinkMenuData = {
     name: string,
@@ -48,18 +55,19 @@ export type LinkMenuData = {
     subMenus?: LinkMenuData[]
 }
 const Layout = ({ children, ...props }: WithChildren) => {
-    const [sideBarShowing, showSidebar] = useStore((store) => store.drawerIsOpen);
-    const [navItems, setNavMenus] = useStore((store) => store.menus);
-
+    //const [sideBarShowing, showSidebar] = useStore((store) => store.drawerData?.show);
+   // const [navItems, setNavMenus] = useStore((store) => store.drawerData?.menus);
+   const {data,open,close: closeDrawer}=useDrawer();
+   const {show,menus} = data??{};
     return (
         <div {...props}>
             <Navbar />
-            {/* <Toast/> */}
-            {/* <Modal/> */}
+            <Toast />
+            <Modal />
             <ProgressIndicator />
 
             <div className="drawer drawer-mobile">
-                <input id="my-drawer" type="checkbox" checked={sideBarShowing} className="drawer-toggle" />
+                <input id="my-drawer" type="checkbox" checked={show} className="drawer-toggle" readOnly />
 
 
                 <div className="drawer-content flex flex-col items-stretch">
@@ -83,11 +91,11 @@ const Layout = ({ children, ...props }: WithChildren) => {
                 </div>
                 <div className="drawer-side ">
                     <label htmlFor="my-drawer" className="drawer-overlay" onClick={(e) => {
-                        showSidebar({ drawerIsOpen: false })
+                        closeDrawer();
                     }}></label>
 
                     <ul className=" w-48 bg-base-100 text-base-content border-r-2 border-gray-100 overflow-x-hidden">
-                        {navItems.map((menu) => <DrawerNavMenuItem key={menu.name} menu={menu} />)}
+                        {menus?.map((menu) => <DrawerNavMenuItem key={menu.name} menu={menu} />)}
                     </ul>
                 </div>
             </div>
@@ -96,22 +104,41 @@ const Layout = ({ children, ...props }: WithChildren) => {
 }
 
 function Breadcrumb() {
-    const [show,hide,data] = useProgressIndicator();
-
+    const [show, hide, data] = useModel();
+    const {update} = useEndDrawer();
+    const modalData: ModalData = {
+        position: ModalPosition.middle,
+        content: ({ show, hide, ModalContainer, ModalContent, ModalAction }) => {
+            return (
+                <ModalContainer >
+                    <ModalContent className="">
+                        <div >hello world content</div>
+                        <ModalAction >
+                            <label htmlFor="primary-modal" className="btn btn-error">Close</label>
+                        </ModalAction>
+                    </ModalContent>
+                </ModalContainer>
+            )
+        }
+    }
+    const endDrawerData:EndDrawerData = {
+        content:({ContentContainer})=>{
+            return (
+                <ContentContainer className="w-80">
+                 <ul className="menu">
+                 <li><a>Sidebar Item 1</a></li>
+                    <li><a>Sidebar Item 2</a></li>
+                 </ul>
+                </ContentContainer>
+            )
+        }
+    }
     return (
         <div className="text-xs breadcrumbs mx-4 text-info">
             <ul>
-                <li><a onClick={
-                    ()=>{
-                       show({children:"test",speed:2,animated:true}) 
-                    }
-                }>Home</a></li>
-                <li><a>Documents</a></li>
-                <li onClick={
-                    ()=>{
-                      hide(); 
-                    }
-                }>Add Document</li>
+                <li onClick={() => show(modalData)}><a >Home</a></li>
+                <li onClick={() => hide()}><a>Documents</a></li>
+                <li onClick={() => update({...endDrawerData,show:true})}>Add Document</li>
             </ul>
         </div>);
 }
@@ -120,54 +147,6 @@ export default function Wrapper() {
     return (<Provider> <Layout ><DashBoard /></Layout></Provider>);
 }
 
-
-function DrawerNavMenuItem({ menu }: { menu: LinkMenuData }) {
-    const [focusedMenu, setFocusedMenuKey] = useStore((store) => store.drawerFocusedMenuKey);
-    const collapsible = (menu.subMenus?.length ?? 0) > 0;
-    const menuContent = (<div className="collapse-title flex flex-col items-center">
-        {menu.icon} <span className="text-sm mt-2">{menu.name}</span>
-    </div>)
-
-
-
-    return (<li className={`${collapsible ? "collapse collapse-arrow" : ""} border-b-2`}
-
-        onClick={
-            (e) => {
-                if (menu.name === focusedMenu) {
-                    setFocusedMenuKey({ drawerFocusedMenuKey: undefined });
-                }
-                else {
-                    setFocusedMenuKey({ drawerFocusedMenuKey: menu.name });
-                }
-
-            }
-        }>
-        <input className="hidden" type="checkbox" checked={focusedMenu === menu.name} />
-        {collapsible ? menuContent : <Link href={menu.link}>{menuContent}</Link>}
-        {collapsible && <div className="collapse-content" onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        }>
-
-            <ul className="menu text-xs " >
-                {menu.subMenus!.map((submenu) => {
-                    return (
-                        <li key={submenu.name}>
-                            <Link href={submenu.link}>
-                                <a>
-                                    {submenu.icon}{submenu.name}
-                                </a>
-                            </Link>
-                        </li>)
-                })
-                }
-            </ul>
-        </div>
-        }
-    </li>)
-}
 
 function Footer() {
     return (
@@ -195,10 +174,22 @@ function Footer() {
         </footer>
     )
 }
-
+export interface EndDrawerData{
+    content:ReactNode | {
+        (props: {
+            update: (data: EndDrawerData & WithShow) => void;
+            close: () => void;           
+            open: () => void;
+            reset: () => void;
+            toggle: (current: boolean) => void;
+            ContentContainer: FC<EndDrawerContainerProps>;
+        }): ReactNode;
+    };
+}
 
 function Navbar() {
-    const [sideBarShowing, updateDrawer] = useStore((store) => store.drawerIsOpen);
+   const {data,close}=useDrawer();
+   const {show: sideBarShowing} = data??{};
     const session = useSession();
     return (
         <div className="navbar bg-base-100 border-b-2 border-gray-100">
@@ -215,7 +206,7 @@ function Navbar() {
                     <input checked={sideBarShowing} type="checkbox" className="hidden" onChange={(e) => {
                         console.log();
                         if (e.target.checked !== sideBarShowing) {
-                            updateDrawer({ drawerIsOpen: e.target.checked })
+                            e.target.checked?open():close();
                         }
 
                     }} />
@@ -270,6 +261,7 @@ function Navbar() {
 }
 
 function DashBoard() {
+
     return (
         <div className="stats shadow">
 
@@ -307,124 +299,8 @@ function DashBoard() {
         </div>
     )
 }
-
-
-
-function Toast() {
-    const [messages, setMessages] = [] as any
-    return (
-        <div className="toast toast-top toast-end z-40">
-            <div className="alert alert-info">
-                <div>
-                    <span>New mail arrived.</span>
-                </div>
-            </div>
-            <div className="alert alert-success">
-                <div>
-                    <span>Message sent successfully.</span>
-                </div>
-            </div>
-        </div>)
-}
-
-
-
-function Modal() {
-    return (<>
-        {/* The button to open modal */}
-        {/* <label htmlFor="my-modal-5" className="btn">open modal</label> */}
-
-        {/* Put this part before </body> tag */}
-        <input type="checkbox" id="my-modal-5" className="modal-toggle" />
-        <div className="modal">
-            <div className="modal-box w-11/12 max-w-5xl">
-                <h3 className="font-bold text-lg">Congratulations random Internet user!</h3>
-                <p className="py-4">Youve been selected for a chance to get one year of subscription to use Wikipedia for free!</p>
-                <div className="modal-action">
-                    <label htmlFor="my-modal-5" className="btn">Yay!</label>
-                </div>
-            </div>
-        </div>
-    </>
-    )
-}
-
-function EndDrawer({ children }: WithChildren) {
-    return (
-        <div className="drawer drawer-end">
-            <input id="EndDrawer" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content">
-                <label htmlFor="EndDrawer" className="drawer-button btn btn-primary">Open drawer</label>
-
-                {children}
-            </div>
-            <div className="drawer-side">
-                <label htmlFor="EndDrawer" className="drawer-overlay"></label>
-                <ul className="menu p-4 w-38 bg-base-100 text-base-content">
-                    {/* <!-- Sidebar content here --> */}
-                    <li><a>Sidebar Item 1</a></li>
-                    <li><a>Sidebar Item 2</a></li>
-                </ul>
-            </div>
-        </div>
-    )
-}
-
-interface ProgressIndicatorData {
-    animated?: boolean,
-    value?: number,
-    speed?: number,
-    children?: ReactNode | { (props?: ProgressIndicatorData): ReactNode }
-}
-function RadialProgress({ animated, value = 0, speed = 1, children }: ProgressIndicatorData) {
-    const [progress, setValue] = useState(value);
-    useEffect(() => {
-        requestAnimationFrame(() => {
-            if (!animated) return;
-            if (progress >= 100) {
-                setValue(0);
-            } else {
-                setValue((p) => p + speed)
-            }
-        })
-    }, [progress, animated, value, speed])
-    const child = children instanceof Function ? children!({ value: progress, animated, speed }) : children;
-    return (<div className="radial-progress text-primary z-40" {...({ style: { "--value": progress } } as any)}>{
-        child ?? `${progress}%`}</div>
-    )
-}
-
-function useProgressIndicator() {
-    const [data, setIndicatorData] = useStore((s) => s.progressIndicator)
-    
-    const clear = useCallback(() => {
-        setIndicatorData({ progressIndicator: { ...data, children: null, show: false, } })
-    }, [data, setIndicatorData])
-
-    const show = useCallback((config: ProgressIndicatorData) => {
-        setIndicatorData({ progressIndicator: { ...config, show: true } })
-    }, [setIndicatorData])
-
-    // useEffect(() => {
-    //     return () => clear()
-    // }, [])
-
-    const result:[typeof show,typeof clear, typeof data]=[show, clear, data];
-    return result;
-}
-
-function ProgressIndicator() {
-    const [data, _] = useStore((s) => s.progressIndicator)
-    const { animated, children, value, speed, show } = data ?? {};
-    return (<div className={`toast toast-center toast-middle z-40 ${!show ? "hidden" : ""}`}>
-        {/* add an indicator here */}
-        <RadialProgress animated={animated} value={value} speed={speed}>
-            {children}
-        </RadialProgress>
-    </div>)
-}
-
 function Pagination() {
+
     return (<div className="btn-group">
         <button className="btn">1</button>
         <button className="btn">2</button>
