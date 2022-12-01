@@ -6,6 +6,7 @@ import useRequireAuth from "@/lib/useRequireAuth";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { WithChildren } from "@/types";
 import { ReactNode } from "react";
+import { useThemesList } from "@/lib/hooks/useThemesList";
 
 
 
@@ -15,6 +16,7 @@ function TenantIndex() {
     const tenant = useTenant();
     const session = useRequireAuth();
     const host = useHost();
+    const themes = useThemesList()
 
     if (router.isFallback) return <Loader />;
     return (
@@ -31,6 +33,12 @@ function TenantIndex() {
                 <FormContainer title={<h3>System Settings</h3>}>
                 <FormInput label={"Input label"}/>
                 <FormInput label="label input"/>
+                <select data-choose-theme>
+                <option key="x" value="">Default</option>
+                    {themes.map((t)=><option key={t} value={t}>{t}</option>)}
+  
+  
+</select>
                 </FormContainer>
             </FormSection>
         </div>
@@ -54,7 +62,7 @@ function FormContainer({ className, contentClassName, titleClassName, title, chi
             <div className={`flex px-4 pb-2 justify-start font-semibold text-sm text-gray-800 ${titleClassName ?? ""}`}>
                 {title}
             </div>
-            <div className={`flex px-4 py-4 h-fit bg-white ${contentClassName ?? ''}`}>
+            <div className={`grid grid-flow-row grid-cols-3 px-4 py-4 h-fit bg-white ${contentClassName ?? ''}`}>
                 {children}
             </div>
         </div>

@@ -7,11 +7,12 @@ import React from "react";
 import { getTenantAsMemberByDomain } from "../lib/getTenantAsMemberByDomain";
 import { TenantProp } from "@/types/TenantProp";
 import { useAppProviders } from "../lib/hooks/useAppProviders";
+import { useChangeTheme } from '@/lib/hooks/useChangeTheme';
 
 export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, host: string, tenant: TenantProp }>) {
+  useChangeTheme();
   const AppWrapper = useAppProviders(pageProps.host);
   const props = { ...rest, pageProps };
-
   return (<AppWrapper  {...props as any} />);
 };
 

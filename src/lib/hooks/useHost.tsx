@@ -1,5 +1,4 @@
-import React from "react";
-import { useContext } from "react";
+import React, { useContext } from "react";
 
 export const HostContext = React.createContext<string>(process.env.APP_HOST!);
 export function useHost() {

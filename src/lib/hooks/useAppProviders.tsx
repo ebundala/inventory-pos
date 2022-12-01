@@ -7,8 +7,8 @@ import React from "react";
 import { TenantProvider } from "@/lib/providers/TenantProvider";
 import { HostProvider } from "@/lib/providers/HostProvider";
 import { TenantProp } from "@/types/TenantProp";
-
-
+import { ThemesListProvider } from "@/lib/providers/ThemesListProvider";
+import themes from "@/lib/themes/themes";
 
 export function useAppProviders(host: string) {
 
@@ -16,13 +16,15 @@ export function useAppProviders(host: string) {
   return trpcWithHost.withTRPC(({
     Component, pageProps: { session, host, tenant, ...pageProps },
   }: AppProps<{ session: Session; host: string; tenant: TenantProp; }>) => {
-
+          
     return (
       <PlausibleProvider domain={host}>
         <HostProvider host={host}>
           <SessionProvider session={session}>
             <TenantProvider tenant={tenant}>
+              <ThemesListProvider themes={themes}>
               <Component {...pageProps} />
+              </ThemesListProvider>
             </TenantProvider>
           </SessionProvider>
         </HostProvider>
