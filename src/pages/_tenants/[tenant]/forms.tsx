@@ -237,7 +237,7 @@ function DashBoard() {
                 <div className="stat-figure text-secondary">
                     <div className="avatar online">
                         <div className="w-16 rounded-full">
-                            <img src="https://placeimg.com/128/128/people" />
+                            <Image width={64} height={64} src="https://placeimg.com/128/128/people" alt="" />
                         </div>
                     </div>
                 </div>

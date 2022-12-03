@@ -1,4 +1,5 @@
 import { router, publicProcedure } from "@/core/trpc";
+import { registerOidcActionHandler } from "@/lib/util/registerOidcActionHandler";
 import { adjustmentRouter } from "./adjustments/adjustment";
 import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";
@@ -10,6 +11,8 @@ import { settingRouter } from "./settings/setting";
 import { tenantRouter } from "./tenants/tenant";
 import { transferRouter } from "./transfers/transfer";
 export {createContext} from '@/core/trpc';
+// register oidc actions handlers
+registerOidcActionHandler();
 
 export const appRouter = router({
     tenant:tenantRouter,
