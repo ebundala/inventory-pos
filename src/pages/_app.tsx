@@ -4,7 +4,7 @@ import { Session } from "next-auth";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import React from "react";
-import { getTenantAsMemberByDomain } from "../lib/getTenantAsMemberByDomain";
+import { getTenantAsMemberByDomain } from "../lib/util/getTenantAsMemberByDomain";
 import { TenantProp } from "@/types/TenantProp";
 import { useAppProviders } from "../lib/hooks/useAppProviders";
 import { useChangeTheme } from '@/lib/hooks/useChangeTheme';

@@ -1,10 +1,7 @@
 import { prisma, prismaAdmin, unimplimented } from "@/core";
-import { Prisma, ProcessStatus, RecordStatus, Tenant } from "@prisma/client";
-import initJackson from '@/core/auth/jackson';
+import { Prisma, ProcessStatus, RecordStatus } from "@prisma/client";
 import cuid from "cuid";
-import { OIDCSSOConnection } from "@boxyhq/saml-jackson";
-import { googleOidcDiscoveryUrl, product, secrets } from "../util";
-import { TenantContext } from "../trpc";
+import { TenantContext } from "@/core/trpc";
 
 
 export type TenantCreateInput = {
@@ -56,7 +53,7 @@ export const createTenant = async (input: TenantCreateInput, ctx: TenantContext)
 
 
 export type TenantUpdateInput = {
-   // tenantId: string
+    // tenantId: string
     /**
      * 
      * @maxLength 50
@@ -78,8 +75,8 @@ export type TenantUpdateInput = {
     subdomain?: string
 }
 export const updateTenant = async (input: TenantUpdateInput, ctx: TenantContext) => {
-    const {...data } = input;
-    const { tx,tenantId } = ctx;
+    const { ...data } = input;
+    const { tx, tenantId } = ctx;
     //TODO handle images uploads
     return tx!.tenant.update(
         {
@@ -183,9 +180,9 @@ export type InviteMemberInput = {
     email: string
 }
 export const inviteMember = async (input: InviteMemberInput, ctx: TenantContext) => {
-    const {tx,tenantId}=ctx;
+    const { tx, tenantId } = ctx;
     //Todo add message field
-    const { userId, email, message } = input;
+    const { userId, email } = input;
     return tx!.tenantInvite.create({
         include: {
             tenant: true,
@@ -206,8 +203,8 @@ export type TenantEmailWhereInput = {
     email: string,
     // tenantId: string
 }
-export const acceptInvite = async (input: TenantEmailWhereInput,ctx:TenantContext) => {
-    const {tx,tenantId}=ctx;
+export const acceptInvite = async (input: TenantEmailWhereInput, ctx: TenantContext) => {
+    const { tx, tenantId } = ctx;
     //TODO link user to tenant
     return tx!.tenantInvite.update({
         include: {
@@ -215,22 +212,22 @@ export const acceptInvite = async (input: TenantEmailWhereInput,ctx:TenantContex
             invitor: true
         },
         where: {
-            tenantId_email: {...input,tenantId}
+            tenantId_email: { ...input, tenantId }
         },
         data: {
             status: ProcessStatus.APPROVED
         }
     })
 };
-export const rejectInvite = async (input: TenantEmailWhereInput,ctx:TenantContext) => {
-    const {tx,tenantId}=ctx;
+export const rejectInvite = async (input: TenantEmailWhereInput, ctx: TenantContext) => {
+    const { tx, tenantId } = ctx;
     return tx!.tenantInvite.update({
         include: {
             tenant: true,
             invitor: true
         },
         where: {
-            tenantId_email: {...input,tenantId}
+            tenantId_email: { ...input, tenantId }
         },
         data: {
             status: ProcessStatus.DENIED
@@ -239,12 +236,12 @@ export const rejectInvite = async (input: TenantEmailWhereInput,ctx:TenantContex
 };
 
 export type TenantMemberWhereInput = {
-   // tenantId: string,
+    // tenantId: string,
     userId: string
 }
 
 export const removeMember = async (input: TenantMemberWhereInput, ctx: TenantContext) => {
-   const {tx,tenantId}=ctx;
+    const { tx, tenantId } = ctx;
     const { userId } = input;
     return tx!.tenant.update({
         include: {
@@ -264,7 +261,7 @@ export const removeMember = async (input: TenantMemberWhereInput, ctx: TenantCon
 };
 
 export const leaveTenant = async (input: TenantMemberWhereInput, ctx: TenantContext) => {
-    const {tx,tenantId}=ctx;
+    const { tenantId } = ctx;
     const { userId } = input;
     return prisma!.user.update({
         include: {
@@ -312,61 +309,6 @@ export const subscribeToPlan = unimplimented;
 export const cancelSubscriptionPlan = unimplimented;
 
 
-const redirectUrl = (subdomain: string) => {
-    return `http://localhost:3000/api/outh/oidc/callback`
-}
 
 
-prisma!.$use(async (opts: Prisma.MiddlewareParams, next) => {
-    const { action, args, runInTransaction, model, dataPath } = opts;
-    if (model !== "Tenant" || !["update", "create", "delete"].includes(action)) {
-        return next(opts);
-    }
 
-    if (action === "update" || action === "create" || action === "delete") {
-        const tenant: Tenant = await next(opts);
-        const { connectionAPIController } = await initJackson();
-        const oidcData: OIDCSSOConnection = {
-            defaultRedirectUrl: redirectUrl(tenant.subdomain!),
-            redirectUrl: [redirectUrl(tenant.subdomain!)],
-            tenant: tenant.tenantId,
-            product: product,
-            name: tenant.name ?? undefined,
-            description: tenant.description ?? undefined,
-            oidcDiscoveryUrl: googleOidcDiscoveryUrl,
-            oidcClientId: secrets.client_id,
-            oidcClientSecret: secrets.client_secret
-        }
-        const oidcCon = await connectionAPIController.getConnections({
-            tenant: tenant.tenantId,
-            product: product
-        });
-        let clientIds: {
-            clientID: string;
-            clientSecret: string;
-        } | null;
-        if (oidcCon.length && oidcCon.at(0)?.clientID && oidcCon.at(0)?.clientSecret) {
-            clientIds = {
-                clientID: oidcCon.at(0)!.clientID,
-                clientSecret: oidcCon.at(0)!.clientSecret
-            }
-        }
-        else {
-            clientIds = null;
-        }
-        if (action === "create") {
-            await connectionAPIController.createOIDCConnection(oidcData);
-        } else if (action === "update" && clientIds) {
-            await connectionAPIController.updateOIDCConnection({ ...oidcData, ...clientIds });
-        }
-        else if (action === "delete" && clientIds !== null) {
-            await connectionAPIController.deleteConnections({
-                ...clientIds!
-            });
-
-        }
-        return tenant;
-    }
-    return next(opts);
-
-})

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useStore } from "./forms";
-import { ProgressIndicatorData } from "./ProgressIndicatorData";
+import { useStore } from "@/lib/context";
+import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 
 
 export function useProgressIndicator() {

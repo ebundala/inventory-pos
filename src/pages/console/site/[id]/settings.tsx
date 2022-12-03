@@ -9,7 +9,7 @@ import CloudinaryUploadWidget from "@/components/Cloudinary";
 import DomainCard from "@/components/app/DomainCard";
 import Layout from "@/components/app/Layout";
 import LoadingDots from "@/components/app/loading-dots";
-import Modal from "@/components/Modal";
+import Modal from "@/components/Modal1";
 
 import { fetcher } from "@/core/fetcher/fetcher";
 import { HttpMethod } from "@/types";

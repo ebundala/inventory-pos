@@ -5,7 +5,7 @@ import useRequireAuth from "@/lib/useRequireAuth";
 import Header from "@/components/app/header";
 import BlurImage from "@/components/BlurImage";
 import Loader from "@/components/app/Loader";
-import Modal from "@/components/Modal";
+import Modal from "@/components/Modal1";
 import { Tenant } from "@prisma/client";
 import ProjectForm from "@/components/app/ProjectForm";
 import ProjectsList from "@/components/app/ProjectsList";

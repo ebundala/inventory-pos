@@ -1,59 +1,22 @@
-import createFastContext from "@/core/util/createFastContext";
 import { WithChildren } from "@/types";
-import { Model } from "casbin";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import React, { Component, FC, ReactNode, useRef } from "react";
-import { DrawerData } from "./DrawerData";
-import { DrawerNavMenuItem } from "./DrawerNavMenuItem";
-import { EndDrawer } from "./EndDrawer";
-import { EndDrawerContainerProps } from "./EndDrawerContainerProps";
-import { menus } from "./menus";
-import { Modal } from "./Modal";
-import { ModalData } from "./ModalData";
-import { ModalPosition } from "./ModalPosition";
-import { ProgressIndicator } from "./ProgressIndicator";
-import { ProgressIndicatorData } from "./ProgressIndicatorData";
-import { Toast } from "./Toast";
-import { ToastMessage } from "./ToastMessage";
-import { useDrawer } from "./useDrawer";
-import { useEndDrawer } from "./useEndDrawer";
-import { useModel } from "./useModel";
-
-export type WithShow = {
-    show: boolean;
-};
-
-interface AppState {
-    drawerFocusedMenuKey: string | null,
-    progressIndicator: ProgressIndicatorData & WithShow | null
-    toastMessages: Set<ToastMessage>,
-    modalData: ModalData & WithShow | null,
-    endDrawerData: EndDrawerData & WithShow | null;
-    drawerData: DrawerData & WithShow | null;
-}
- export const { Provider, useStore } = createFastContext<AppState>({
-    modalData:null,
-    drawerFocusedMenuKey:null,
-    progressIndicator:null,
-    endDrawerData:null,
-    drawerData:{
-        menus,
-        show:false
-    },
-    toastMessages: new Set(),
-})
+import React from "react";
+import { DrawerNavMenuItem } from "@/components/DrawerNavMenuItem";
+import { EndDrawer } from "@/components/EndDrawer";
+import { EndDrawerData } from "@/types/EndDrawerData";
+import { Modal } from "@/components/Modal";
+import { ModalData } from "@/types/ModalData";
+import { ModalPosition } from "@/types/ModalPosition";
+import { ProgressIndicator } from "@/components/ProgressIndicator";
+import { Toast } from "@/components/Toast";
+import { useDrawer } from "@/lib/hooks/useDrawer";
+import { useEndDrawer } from "@/lib/hooks/useEndDrawer";
+import { useModel } from "@/lib/hooks/useModel";
+import { Provider } from "@/lib/context";
 
 
 
-export type LinkMenuData = {
-    name: string,
-    link: string,
-    icon?: ReactNode,
-    disabled?: boolean,
-    active?: boolean,
-    subMenus?: LinkMenuData[]
-}
 const Layout = ({ children, ...props }: WithChildren) => {
     //const [sideBarShowing, showSidebar] = useStore((store) => store.drawerData?.show);
    // const [navItems, setNavMenus] = useStore((store) => store.drawerData?.menus);
@@ -174,19 +137,6 @@ function Footer() {
         </footer>
     )
 }
-export interface EndDrawerData{
-    content:ReactNode | {
-        (props: {
-            update: (data: EndDrawerData & WithShow) => void;
-            close: () => void;           
-            open: () => void;
-            reset: () => void;
-            toggle: (current: boolean) => void;
-            ContentContainer: FC<EndDrawerContainerProps>;
-        }): ReactNode;
-    };
-}
-
 function Navbar() {
    const {data,close}=useDrawer();
    const {show: sideBarShowing} = data??{};

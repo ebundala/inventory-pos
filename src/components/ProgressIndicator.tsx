@@ -1,6 +1,6 @@
 import React from "react";
-import { RadialProgress } from "./RadialProgress";
-import { useProgressIndicator } from "./useProgressIndicator";
+import { RadialProgress } from "@/components//RadialProgress";
+import { useProgressIndicator } from "@/lib/hooks/useProgressIndicator";
 
 export function ProgressIndicator() {
     const [_, __, data] = useProgressIndicator();

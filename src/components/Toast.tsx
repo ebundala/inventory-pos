@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
-import { ToastMessage } from "./ToastMessage";
-import { useToast } from "./useToast";
+import { ToastMessage } from "@/types//ToastMessage";
+import { useToast } from "@/lib/hooks/useToast";
 
 export function Toast() {
     const [add, remove, messages] = useToast();

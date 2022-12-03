@@ -1,5 +1,7 @@
 import { useCallback } from "react";
-import { EndDrawerData, WithShow } from "./forms";
+import { useStore } from "@/lib/context";
+import { WithShow } from "@/types/WithShow";
+import { EndDrawerData } from "@/types/EndDrawerData";
 
 export function useEndDrawer() {
     const [data, updateDrawer] = useStore((store) => store.endDrawerData);

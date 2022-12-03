@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useStore } from "./forms";
-import { ModalData } from "./ModalData";
+import { useStore } from "@/lib/context";
+import { ModalData } from "@/types/ModalData";
 
 
 export function useModel() {

@@ -5,7 +5,7 @@ import GitHubProvider from "next-auth/providers/github";
 import BoxyHQSAMLProvider from 'next-auth/providers/boxyhq-saml';
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/core";
-import { googleOidcDiscoveryUrl, secrets } from "@/core/util";
+import { googleOidcDiscoveryUrl, secrets } from "@/core/util/oidcConfig";
 import googleCfg from 'keys/google-openid-configuration.json';
 import { APP_HOST } from "@/lib/util";
 import { Prisma } from "@prisma/client";

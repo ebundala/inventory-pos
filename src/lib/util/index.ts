@@ -1,5 +1,3 @@
-import { Tenant } from "@prisma/client";
-import { ParsedUrlQuery } from "querystring";
 
 export const capitalize = (s: string) => {
   if (typeof s !== "string") return "";
@@ -29,11 +27,4 @@ export const getBlurDataURL = async (url: string | null) => {
 
 export const APP_HOST = process.env.APP_HOST;
 
-export interface TenantPathProps extends ParsedUrlQuery {
-  tenant: string;
-}
-
-export interface TenantProps {
-  tenant: Tenant;
-}
 

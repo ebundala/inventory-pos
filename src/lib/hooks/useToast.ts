@@ -1,10 +1,7 @@
 import { useCallback } from "react";
-import { ToastMessage } from "./ToastMessage";
-import { useStore } from "./forms";
-// const data=new Set<ToastMessage>()
-// data.add({
-//     id:"xx",content:"message here",type:ToastMessageType.info,timeout:5000
-// })
+import { ToastMessage } from "@/types/ToastMessage";
+import { useStore } from "@/lib/context";
+
 export function useToast() {
     const [messages, setMessages] = useStore((s) => s.toastMessages);
 

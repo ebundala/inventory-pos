@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Layout from "@/components/app/Layout";
 import BlurImage from "@/components/BlurImage";
-import Modal from "@/components/Modal";
+import Modal from "@/components/Modal1";
 import LoadingDots from "@/components/app/loading-dots";
 import Link from "next/link";
 import { useSession } from "next-auth/react";

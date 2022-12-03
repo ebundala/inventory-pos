@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ProgressIndicatorData } from "./ProgressIndicatorData";
+import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 
 export function RadialProgress({ animated, value = 0, speed = 1, children }: ProgressIndicatorData) {
     const [progress, setValue] = useState(value);

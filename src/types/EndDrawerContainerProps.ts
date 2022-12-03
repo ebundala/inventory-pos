@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { EndDrawerData, WithShow } from "./forms";
+import { WithShow } from "./WithShow";
+import { EndDrawerData } from "./EndDrawerData";
 
 export type EndDrawerContainerProps = {
     children?: ReactNode | {

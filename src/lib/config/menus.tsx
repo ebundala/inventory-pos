@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
     BsAlarm, BsArrowBarLeft, BsArrowBarRight, BsArrowLeftRight, BsAward, BsBarChart, BsCalculator,
     BsCurrencyExchange, BsGear, BsGenderAmbiguous,
@@ -6,7 +6,7 @@ import {
 } from "react-icons/bs";
 import { FaAccessibleIcon, FaBaby, FaBarcode, FaWarehouse } from "react-icons/fa";
 import { FcDataBackup } from "react-icons/fc";
-import { LinkMenuData } from "./forms";
+import { LinkMenuData } from "@/types/LinkMenuData";
 
 export const menus: LinkMenuData[] = [
     {

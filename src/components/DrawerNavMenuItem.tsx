@@ -1,6 +1,7 @@
 import Link from "next/link";
 import React from "react";
-import { LinkMenuData } from "./forms";
+import { useStore } from "@/lib/context";
+import { LinkMenuData } from "@/types/LinkMenuData";
 
 export function DrawerNavMenuItem({ menu }: { menu: LinkMenuData; }) {
     const [focusedMenu, setFocusedMenuKey] = useStore((store) => store.drawerFocusedMenuKey);

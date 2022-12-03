@@ -1,7 +1,7 @@
 import { WithChildren } from "@/types";
 import React from "react";
-import { EndDrawerContainerProps } from "./EndDrawerContainerProps";
-import { useEndDrawer } from "./useEndDrawer";
+import { EndDrawerContainerProps } from "@/types/EndDrawerContainerProps";
+import { useEndDrawer } from "@/lib/hooks/useEndDrawer";
 
 export function EndDrawer({ children }: WithChildren) {
     const { data, open, close, update, toggle, reset } = useEndDrawer();
