@@ -1,5 +1,5 @@
 import { useTrpc } from "@/lib/hooks/useTrpc";
-import { useHost } from "./useHost";
+import { useHost } from "@/lib/hooks/useHost";
 
 
 export function useTrpcTenant() {

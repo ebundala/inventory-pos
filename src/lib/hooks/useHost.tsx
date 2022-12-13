@@ -1,6 +1,12 @@
-import React, { useContext } from "react";
+import { useStore } from "@/lib/context";
+import { useEffect } from "react";
 
-export const HostContext = React.createContext<string>(process.env.APP_HOST!);
-export function useHost() {
-  return useContext<string>(HostContext);
+export function useHost(url?:string) {
+  const [host,setHost] = useStore((s)=>s.host);  
+    useEffect(()=>{
+      if(window?.location||url){
+     setHost({host:url??window.location.host})
+      }
+    },[setHost,host,url]);
+  return host
 }

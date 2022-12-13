@@ -229,31 +229,31 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "System settings",
-                link: '#',
+                link: '/settings/system',
                 icon: <BsGear />,
                 subMenus: []
             },
             {
                 name: "Users permissions",
-                link: '#',
+                link: '/settings/roles',
                 icon: <BsShieldCheck />,
                 subMenus: []
             },
             {
                 name: "Warehouses",
-                link: '#',
+                link: '/settings/warehouse',
                 icon: <FaWarehouse />,
                 subMenus: []
             },
             {
                 name: "Currency",
-                link: '#',
+                link: '/settings/currency',
                 icon: <BsCurrencyExchange />,
                 subMenus: []
             },
             {
                 name: "Backup",
-                link: '#',
+                link: '/settings/backup',
                 icon: <FcDataBackup />,
                 subMenus: []
             }

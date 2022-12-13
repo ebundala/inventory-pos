@@ -2,17 +2,16 @@ import { getFetch, httpBatchLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { AppRouter } from "@/lib/routers";
 import { useMemo } from "react";
+import { useHost } from "@/lib/hooks/useHost";
 
 
-export function useTrpc(hostname: string) {
-
+export function useTrpc(url?: string | null) {
+  const host = useHost()
   const trpc = useMemo(() => createTRPCNext<AppRouter>({
     config({ ctx }) {
 
-      // Get hostname of request (e.g. demo.vercel.pub, demo.localhost:3000)
-      // const hostname = ctx?.req?.headers?.host??"app.localhost:3000";
-      const url = `http://${hostname}:3000/api/trpc`;
-      // TODO use context to construct url
+      const url = `http://${host}/api/trpc`;
+      
       return {
         queryClientConfig: {
           defaultOptions: {
@@ -46,6 +45,6 @@ export function useTrpc(hostname: string) {
       };
     },
     ssr: true,
-  }), [hostname]);
+  }), [host]);
   return trpc;
 }

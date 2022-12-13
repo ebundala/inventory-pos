@@ -1,14 +1,17 @@
 import type { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
-import { getTenantServerSideProps, } from "@/lib/util";
+//import { getTenantServerSideProps } from "@/lib/tenant-server-props";
+import { getLayout } from "@/layouts/getLayout";
+import { useTenant } from "@/lib/hooks/useTenant";
 
 
+//export const getServerSideProps = getTenantServerSideProps
 
-export const getServerSideProps = getTenantServerSideProps
-
-function SettingsIndex({ tenant }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+function SettingsIndex(/*{ tenant }: InferGetServerSidePropsType<typeof getServerSideProps>*/) {
     const router = useRouter();
+    const tenant = useTenant();
+    console.log(tenant);
     if (router.isFallback) return <Loader />;
 
 
@@ -20,4 +23,5 @@ function SettingsIndex({ tenant }: InferGetServerSidePropsType<typeof getServerS
     );
 }
 
+SettingsIndex.getLayout=getLayout
 export default SettingsIndex;

@@ -1,6 +1,5 @@
-import React, {useContext } from "react";
-import themes from '@/lib/themes/themes';
-export const ThemeListContext = React.createContext<string[]>(themes)
+import { useStore } from "@/lib/context";
 export const useThemesList = () =>{
-    return useContext<string[]>(ThemeListContext);
+    const [themes,_] = useStore((s)=>s.themes);
+    return themes;
 }

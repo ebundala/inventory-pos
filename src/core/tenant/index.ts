@@ -165,6 +165,30 @@ export const findManyTenant = async (input: Omit<Prisma.TenantFindManyArgs, "sel
         }
     );
 };
+
+export const findFirstTenant = async (input: Omit<Prisma.TenantFindManyArgs, "select" | "include">, ctx: TenantContext) => {
+    const { session } = ctx;
+    const { where, ...rest } = input;
+    return prismaAdmin!.tenant.findFirst(
+        {
+            include: {
+                members: true
+            },
+            ...rest,
+            where: {
+                ... (where || {}),
+                AND: [
+                    {
+                        members: {
+                            some: { id: { equals: session!.user.id! } }
+                        }
+                    },
+
+                ]
+            }
+        }
+    );
+};
 export type InviteMemberInput = {
     /**
      * 
