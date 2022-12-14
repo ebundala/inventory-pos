@@ -174,17 +174,19 @@ export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentFie
 }
 
 
-function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(schema:T,props?:Parameters<typeof useForm>[0]){
+export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(schema:T,props?:Parameters<typeof useForm>[0]){
     
  const form=  useForm({resolver:zodResolver(schema),...props});
+ const register = form.register;
  const config = useMemo(()=>{
     const ast = traverseZodSchema(schema);
     const config = getFieldsConfigFromSchemaAst(ast);
     return config.map((v)=>{
         const valueAsDate = v.type == ZodFirstPartyTypeKind.ZodDate;
         const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
-        return {props:form.register(v.name,{valueAsDate,valueAsNumber}),...v}
+        return {props:register(v.name,{valueAsDate,valueAsNumber,required:"This field is required"}),...v}
     });
-},[schema,form]);
-return [config,form]
+},[schema,register]);
+
+return [config,form] as [typeof config,typeof form]
 }

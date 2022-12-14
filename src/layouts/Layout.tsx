@@ -11,7 +11,7 @@ import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 
 export function Layout({ children, ...props }: WithChildren) {
-    const { data, close: closeDrawer } = useDrawer();
+   const { data, toggle} = useDrawer();
     const { show, menus } = data ?? {};
     return (
         <div {...props}>
@@ -45,7 +45,7 @@ export function Layout({ children, ...props }: WithChildren) {
                 </div>
                 <div className="drawer-side ">
                     <label htmlFor="my-drawer" className="drawer-overlay" onClick={() => {
-                        closeDrawer();
+                        toggle(true);
                     }}></label>
 
                     <ul className=" w-48 bg-base-100 text-base-content border-r-2 border-gray-100 overflow-x-hidden">

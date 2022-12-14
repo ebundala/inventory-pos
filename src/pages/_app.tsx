@@ -8,6 +8,7 @@ import { useChangeTheme } from '@/lib/hooks/useChangeTheme';
 
 export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, }>) {
   const props = { ...rest, pageProps };
+  
   return (
     <AppContextProvider>
       <WrappedApp {...props} />
@@ -15,7 +16,7 @@ export default function Index({ pageProps, ...rest }: AppProps<{ session: Sessio
 }
 
 function WrappedApp({ ...props }: AppProps<{ session: Session }>) {
-  useChangeTheme();
+  
   const AppWrapper = useAppProviders();
   return (
     <AppWrapper  {...props as any} />

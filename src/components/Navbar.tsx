@@ -4,7 +4,7 @@ import React from "react";
 import { useDrawer } from "@/lib/hooks/useDrawer";
 
 export function Navbar() {
-    const { data, close } = useDrawer();
+    const { data, toggle } = useDrawer();
     const { show: sideBarShowing } = data ?? {};
     const session = useSession();
     return (
@@ -22,7 +22,7 @@ export function Navbar() {
                     <input checked={sideBarShowing} type="checkbox" className="hidden" onChange={(e) => {
 
                         if (e.target.checked !== sideBarShowing) {
-                            e.target.checked ? open() : close();
+                            e.target.checked ? toggle(false) : toggle(true);
                         }
 
                     }} />

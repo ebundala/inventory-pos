@@ -6,10 +6,11 @@ import { useTrpc } from "@/lib/hooks/useTrpc";
 import React, { ReactNode } from "react";
 import { NextComponentType, NextPageContext } from "next/types";
 import { useHost } from "@/lib/hooks/useHost";
+import { useChangeTheme } from "./useChangeTheme";
 
 export function useAppProviders() {
  
-  
+  useChangeTheme();
   const host = useHost();
   const trpcWithHost = useTrpc(host);
   return trpcWithHost.withTRPC(({

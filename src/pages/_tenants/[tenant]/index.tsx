@@ -18,7 +18,7 @@ function TenantIndex() {
     const router = useRouter();
     const [tenant, loading] = useTenant();
     const session = useRequireAuth();
-    const themes = useThemesList()
+    
 
     if (router.isFallback || loading) return <Loader />;
     return (
@@ -35,13 +35,8 @@ function TenantIndex() {
                 <FormContainer title={<h3>System Settings</h3>}>
                     <FormInput label={"Input label"} />
                     <FormInput label="label input" />
-                    <select data-choose-theme>
-                        <option key="x" value="">Default</option>
-                        {themes.map((t) => <option key={t} value={t}>{t}</option>)}
-
-
-                    </select>
-                    <BuildForm />
+                    
+                
                 </FormContainer>
             </FormSection>
         </div>
@@ -51,57 +46,6 @@ function TenantIndex() {
 export default TenantIndex;
 TenantIndex.getLayout = getLayout;
 
-
-function BuildForm() {
-    const json = {
-        "email": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "currencyId": { "_def": { "innerType": { "_def": { "checks": [], "typeName": "ZodNumber" } }, "typeName": "ZodOptional" } },
-        "companyName": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "companyPhone": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "companyAddress": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "logo": { "_def": { "innerType": { "_def": { "checks": [], "typeName": "ZodString" } }, "typeName": "ZodOptional" } },
-        "footer": { "_def": { "checks": [], "typeName": "ZodString" } }, "developedBy": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "customerId": { "_def": { "innerType": { "_def": { "checks": [], "typeName": "ZodNumber" } }, "typeName": "ZodOptional" } },
-        "warehouseId": { "_def": { "innerType": { "_def": { "checks": [], "typeName": "ZodNumber" } }, "typeName": "ZodOptional" } },
-        "defaultLanguage": { "_def": { "checks": [], "typeName": "ZodString" } },
-        "tenantId": { "_def": { "checks": [], "typeName": "ZodString" } }
-    }
-    
-  
-    return (
-        <div>
-            {/* {JSON.stringify(traverseZodSchema(TenantCreateInputObjectSchema as any))} */}
-        </div>
-    )
-}
-
-type ParsedZodFieldType={
-    field:string,
-    typeName:ZodFirstPartyTypeKind,
-    inner?:Array<ParsedZodFieldType>
-}
-function traverseZodSchema<T  extends ZodFirstPartySchemaTypes=ZodFirstPartySchemaTypes>(schema:T){
-    let ast:ParsedZodFieldType[]=[];
-    if(schema._def.typeName == ZodFirstPartyTypeKind.ZodObject){
-       const shape = schema._def.shape();
-       
-    for (let key in shape){
-        console.debug(key,shape[key])
-        // let v = (schema as any)[key] as ZodTypeAny;
-        // let def = v._def as ZodAnyDef;
-        // let typeName = def?.typeName??ZodFirstPartyTypeKind.ZodUnknown;
-        // let innerType = (def as any)?.innerType as ZodTypeAny;
-        // let inner;
-        // if(innerType)
-        // {
-        //   inner=  traverseZodSchema(innerType._def)
-        // }
-        // ast.push({typeName,inner,field:key})
-    }
-    }
-
-    return ast;
-}
 
 function FormSection({ children }: WithChildren) {
     return (
