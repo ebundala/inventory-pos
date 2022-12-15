@@ -8,10 +8,9 @@ export function useTenant() {
   const host = useHost();
   const subdomain = useSubDomain();
   const trpcWithHost = useTrpc(host);
-  const result = useMemo(() => trpcWithHost.tenant.findFirst.useQuery({ where: { subdomain: subdomain } }),
-    [subdomain, trpcWithHost.tenant.findFirst]);
+  const result = trpcWithHost.tenant.findFirst.useQuery({ where: { subdomain: subdomain } });
   useEffect(() => {
-    setTenant({ tenant: result.data ?? null })
+     setTenant({ tenant: result.data ?? null })
   }, [result.isSuccess, setTenant, result.data])
 
   return [tenant,result.isFetching,result.isSuccess];

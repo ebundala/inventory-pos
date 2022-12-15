@@ -4,15 +4,18 @@ import type { AppProps } from "next/app";
 import React from "react";
 import { useAppProviders } from "@/lib/hooks/useAppProviders";
 import { Provider as AppContextProvider } from "@/lib/context";
-import { useChangeTheme } from '@/lib/hooks/useChangeTheme';
+import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 
 export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, }>) {
+  useChangeTheme();
   const props = { ...rest, pageProps };
   
   return (
+    
     <AppContextProvider>
       <WrappedApp {...props} />
-    </AppContextProvider>);
+    </AppContextProvider>
+    );
 }
 
 function WrappedApp({ ...props }: AppProps<{ session: Session }>) {

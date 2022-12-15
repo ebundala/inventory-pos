@@ -1,26 +1,21 @@
 import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
-import { useHost } from "@/lib/hooks/useHost";
 import useRequireAuth from "@/lib/useRequireAuth";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { WithChildren } from "@/types";
 import { ReactNode } from "react";
-import { useThemesList } from "@/lib/hooks/useThemesList";
 import { getLayout } from "@/layouts/getLayout";
-import { createSettingInputSchema } from "@/core/setting/index.zod";
-import { ZodAny, ZodFirstPartyTypeKind, ZodTypeAny,ZodRawShape, ZodAnyDef, ZodFirstPartySchemaTypes } from "zod";
-import { TenantCreateInputObjectSchema } from "prisma/generated/schemas/objects/TenantCreateInput.schema";
 
 
 
 
 function TenantIndex() {
     const router = useRouter();
-    const [tenant, loading] = useTenant();
+  //  const [tenant, loading] = useTenant();
     const session = useRequireAuth();
     
 
-    if (router.isFallback || loading) return <Loader />;
+    if (router.isFallback /* || loading */ ) return <Loader />;
     return (
         <div className="flex flex-row flex-wrap w-full h-full justify-between">
             <FormSection >

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {zodResolver} from '@hookform/resolvers/zod';
-import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes } from "zod";
+import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, } from "zod";
 
 
 
@@ -14,7 +14,7 @@ type TraverseReturnType = ParsedZodFieldType | ParsedZodFieldType[]
 export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(schema: T, field: string=""): TraverseReturnType {
     let ast: ParsedZodFieldType | ParsedZodFieldType[] = [];
     let typeName = schema._def.typeName;
-
+    //console.log(typeName);
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodString) {
         return { typeName, field };
     }
@@ -107,9 +107,9 @@ export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstP
         return { typeName, field, values: shape }
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodEffects) {
-        const shape = schema._def.effect;
+        const shape = schema._def.schema;
         // console.debug(shape)
-        return { typeName, field }
+        return traverseZodSchema(shape,field);
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodNativeEnum) {
         const shape = schema._def.values;
@@ -172,21 +172,48 @@ export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentFie
     }
     return config;
 }
+export const getInputTypeFromZodType = (i: ZodFirstPartyTypeKind) => {
+    if(i == ZodFirstPartyTypeKind.ZodBoolean) return "checkbox";
+    if(i == ZodFirstPartyTypeKind.ZodEnum) return "select";
+    return i.replace('Zod', '').toLowerCase()
+  }
+type InputOptionValues= Array<{label:string,value:any}> | string[] | number[];
 
+type FormFieldOption={
+    label?:string,
+    refine?:Parameters<ZodTypeAny['refine']>,
+    ordering?:number,
+    hidden?:boolean,
+    options?: InputOptionValues 
+}
+type FormFieldOptionList={}
 
-export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(schema:T,props?:Parameters<typeof useForm>[0]){
+export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
+    schema:T,fieldOptions:{[K: string]:FormFieldOption | undefined | null}={},
+    props?:Parameters<typeof useForm>[0]){
     
  const form=  useForm({resolver:zodResolver(schema),...props});
  const register = form.register;
- const config = useMemo(()=>{
+ const errors = form.formState.errors;
+ const isSubmitting = form.formState.isSubmitting;
+
+ const config = useMemo(()=>{    
     const ast = traverseZodSchema(schema);
     const config = getFieldsConfigFromSchemaAst(ast);
     return config.map((v)=>{
         const valueAsDate = v.type == ZodFirstPartyTypeKind.ZodDate;
         const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
-        return {props:register(v.name,{valueAsDate,valueAsNumber,required:"This field is required"}),...v}
-    });
-},[schema,register]);
+        const label = fieldOptions[v.name]?.label
+        const ordering = fieldOptions[v.name]?.ordering??-1
+        const hidden = fieldOptions[v.name]?.hidden;
+        const options = fieldOptions[v.name]?.options;
+        const type= getInputTypeFromZodType(v.type);
+
+        const disabled=isSubmitting;
+        const error = errors[v.name]?.message?.toString();
+        return {error,label,ordering,options, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
+    }).sort((a,b)=>b.ordering-a.ordering);
+},[schema, isSubmitting, errors, register,fieldOptions]);
 
 return [config,form] as [typeof config,typeof form]
 }
