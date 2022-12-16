@@ -6,7 +6,7 @@ import { createPosSettingInputSchema } from "../../src/core/pos_setting/index.zo
 import { traverseZodSchema } from "./util/form-gen";
 const schema = createSaleInputSchema
 .superRefine(({userId},ctx)=>{
-    if(!userId){
+    if(userId?.length==0){
         console.log(ctx.path)
         ctx.addIssue({
             code:ZodIssueCode.custom,

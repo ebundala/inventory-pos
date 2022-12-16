@@ -1,13 +1,15 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {zodResolver} from '@hookform/resolvers/zod';
-import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, } from "zod";
+import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, number, ZodIssueCode, } from "zod";
 
 
 
 type ParsedZodFieldType = {
     field: string,
     typeName: ZodFirstPartyTypeKind,
+    allowedValues?:any[],
+    literalValue?:any,
     inner?: ParsedZodFieldType | ParsedZodFieldType[]
 }
 type TraverseReturnType = ParsedZodFieldType | ParsedZodFieldType[]
@@ -80,6 +82,7 @@ export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstP
         return { typeName, field };
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodTuple) {
+        schema._def
         return { typeName, field };
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodRecord) {
@@ -93,18 +96,22 @@ export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstP
         return { typeName, field };
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodFunction) {
+        const shape = schema._def
+
         return { typeName, field };
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodLazy) {
-        return { typeName, field };
+       const shape = schema._def.getter()
+        return { typeName, field, inner:traverseZodSchema(shape,field)};
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodLiteral) {
-        return { typeName, field };
+        const shape = schema._def.value;
+        return { typeName, field ,literalValue:shape};
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodEnum) {
         const shape = schema._def.values;
         // console.debug(shape)
-        return { typeName, field, values: shape }
+        return { typeName, field, allowedValues: shape }
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodEffects) {
         const shape = schema._def.schema;
@@ -114,7 +121,7 @@ export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstP
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodNativeEnum) {
         const shape = schema._def.values;
         //  console.debug(shape)
-        return { typeName, field };
+        return { typeName, field,allowedValues: shape };
     }
     if (schema._def.typeName == ZodFirstPartyTypeKind.ZodOptional) {
         const shape = schema._def.innerType;
@@ -145,6 +152,8 @@ type FormFieldConfig = {
     required: Boolean
     name: string
     type: ZodFirstPartyTypeKind
+    allowedValues?:InputOptionValues
+    literalValue?:any
 }
 export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentField: string="", parentType: string = '', config: FormFieldConfig[] = []) {
     const fieldName = (field: string,parent:string, isArray: boolean, isObject: boolean) => `${parent}${isArray ? `.0.${field}` : isObject ? `.${field}` : field}`;
@@ -167,7 +176,9 @@ export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentFie
         config.push({
             name:parentField,
             type:data.typeName,
-            required:parentType !== ZodFirstPartyTypeKind.ZodOptional
+            required:parentType !== ZodFirstPartyTypeKind.ZodOptional,
+            allowedValues: data.allowedValues,
+            literalValue:data.literalValue
         })
     }
     return config;
@@ -182,38 +193,73 @@ type InputOptionValues= Array<{label:string,value:any}> | string[] | number[];
 type FormFieldOption={
     label?:string,
     refine?:Parameters<ZodTypeAny['refine']>,
+    upload?:boolean,
+    textArea?:boolean,
     ordering?:number,
     hidden?:boolean,
     options?: InputOptionValues 
 }
-type FormFieldOptionList={}
 
 export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
     schema:T,fieldOptions:{[K: string]:FormFieldOption | undefined | null}={},
     props?:Parameters<typeof useForm>[0]){
-    
- const form=  useForm({resolver:zodResolver(schema),...props});
+ 
+ 
+
+ const [fieldConfig,refinedSchema] = useMemo(()=>{    
+    const ast = traverseZodSchema(schema);
+    const fieldConfig = getFieldsConfigFromSchemaAst(ast);
+    const schema2= schema.superRefine((data,ctx)=>{
+        
+            for(let field of fieldConfig ){
+                if(field.required && field.type == ZodFirstPartyTypeKind.ZodString){
+                    const path = field.name.split(".").map((v)=>{
+                        if(/[0-9]/g.test(v)){
+                        return parseInt(v)
+                        }
+                        return v;
+                    });
+                    //TODO read value from path array
+                    const value = data[path[0]]
+                    console.log(value,path);
+                    if(!value||value?.length<1){
+                        //console.log(ctx.path)
+                        const label = fieldOptions[field.name]?.label??field.name
+                        ctx.addIssue({
+                            code:ZodIssueCode.custom,
+                            path:path,
+                            message:`${label} is required`
+                        });
+                }
+            }}
+
+});
+return [fieldConfig,schema2] as [typeof fieldConfig,typeof schema2];
+
+},[schema,fieldOptions]);
+
+const form=  useForm({resolver:zodResolver(refinedSchema),...props});
  const register = form.register;
  const errors = form.formState.errors;
  const isSubmitting = form.formState.isSubmitting;
 
- const config = useMemo(()=>{    
-    const ast = traverseZodSchema(schema);
-    const config = getFieldsConfigFromSchemaAst(ast);
-    return config.map((v)=>{
+const config = useMemo(()=>{
+    return fieldConfig.map((v)=>{
         const valueAsDate = v.type == ZodFirstPartyTypeKind.ZodDate;
         const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
         const label = fieldOptions[v.name]?.label
-        const ordering = fieldOptions[v.name]?.ordering??-1
+        const ordering = fieldOptions[v.name]?.ordering??Number.MAX_SAFE_INTEGER;
         const hidden = fieldOptions[v.name]?.hidden;
-        const options = fieldOptions[v.name]?.options;
+        const options = fieldOptions[v.name]?.options??v.allowedValues;
+        const upload = fieldOptions[v.name]?.upload??false;
+        const textArea = fieldOptions[v.name]?.textArea??false;
         const type= getInputTypeFromZodType(v.type);
-
         const disabled=isSubmitting;
         const error = errors[v.name]?.message?.toString();
-        return {error,label,ordering,options, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
-    }).sort((a,b)=>b.ordering-a.ordering);
-},[schema, isSubmitting, errors, register,fieldOptions]);
+        return {error,label,ordering,options,upload,textArea, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
+    }).sort((a,b)=>a.ordering-b.ordering);
+},[refinedSchema,fieldConfig,register,isSubmitting,errors]);
+
 
 return [config,form] as [typeof config,typeof form]
 }
