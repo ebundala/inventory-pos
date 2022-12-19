@@ -1,7 +1,8 @@
 import { useStore } from "@/lib/context";
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useRef } from "react"
 import { useHost } from "@/lib/hooks/useHost";
 import { useTrpc } from "@/lib/hooks/useTrpc";
+import { useSubDomain } from "./useSubDomain";
 
 export function useTenant() {
   const [tenant, setTenant] = useStore((s) => s.tenant);
@@ -13,18 +14,9 @@ export function useTenant() {
      setTenant({ tenant: result.data ?? null })
   }, [result.isSuccess, setTenant, result.data])
 
-  return [tenant,result.isFetching,result.isSuccess];
+  return [tenant,result.isFetching,result.isSuccess] as [typeof tenant,boolean,boolean];
 }
 
 
-export function useSubDomain() {
-  const host = useHost();
-  const subDomain = useMemo(() => {
-    if (host && host.length) {
-      const url = new URL(`https://${host}`);
-      return url.hostname.split('.').slice(0, -2).join('.') ?? null;
-    }
-  }, [host])
 
-  return subDomain;
-}
+
