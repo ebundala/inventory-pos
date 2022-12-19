@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include = {
     user: true,
     warehouse: true,
@@ -22,10 +23,10 @@ export type CreateAdjustmentInput = {
     adjustmentDetails: Array<CreateAdjustmentDetailsInput>
     tenantId: string
 }
-export const createAdjustment = async (input: CreateAdjustmentInput) => {
+export const createAdjustment = async (input: CreateAdjustmentInput,ctx:TenantContext) => {
     const { tenantId, adjustmentDetails, ...data } = input;
 
-    return prisma!.adjustment.create({
+    return ctx.tx!.adjustment.create({
         include,
         data: {
             tenantId: tenantId, ...data,
@@ -56,7 +57,7 @@ export type UpdateAdjustmentInput = {
     adjustmentDetails?: Array<UpdateAdjustmentDetailsInput>
    // tenantId: string
 }
-export const updateAdjustment = async (input: UpdateAdjustmentInput) => {
+export const updateAdjustment = async (input: UpdateAdjustmentInput,ctx:TenantContext) => {
     const {id, adjustmentDetails, ...data } = input;
     let details = {};
     if (adjustmentDetails && adjustmentDetails.length) {
@@ -69,7 +70,7 @@ export const updateAdjustment = async (input: UpdateAdjustmentInput) => {
             }
         }
     }
-    return prisma!.adjustment.update({
+    return ctx.tx!.adjustment.update({
         include,
         where: {
             id: id
@@ -81,18 +82,18 @@ export const updateAdjustment = async (input: UpdateAdjustmentInput) => {
 };
 export type AdjustmentId = number
 export type AdjustmentIds = Array<number>
-export const getUniqueAdjustment = async (id: AdjustmentId) => {
+export const getUniqueAdjustment = async (id: AdjustmentId,ctx:TenantContext) => {
 
-    return prisma!.adjustment.findUnique({
+    return ctx.tx!.adjustment.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteAdjustment = async (id: AdjustmentId) => {
+export const deleteAdjustment = async (id: AdjustmentId,ctx:TenantContext) => {
 
-    return prisma!.adjustment.update({
+    return ctx.tx!.adjustment.update({
         include,
         where: {
             id: id
@@ -102,8 +103,8 @@ export const deleteAdjustment = async (id: AdjustmentId) => {
         }
     })
 };
-export const deleteManyAdjustment = async (ids: AdjustmentIds) => {
-    return prisma!.adjustment.updateMany({
+export const deleteManyAdjustment = async (ids: AdjustmentIds,ctx:TenantContext) => {
+    return ctx.tx!.adjustment.updateMany({
         where: {
             id: { in: ids }
         },
@@ -113,9 +114,9 @@ export const deleteManyAdjustment = async (ids: AdjustmentIds) => {
     })
 };
 
-export const findManyAdjustment = async  (input: Omit<Prisma.AdjustmentFindManyArgs, "select"|"include"> ) => {
+export const findManyAdjustment = async  (input: Omit<Prisma.AdjustmentFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
    
-    return prisma!.adjustment.findMany(
+    return ctx.tx!.adjustment.findMany(
         {
             include,
             ...input

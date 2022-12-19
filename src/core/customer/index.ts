@@ -68,9 +68,9 @@ export const deleteManyCustomer = async (ids: CustomerIds,ctx:TenantContext) => 
     })
 };
 
-export const findManyCustomer = async  (input: Omit<Prisma.CustomerFindManyArgs, "select"|"include"> ) => {
+export const findManyCustomer = async  (input: Omit<Prisma.CustomerFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return prisma!.customer.findMany(
+    return ctx.tx!.customer.findMany(
         input
     );
 }

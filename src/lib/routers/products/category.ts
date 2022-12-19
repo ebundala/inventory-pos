@@ -1,6 +1,6 @@
 import { createCategory, deleteManyCategory, deleteCategory, findManyCategory, getUniqueCategory, updateCategory } from "@/core/category";
 import { createCategoryInputSchema, categoryIdSchema, categoryIdsSchema, updateCategoryInputSchema } from "@/core/category/index.zod";
-import { router, privateProcedureWithTx } from "@/core/trpc";
+import { router, privateProcedureWithTx, TenantContext } from "@/core/trpc";
 import { CategoryFindManySchema } from "prisma/generated/schemas/findManyCategory.schema";
 
 
@@ -8,20 +8,20 @@ import { CategoryFindManySchema } from "prisma/generated/schemas/findManyCategor
 export const categoryRouter = router({
     create: privateProcedureWithTx
         .input(createCategoryInputSchema)
-        .mutation(({ input, ctx }) => createCategory(input)),
+        .mutation(({ input, ctx }) => createCategory(input, ctx as TenantContext)),
 
     update: privateProcedureWithTx
         .input(updateCategoryInputSchema)
-        .mutation((({ input, ctx }) => updateCategory(input))),
+        .mutation((({ input, ctx }) => updateCategory(input, ctx as TenantContext))),
     get: privateProcedureWithTx
     .input(categoryIdSchema)
-    .query(({ input, ctx }) => getUniqueCategory(input)),
+    .query(({ input, ctx }) => getUniqueCategory(input, ctx as TenantContext)),
     search: privateProcedureWithTx.input(CategoryFindManySchema)
-    .query(({ input, ctx }) => findManyCategory(input)),
+    .query(({ input, ctx }) => findManyCategory(input, ctx as TenantContext)),
     delete: privateProcedureWithTx
     .input(categoryIdSchema)
-    .mutation(({ input, ctx }) => deleteCategory(input)),
+    .mutation(({ input, ctx }) => deleteCategory(input, ctx as TenantContext)),
    deleteMany: privateProcedureWithTx
     .input(categoryIdsSchema)
-    .mutation(({ input, ctx }) => deleteManyCategory(input))
+    .mutation(({ input, ctx }) => deleteManyCategory(input, ctx as TenantContext))
 })
