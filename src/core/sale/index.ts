@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include = {
     user: true,
     warehouse: true,
@@ -68,7 +69,7 @@ export type CreateSaleInput = {
     shipments?: Array<CreateShipmentInput>
     tenantId: string
 }
-export const createSale = async (input: CreateSaleInput) => {
+export const createSale = async (input: CreateSaleInput,ctx:TenantContext) => {
     const { tenantId, userId, saleDetails, paymentSales, shipments, ...data } = input;
     let saleData = {};
     if (saleDetails && saleDetails.length) {
@@ -109,7 +110,7 @@ export const createSale = async (input: CreateSaleInput) => {
             }
         }
     }
-    return prisma!.sale.create({
+    return ctx.tx!.sale.create({
         include,
         data: {
             tenantId,
@@ -185,9 +186,9 @@ export type UpdateSaleInput = {
     shipments?: Array<UpdateShipmentInput>
     tenantId: string
 }
-export const updateSale = async (input: UpdateSaleInput) => {
+export const updateSale = async (input: UpdateSaleInput,ctx:TenantContext) => {
     const { tenantId, id, userId, saleDetails, shipments, paymentSales, ...data } = input;
-    const sale = await prisma!.sale.findUnique({
+    const sale = await ctx.tx!.sale.findUnique({
         where: { id }, include: {
             shipments: true,
             saleDetails: true,
@@ -275,7 +276,7 @@ export const updateSale = async (input: UpdateSaleInput) => {
             }
         }
     }
-    return prisma!.sale.update({
+    return ctx.tx!.sale.update({
         include,
         where: {
             id: id
@@ -292,18 +293,18 @@ export const updateSale = async (input: UpdateSaleInput) => {
 
 export type SaleId = number
 export type SaleIds = Array<number>
-export const getUniqueSale = async (id: SaleId) => {
+export const getUniqueSale = async (id: SaleId,ctx:TenantContext) => {
 
-    return prisma!.sale.findUnique({
+    return ctx.tx!.sale.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteSale = async (id: SaleId) => {
+export const deleteSale = async (id: SaleId,ctx:TenantContext) => {
 
-    return prisma!.sale.update({
+    return ctx.tx!.sale.update({
         include,
         where: {
             id: id
@@ -313,8 +314,8 @@ export const deleteSale = async (id: SaleId) => {
         }
     })
 };
-export const deleteManySale = async (ids: SaleIds) => {
-    return prisma!.sale.updateMany({
+export const deleteManySale = async (ids: SaleIds,ctx:TenantContext) => {
+    return ctx.tx!.sale.updateMany({
         where: {
             id: { in: ids }
         },
@@ -324,9 +325,9 @@ export const deleteManySale = async (ids: SaleIds) => {
     })
 };
 
-export const findManySale = async (input: Omit<Prisma.SaleFindManyArgs, "select" | "include">) => {
+export const findManySale = async (input: Omit<Prisma.SaleFindManyArgs, "select" | "include">,ctx:TenantContext) => {
 
-    return prisma!.sale.findMany(
+    return ctx.tx!.sale.findMany(
         {
             include,
             ...input

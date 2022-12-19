@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateWarehouseInput = {
     name: string
@@ -10,9 +11,9 @@ export type CreateWarehouseInput = {
     zip?: string
     tenantId: string
 }
-export const createWarehouse = async (input: CreateWarehouseInput) => {
+export const createWarehouse = async (input: CreateWarehouseInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.warehouse.create({
+    return ctx.tx!.warehouse.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -26,9 +27,9 @@ export type UpdateWarehouseInput = {
     zip?: string
    
 }
-export const updateWarehouse = async (input: UpdateWarehouseInput) => {
+export const updateWarehouse = async (input: UpdateWarehouseInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.warehouse.update({
+    return ctx.tx!.warehouse.update({
         where: {
             id: id
         },        
@@ -37,17 +38,17 @@ export const updateWarehouse = async (input: UpdateWarehouseInput) => {
 };
 export type WarehouseId = number
 export type WarehouseIds = Array<number>
-export const getUniqueWarehouse = async (id: WarehouseId) => {
+export const getUniqueWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
 
-    return prisma!.warehouse.findUnique({
+    return ctx.tx!.warehouse.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteWarehouse = async (id: WarehouseId) => {
+export const deleteWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
 
-    return prisma!.warehouse.update({
+    return ctx.tx!.warehouse.update({
         where: {
             id: id
         },      
@@ -56,8 +57,8 @@ export const deleteWarehouse = async (id: WarehouseId) => {
         }
     })
 };
-export const deleteManyWarehouse = async (ids: WarehouseIds) => {
-    return prisma!.warehouse.updateMany({
+export const deleteManyWarehouse = async (ids: WarehouseIds,ctx:TenantContext) => {
+    return ctx.tx!.warehouse.updateMany({
         where: {
             id: { in: ids }
         },
@@ -67,10 +68,8 @@ export const deleteManyWarehouse = async (ids: WarehouseIds) => {
     })
 };
 
-export const findManyWarehouse = async (input: Omit<Prisma.WarehouseFindManyArgs,"select"|"include">) => {
-
-   
-    return prisma!.warehouse.findMany(
+export const findManyWarehouse = async (input: Omit<Prisma.WarehouseFindManyArgs,"select"|"include">,ctx:TenantContext) => {   
+    return ctx.tx!.warehouse.findMany(
         input
     );
 }

@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateCompanyInput = {
   name: string     
@@ -10,9 +11,9 @@ export type CreateCompanyInput = {
   address?: string
   tenantId: string
 }
-export const createCompany = async (input: CreateCompanyInput) => {
+export const createCompany = async (input: CreateCompanyInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.company.create({
+    return ctx.tx!.company.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -25,9 +26,9 @@ export type UpdateCompanyInput = {
     city?: string
     address?: string
 }
-export const updateCompany = async (input: UpdateCompanyInput) => {
+export const updateCompany = async (input: UpdateCompanyInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.company.update({
+    return ctx.tx!.company.update({
         where: {
             id: id
         },        
@@ -36,16 +37,16 @@ export const updateCompany = async (input: UpdateCompanyInput) => {
 };
 export type CompanyId = number
 export type CompanyIds = Array<number>
-export const getUniqueCompany = async (id: CompanyId) => {
-    return prisma!.company.findUnique({
+export const getUniqueCompany = async (id: CompanyId,ctx:TenantContext) => {
+    return ctx.tx!.company.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteCompany = async (id: CompanyId) => {
+export const deleteCompany = async (id: CompanyId,ctx:TenantContext) => {
 
-    return prisma!.company.update({
+    return ctx.tx!.company.update({
         where: {
             id: id
         },      
@@ -54,8 +55,8 @@ export const deleteCompany = async (id: CompanyId) => {
         }
     })
 };
-export const deleteManyCompany = async (ids: CompanyIds) => {
-    return prisma!.company.updateMany({
+export const deleteManyCompany = async (ids: CompanyIds,ctx:TenantContext) => {
+    return ctx.tx!.company.updateMany({
         where: {
             id: { in: ids }
         },
@@ -65,9 +66,9 @@ export const deleteManyCompany = async (ids: CompanyIds) => {
     })
 };
 
-export const findManyCompany = async  (input: Omit<Prisma.CompanyFindManyArgs, "select"|"include"> ) => {
+export const findManyCompany = async  (input: Omit<Prisma.CompanyFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
    
-    return prisma!.company.findMany(
+    return ctx.tx!.company.findMany(
         input
     );
 }

@@ -173,6 +173,7 @@ export const findFirstTenant = async (input: Omit<Prisma.TenantFindManyArgs, "se
         {
             include: {
                 members: true
+                
             },
             ...rest,
             where: {

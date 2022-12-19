@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreatePosSettingInput = {
     noteCustomer ?:string      
@@ -12,9 +13,9 @@ export type CreatePosSettingInput = {
     showAddress  ?:boolean 
     tenantId: string
 }
-export const createPosSetting = async (input: CreatePosSettingInput) => {
+export const createPosSetting = async (input: CreatePosSettingInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.posSetting.create({
+    return ctx.tx!.posSetting.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -29,9 +30,9 @@ export type UpdatePosSettingInput = {
   showPhone    ?:boolean      
   showAddress  ?:boolean 
 }
-export const updatePosSetting = async (input: UpdatePosSettingInput) => {
+export const updatePosSetting = async (input: UpdatePosSettingInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.posSetting.update({
+    return ctx.tx!.posSetting.update({
         where: {
             id: id
         },        
@@ -40,16 +41,16 @@ export const updatePosSetting = async (input: UpdatePosSettingInput) => {
 };
 export type PosSettingId = number
 export type PosSettingIds = Array<number>
-export const getUniquePosSetting = async (id: PosSettingId) => {
-    return prisma!.posSetting.findUnique({
+export const getUniquePosSetting = async (id: PosSettingId,ctx:TenantContext) => {
+    return ctx.tx!.posSetting.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deletePosSetting = async (id: PosSettingId) => {
+export const deletePosSetting = async (id: PosSettingId,ctx:TenantContext) => {
 
-    return prisma!.posSetting.update({
+    return ctx.tx!.posSetting.update({
         where: {
             id: id
         },      
@@ -58,8 +59,8 @@ export const deletePosSetting = async (id: PosSettingId) => {
         }
     })
 };
-export const deleteManyPosSetting = async (ids: PosSettingIds) => {
-    return prisma!.posSetting.updateMany({
+export const deleteManyPosSetting = async (ids: PosSettingIds,ctx:TenantContext) => {
+    return ctx.tx!.posSetting.updateMany({
         where: {
             id: { in: ids }
         },
@@ -69,9 +70,16 @@ export const deleteManyPosSetting = async (ids: PosSettingIds) => {
     })
 };
 
-export const findManyPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include"> ) => {
+export const findManyPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return prisma!.posSetting.findMany(
+    return ctx.tx!.posSetting.findMany(
+        input
+    );
+}
+
+export const findFirstPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
+    
+    return ctx.tx!.posSetting.findFirst(
         input
     );
 }

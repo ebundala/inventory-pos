@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include = {
     saleReturnDetails: true,
     paymentSaleReturns: true,
@@ -54,7 +55,7 @@ export type CreateSaleReturnInput = {
     saleReturnDetails: Array<CreateSaleReturnDetailInput>
     tenantId: string
 }
-export const createSaleReturn = async (input: CreateSaleReturnInput) => {
+export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantContext) => {
     const { tenantId, paymentSaleReturns, saleReturnDetails, ...data } = input;
     let details = {};
     if (saleReturnDetails && saleReturnDetails.length) {
@@ -85,7 +86,7 @@ export const createSaleReturn = async (input: CreateSaleReturnInput) => {
         }
 
     }
-    return prisma!.saleReturn.create({
+    return ctx.tx!.saleReturn.create({
         include,
         data: { tenantId: tenantId, ...data, ...details, ...paymentData }
     })
@@ -137,9 +138,9 @@ export type UpdateSaleReturnInput = {
     saleReturnDetails: Array<UpdateSaleReturnDetailInput>
     tenantId: string
 }
-export const updateSaleReturn = async (input: UpdateSaleReturnInput) => {
+export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantContext) => {
     const { tenantId, id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
-    const saleReturn = await prisma!.saleReturn.findUnique({
+    const saleReturn = await ctx.tx!.saleReturn.findUnique({
         where: { id }, include: {
             saleReturnDetails: true,
             paymentSaleReturns:true
@@ -174,7 +175,7 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput) => {
         }
     }
 
-    return prisma!.saleReturn.update({
+    return ctx.tx!.saleReturn.update({
         include,
         where: {
             id: id
@@ -187,18 +188,18 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput) => {
 };
 export type SaleReturnId = number
 export type SaleReturnIds = Array<number>
-export const getUniqueSaleReturn = async (id: SaleReturnId) => {
+export const getUniqueSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
 
-    return prisma!.saleReturn.findUnique({
+    return ctx.tx!.saleReturn.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteSaleReturn = async (id: SaleReturnId) => {
+export const deleteSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
 
-    return prisma!.saleReturn.update({
+    return ctx.tx!.saleReturn.update({
         include,
         where: {
             id: id
@@ -208,8 +209,8 @@ export const deleteSaleReturn = async (id: SaleReturnId) => {
         }
     })
 };
-export const deleteManySaleReturn = async (ids: SaleReturnIds) => {
-    return prisma!.saleReturn.updateMany({
+export const deleteManySaleReturn = async (ids: SaleReturnIds,ctx:TenantContext) => {
+    return ctx.tx!.saleReturn.updateMany({
         where: {
             id: { in: ids }
         },
@@ -219,9 +220,9 @@ export const deleteManySaleReturn = async (ids: SaleReturnIds) => {
     })
 };
 
-export const findManySaleReturn =  (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include"> ) => {
+export const findManySaleReturn =  (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return prisma!.saleReturn.findMany({
+    return ctx.tx!.saleReturn.findMany({
         include,
         ...input
      }

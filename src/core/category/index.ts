@@ -1,14 +1,15 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateCategoryInput = {
   name: string     
   code:  string
   tenantId: string
 }
-export const createCategory = async (input: CreateCategoryInput) => {
+export const createCategory = async (input: CreateCategoryInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.category.create({
+    return ctx.tx!.category.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -17,9 +18,9 @@ export type UpdateCategoryInput = {
     name?: string     
   code?:  string
 }
-export const updateCategory = async (input: UpdateCategoryInput) => {
+export const updateCategory = async (input: UpdateCategoryInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.category.update({
+    return ctx.tx!.category.update({
         where: {
             id: id
         },        
@@ -28,16 +29,16 @@ export const updateCategory = async (input: UpdateCategoryInput) => {
 };
 export type CategoryId = number
 export type CategoryIds = Array<number>
-export const getUniqueCategory = async (id: CategoryId) => {
-    return prisma!.category.findUnique({
+export const getUniqueCategory = async (id: CategoryId,ctx:TenantContext) => {
+    return ctx.tx!.category.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteCategory = async (id: CategoryId) => {
+export const deleteCategory = async (id: CategoryId,ctx:TenantContext) => {
 
-    return prisma!.category.update({
+    return ctx.tx!.category.update({
         where: {
             id: id
         },      
@@ -46,8 +47,8 @@ export const deleteCategory = async (id: CategoryId) => {
         }
     })
 };
-export const deleteManyCategory = async (ids: CategoryIds) => {
-    return prisma!.category.updateMany({
+export const deleteManyCategory = async (ids: CategoryIds,ctx:TenantContext) => {
+    return ctx.tx!.category.updateMany({
         where: {
             id: { in: ids }
         },
@@ -57,9 +58,9 @@ export const deleteManyCategory = async (ids: CategoryIds) => {
     })
 };
 
-export const findManyCategory = async  (input: Omit<Prisma.CategoryFindManyArgs, "select"|"include"> ) => {
+export const findManyCategory = async  (input: Omit<Prisma.CategoryFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
    
-    return prisma!.category.findMany(
+    return ctx.tx!.category.findMany(
         input
     );
 }

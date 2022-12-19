@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include = {
     productVariants: true,
     productUnit: true,
@@ -35,7 +36,7 @@ export type CreateProductInput = {
     productVariants?: Array<CreateProductVariantInput>
     tenantId: string
 }
-export const createProduct = async (input: CreateProductInput) => {
+export const createProduct = async (input: CreateProductInput,ctx:TenantContext) => {
     const { tenantId, productVariants, ...data } = input;
     let variants = {};
     if (productVariants && productVariants.length) {
@@ -49,7 +50,7 @@ export const createProduct = async (input: CreateProductInput) => {
         }
 
     }
-    return prisma!.product.create({
+    return ctx.tx!.product.create({
         include,
         data: { tenantId: tenantId, ...data, ...variants }
     })
@@ -82,9 +83,9 @@ export type UpdateProductInput = {
     productVariants?: Array<UpdateProductVariantInput>
     tenantId: string
 }
-export const updateProduct = async (input: UpdateProductInput) => {
+export const updateProduct = async (input: UpdateProductInput,ctx:TenantContext) => {
     const { tenantId, id, productVariants, ...data } = input;
-    const product = await prisma!.product.findUnique({
+    const product = await ctx.tx!.product.findUnique({
         where: { id }, include: {
             productVariants: true
         }
@@ -119,7 +120,7 @@ export const updateProduct = async (input: UpdateProductInput) => {
             }
         }
     }
-    return prisma!.product.update({
+    return ctx.tx!.product.update({
         include,
         where: {
             id: id
@@ -129,18 +130,18 @@ export const updateProduct = async (input: UpdateProductInput) => {
 };
 export type ProductId = number
 export type ProductIds = Array<number>
-export const getUniqueProduct = async (id: ProductId) => {
+export const getUniqueProduct = async (id: ProductId,ctx:TenantContext) => {
 
-    return prisma!.product.findUnique({
+    return ctx.tx!.product.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteProduct = async (id: ProductId) => {
+export const deleteProduct = async (id: ProductId,ctx:TenantContext) => {
 
-    return prisma!.product.update({
+    return ctx.tx!.product.update({
         include,
         where: {
             id: id
@@ -150,8 +151,8 @@ export const deleteProduct = async (id: ProductId) => {
         }
     })
 };
-export const deleteManyProduct = async (ids: ProductIds) => {
-    return prisma!.product.updateMany({
+export const deleteManyProduct = async (ids: ProductIds,ctx:TenantContext) => {
+    return ctx.tx!.product.updateMany({
         where: {
             id: { in: ids }
         },
@@ -161,9 +162,9 @@ export const deleteManyProduct = async (ids: ProductIds) => {
     })
 };
 
-export const findManyProduct = async  (input: Omit<Prisma.ProductFindManyArgs, "select"|"include"> ) => {
+export const findManyProduct = async  (input: Omit<Prisma.ProductFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return prisma!.product.findMany(
+    return ctx.tx!.product.findMany(
         {
             include,
             ...input

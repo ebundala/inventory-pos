@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include = {
     user: true,
     warehouse: true,
@@ -36,10 +37,10 @@ export type CreateQuotationInput = {
     quotationDetails: Array<CreateQuotationDetailsInput>
     tenantId: string
 }
-export const createQuotation = async (input: CreateQuotationInput) => {
+export const createQuotation = async (input: CreateQuotationInput,ctx:TenantContext) => {
     const { tenantId, quotationDetails, ...data } = input;
 
-    return prisma!.quotation.create({
+    return ctx.tx!.quotation.create({
         include,
         data: {
             tenantId: tenantId, ...data,
@@ -83,9 +84,9 @@ export type UpdateQuotationInput = {
     quotationDetails?: Array<UpdateQuotationDetailsInput>
     tenantId: string
 }
-export const updateQuotation = async (input: UpdateQuotationInput) => {
+export const updateQuotation = async (input: UpdateQuotationInput,ctx:TenantContext) => {
     const { tenantId, id, quotationDetails, ...data } = input;
-    const quotation = await prisma!.quotation.findUnique({
+    const quotation = await ctx.tx!.quotation.findUnique({
         where: { id }, include: {
             quotationDetails: true,
         }
@@ -118,7 +119,7 @@ export const updateQuotation = async (input: UpdateQuotationInput) => {
             }
         }
     }
-    return prisma!.quotation.update({
+    return ctx.tx!.quotation.update({
         include,
         where: {
             id: id
@@ -130,18 +131,18 @@ export const updateQuotation = async (input: UpdateQuotationInput) => {
 };
 export type QuotationId = number
 export type QuotationIds = Array<number>
-export const getUniqueQuotation = async (id: QuotationId) => {
+export const getUniqueQuotation = async (id: QuotationId,ctx:TenantContext) => {
 
-    return prisma!.quotation.findUnique({
+    return ctx.tx!.quotation.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteQuotation = async (id: QuotationId) => {
+export const deleteQuotation = async (id: QuotationId,ctx:TenantContext) => {
 
-    return prisma!.quotation.update({
+    return ctx.tx!.quotation.update({
         include,
         where: {
             id: id
@@ -151,8 +152,8 @@ export const deleteQuotation = async (id: QuotationId) => {
         }
     })
 };
-export const deleteManyQuotation = async (ids: QuotationIds) => {
-    return prisma!.quotation.updateMany({
+export const deleteManyQuotation = async (ids: QuotationIds,ctx:TenantContext) => {
+    return ctx.tx!.quotation.updateMany({
         where: {
             id: { in: ids }
         },
@@ -162,9 +163,9 @@ export const deleteManyQuotation = async (ids: QuotationIds) => {
     })
 };
 
-export const findManyQuotation = async  (input: Omit<Prisma.QuotationFindManyArgs, "select"|"include"> ) => {
+export const findManyQuotation = async  (input: Omit<Prisma.QuotationFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return prisma!.quotation.findMany(
+    return ctx.tx!.quotation.findMany(
         {
             include,
            ...input

@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateSettingInput = {
     email           :string
@@ -15,9 +16,9 @@ export type CreateSettingInput = {
     defaultLanguage :string 
     tenantId: string
 }
-export const createSetting = async (input: CreateSettingInput) => {
+export const createSetting = async (input: CreateSettingInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.setting.create({
+    return ctx.tx!.setting.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -35,9 +36,9 @@ export type UpdateSettingInput = {
   warehouseId     ?:number
   defaultLanguage ?:string
 }
-export const updateSetting = async (input: UpdateSettingInput) => {
+export const updateSetting = async (input: UpdateSettingInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.setting.update({
+    return ctx.tx!.setting.update({
         where: {
             id: id
         },        
@@ -46,16 +47,16 @@ export const updateSetting = async (input: UpdateSettingInput) => {
 };
 export type SettingId = number
 export type SettingIds = Array<number>
-export const getUniqueSetting = async (id: SettingId) => {
-    return prisma!.setting.findUnique({
+export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
+    return ctx.tx!.setting.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteSetting = async (id: SettingId) => {
+export const deleteSetting = async (id: SettingId,ctx:TenantContext) => {
 
-    return prisma!.setting.update({
+    return ctx.tx!.setting.update({
         where: {
             id: id
         },      
@@ -64,8 +65,8 @@ export const deleteSetting = async (id: SettingId) => {
         }
     })
 };
-export const deleteManySetting = async (ids: SettingIds) => {
-    return prisma!.setting.updateMany({
+export const deleteManySetting = async (ids: SettingIds,ctx:TenantContext) => {
+    return ctx.tx!.setting.updateMany({
         where: {
             id: { in: ids }
         },
@@ -75,9 +76,16 @@ export const deleteManySetting = async (ids: SettingIds) => {
     })
 };
 
-export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include"> ) => {
+export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">, ctx:TenantContext) => {
     
-    return prisma!.setting.findMany(
+    return ctx.tx!.setting.findMany(
+       input
+    );
+}
+
+export const findFirstSetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
+    
+    return ctx.tx!.setting.findFirst(
        input
     );
 }

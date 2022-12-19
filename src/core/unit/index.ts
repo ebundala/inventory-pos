@@ -1,5 +1,6 @@
 import {prisma,unimplimented} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateUnitInput={
   name:                  string
@@ -9,9 +10,9 @@ export type CreateUnitInput={
   operatorValue?:         number
   tenantId:              string
 }
-export const createUnit = async (input:CreateUnitInput)=>{
+export const createUnit = async (input:CreateUnitInput,ctx:TenantContext)=>{
    const {tenantId,...data}=input;
-   return prisma!.unit.create({
+   return ctx.tx!.unit.create({
     include:{
         unit:true
     },
@@ -26,9 +27,9 @@ export type UpdateUnitInput={
     operator?:              string 
     operatorValue?:         number   
   }
-export const updateUnit = async (input:UpdateUnitInput)=>{
+export const updateUnit = async (input:UpdateUnitInput,ctx:TenantContext)=>{
     const {id,...data}=input;
-    return prisma!.unit.update({
+    return ctx.tx!.unit.update({
         where:{
             id:id
         },
@@ -40,9 +41,9 @@ export const updateUnit = async (input:UpdateUnitInput)=>{
  };
  export type UnitId=number
  export type UnitIds=Array<number>
-export const getUniqueUnit = async (id:UnitId)=>{
+export const getUniqueUnit = async (id:UnitId,ctx:TenantContext)=>{
    
-    return prisma!.unit.findUnique({
+    return ctx.tx!.unit.findUnique({
         where:{
             id:id
         },
@@ -51,9 +52,9 @@ export const getUniqueUnit = async (id:UnitId)=>{
      },    
     })
  };
-export const deleteUnit = async (id:UnitId)=>{
+export const deleteUnit = async (id:UnitId,ctx:TenantContext)=>{
    
-    return prisma!.unit.update({
+    return ctx.tx!.unit.update({
         where:{
             id:id
         },
@@ -65,8 +66,8 @@ export const deleteUnit = async (id:UnitId)=>{
      } 
     })
  };
-export const deleteManyUnit = async (ids:UnitIds)=>{
-    return prisma!.unit.updateMany({
+export const deleteManyUnit = async (ids:UnitIds,ctx:TenantContext)=>{
+    return ctx.tx!.unit.updateMany({
         where:{
             id:{in:ids}
         },  
@@ -76,8 +77,8 @@ export const deleteManyUnit = async (ids:UnitIds)=>{
     })
  };
  
-export const findManyUnit =async(input: Omit<Prisma.UnitFindManyArgs,"select"|"include">) => {
-    return prisma!.unit.findMany(
+export const findManyUnit =async(input: Omit<Prisma.UnitFindManyArgs,"select"|"include">,ctx:TenantContext) => {
+    return ctx.tx!.unit.findMany(
         input
     );
 }

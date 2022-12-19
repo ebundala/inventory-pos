@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateCustomerInput = {
     name         :string
@@ -11,9 +12,9 @@ export type CreateCustomerInput = {
     address      ?:string
   tenantId: string
 }
-export const createCustomer = async (input: CreateCustomerInput) => {
+export const createCustomer = async (input: CreateCustomerInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.customer.create({
+    return ctx.tx!.customer.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -27,9 +28,9 @@ export type UpdateCustomerInput = {
   phone        ?:string
   address      ?:string
 }
-export const updateCustomer = async (input: UpdateCustomerInput) => {
+export const updateCustomer = async (input: UpdateCustomerInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.customer.update({
+    return ctx.tx!.customer.update({
         where: {
             id: id
         },        
@@ -38,16 +39,16 @@ export const updateCustomer = async (input: UpdateCustomerInput) => {
 };
 export type CustomerId = number
 export type CustomerIds = Array<number>
-export const getUniqueCustomer = async (id: CustomerId) => {
-    return prisma!.customer.findUnique({
+export const getUniqueCustomer = async (id: CustomerId,ctx:TenantContext) => {
+    return ctx.tx!.customer.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteCustomer = async (id: CustomerId) => {
+export const deleteCustomer = async (id: CustomerId,ctx:TenantContext) => {
 
-    return prisma!.customer.update({
+    return ctx.tx!.customer.update({
         where: {
             id: id
         },      
@@ -56,8 +57,8 @@ export const deleteCustomer = async (id: CustomerId) => {
         }
     })
 };
-export const deleteManyCustomer = async (ids: CustomerIds) => {
-    return prisma!.customer.updateMany({
+export const deleteManyCustomer = async (ids: CustomerIds,ctx:TenantContext) => {
+    return ctx.tx!.customer.updateMany({
         where: {
             id: { in: ids }
         },

@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 const include = {
     supplier: true,
@@ -50,7 +51,7 @@ export type CreatePurchaseInput = {
     purchaseDetails: Array<CreatePurchaseDetailsInput>
     tenantId: string
 }
-export const createPurchase = async (input: CreatePurchaseInput) => {
+export const createPurchase = async (input: CreatePurchaseInput,ctx:TenantContext) => {
     const { tenantId, userId, paymentPurchases, purchaseDetails, ...data } = input;
     let purchaseData = {};
     if (purchaseDetails && purchaseDetails.length) {
@@ -80,7 +81,7 @@ export const createPurchase = async (input: CreatePurchaseInput) => {
     }
 
 
-    return prisma!.purchase.create({
+    return ctx.tx!.purchase.create({
         include,
         data: {
             tenantId: tenantId,
@@ -137,9 +138,9 @@ export type UpdatePurchaseInput = {
     purchaseDetails?: Array<UpdatePurchaseDetailsInput>
     tenantId: string
 }
-export const updatePurchase = async (input: UpdatePurchaseInput) => {
+export const updatePurchase = async (input: UpdatePurchaseInput,ctx:TenantContext) => {
     const { tenantId, id, paymentPurchases, purchaseDetails, ...data } = input;
-    const purchase = await prisma!.purchase.findUnique({
+    const purchase = await ctx.tx!.purchase.findUnique({
         where: { id }, include: {
             purchaseDetails: true,
             paymentPurchases: true,
@@ -201,7 +202,7 @@ export const updatePurchase = async (input: UpdatePurchaseInput) => {
             }
         }
     }
-    return prisma!.purchase.update({
+    return ctx.tx!.purchase.update({
         include,
         where: {
             id: id
@@ -213,18 +214,18 @@ export const updatePurchase = async (input: UpdatePurchaseInput) => {
 };
 export type PurchaseId = number
 export type PurchaseIds = Array<number>
-export const getUniquePurchase = async (id: PurchaseId) => {
+export const getUniquePurchase = async (id: PurchaseId,ctx:TenantContext) => {
 
-    return prisma!.purchase.findUnique({
+    return ctx.tx!.purchase.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deletePurchase = async (id: PurchaseId) => {
+export const deletePurchase = async (id: PurchaseId,ctx:TenantContext) => {
 
-    return prisma!.purchase.update({
+    return ctx.tx!.purchase.update({
         include,
         where: {
             id: id
@@ -234,8 +235,8 @@ export const deletePurchase = async (id: PurchaseId) => {
         }
     })
 };
-export const deleteManyPurchase = async (ids: PurchaseIds) => {
-    return prisma!.purchase.updateMany({
+export const deleteManyPurchase = async (ids: PurchaseIds,ctx:TenantContext) => {
+    return ctx.tx!.purchase.updateMany({
         where: {
             id: { in: ids }
         },
@@ -245,9 +246,9 @@ export const deleteManyPurchase = async (ids: PurchaseIds) => {
     })
 };
 
-export const findManyPurchase = async  (input: Omit<Prisma.PurchaseFindManyArgs, "select"|"include"> ) => {
+export const findManyPurchase = async  (input: Omit<Prisma.PurchaseFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
    
-    return prisma!.purchase.findMany(
+    return ctx.tx!.purchase.findMany(
         {
             include,
             ...input

@@ -1,5 +1,6 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 const include={
     fromWarehouse:true,
     toWarehouse:true,
@@ -36,7 +37,7 @@ export type CreateTransferInput = {
   transferDetails?: Array<CreateTransferDetailInput>
   tenantId: string
 }
-export const createTransfer = async (input: CreateTransferInput) => {
+export const createTransfer = async (input: CreateTransferInput,ctx:TenantContext) => {
     const { tenantId, transferDetails, ...data } = input;
     let details={};
     if(transferDetails&&transferDetails.length){
@@ -51,7 +52,7 @@ export const createTransfer = async (input: CreateTransferInput) => {
     }}
         
     }
-    return prisma!.transfer.create({
+    return ctx.tx!.transfer.create({
        include,
         data: { tenantId: tenantId, ...data, ...details}})
 }
@@ -86,10 +87,10 @@ export type UpdateTransferInput = {
     transferDetails?: Array<UpdateTransferDetailInput>
     tenantId: string
 }
-export const updateTransfer = async (input: UpdateTransferInput) => {
+export const updateTransfer = async (input: UpdateTransferInput,ctx:TenantContext) => {
     const {tenantId, id, transferDetails,...data} = input;
 
-    const transfer = await prisma!.transfer.findUnique({where:{id},include:{
+    const transfer = await ctx.tx!.transfer.findUnique({where:{id},include:{
         transferDetails:true
     }});
 
@@ -122,7 +123,7 @@ export const updateTransfer = async (input: UpdateTransferInput) => {
             
         } }
     }
-    return prisma!.transfer.update({
+    return ctx.tx!.transfer.update({
         include,
         where: {
             id: id
@@ -132,18 +133,18 @@ export const updateTransfer = async (input: UpdateTransferInput) => {
 };
 export type TransferId = number
 export type TransferIds = Array<number>
-export const getUniqueTransfer = async (id: TransferId) => {
+export const getUniqueTransfer = async (id: TransferId,ctx:TenantContext) => {
 
-    return prisma!.transfer.findUnique({
+    return ctx.tx!.transfer.findUnique({
         include,
         where: {
             id: id
         }
     })
 };
-export const deleteTransfer = async (id: TransferId) => {
+export const deleteTransfer = async (id: TransferId,ctx:TenantContext) => {
 
-    return prisma!.transfer.update({
+    return ctx.tx!.transfer.update({
         include,
         where: {
             id: id
@@ -153,8 +154,8 @@ export const deleteTransfer = async (id: TransferId) => {
         }
     })
 };
-export const deleteManyTransfer = async (ids: TransferIds) => {
-    return prisma!.transfer.updateMany({
+export const deleteManyTransfer = async (ids: TransferIds,ctx:TenantContext) => {
+    return ctx.tx!.transfer.updateMany({
         where: {
             id: { in: ids }
         },
@@ -164,9 +165,9 @@ export const deleteManyTransfer = async (ids: TransferIds) => {
     })
 };
 
-export const findManyTransfer = async (input: Omit<Prisma.TransferFindManyArgs, "select"|"include"> ) => {
+export const findManyTransfer = async (input: Omit<Prisma.TransferFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
     
-    return prisma!.transfer.findMany(
+    return ctx.tx!.transfer.findMany(
         { include,
            ...input
         }

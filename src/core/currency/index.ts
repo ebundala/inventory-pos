@@ -1,5 +1,6 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
+import { TenantContext } from "../trpc";
 
 export type CreateCurrencyInput = {
   name: string     
@@ -7,9 +8,9 @@ export type CreateCurrencyInput = {
   symbol: string
   tenantId: string
 }
-export const createCurrency = async (input: CreateCurrencyInput) => {
+export const createCurrency = async (input: CreateCurrencyInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
-    return prisma!.currency.create({
+    return ctx.tx!.currency.create({
         data:{tenantId:tenantId,...data}
    })
 }
@@ -18,9 +19,9 @@ export type UpdateCurrencyInput = {
     name?: string     
   code?:  string
 }
-export const updateCurrency = async (input: UpdateCurrencyInput) => {
+export const updateCurrency = async (input: UpdateCurrencyInput,ctx:TenantContext) => {
     const { id, ...data } = input;
-    return prisma!.currency.update({
+    return ctx.tx!.currency.update({
         where: {
             id: id
         },        
@@ -29,16 +30,16 @@ export const updateCurrency = async (input: UpdateCurrencyInput) => {
 };
 export type CurrencyId = number
 export type CurrencyIds = Array<number>
-export const getUniqueCurrency = async (id: CurrencyId) => {
-    return prisma!.currency.findUnique({
+export const getUniqueCurrency = async (id: CurrencyId,ctx:TenantContext) => {
+    return ctx.tx!.currency.findUnique({
         where: {
             id: id
         }        
     })
 };
-export const deleteCurrency = async (id: CurrencyId) => {
+export const deleteCurrency = async (id: CurrencyId,ctx:TenantContext) => {
 
-    return prisma!.currency.update({
+    return ctx.tx!.currency.update({
         where: {
             id: id
         },      
@@ -47,8 +48,8 @@ export const deleteCurrency = async (id: CurrencyId) => {
         }
     })
 };
-export const deleteManyCurrency = async (ids: CurrencyIds) => {
-    return prisma!.currency.updateMany({
+export const deleteManyCurrency = async (ids: CurrencyIds,ctx:TenantContext) => {
+    return ctx.tx!.currency.updateMany({
         where: {
             id: { in: ids }
         },
@@ -58,9 +59,9 @@ export const deleteManyCurrency = async (ids: CurrencyIds) => {
     })
 };
 
-export const findManyCurrency = async  (input: Omit<Prisma.CurrencyFindManyArgs, "select"|"include"> ) => {
+export const findManyCurrency = async  (input: Omit<Prisma.CurrencyFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
     
-    return prisma!.currency.findMany(
+    return ctx.tx!.currency.findMany(
        input
     );
 }
