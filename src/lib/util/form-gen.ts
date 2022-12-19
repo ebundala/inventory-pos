@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {zodResolver} from '@hookform/resolvers/zod';
-import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, number, ZodIssueCode, } from "zod";
+import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, number, ZodIssueCode, any, } from "zod";
 
 
 
@@ -204,23 +204,25 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
     schema:T,fieldOptions:{[K: string]:FormFieldOption | undefined | null}={},
     props?:Parameters<typeof useForm>[0]){
  
- 
+ const getPath = (field:string)=>field.split(".").map((v)=>{
+    if(/[0-9]/g.test(v)){
+    return parseInt(v)
+    }
+    return v;
+});
+const getValue = (path:(number|string)[],data:any)=>path.reduce((data,v,i,arr)=>{
+return (data??{})[v];
+},data);
 
  const [fieldConfig,refinedSchema] = useMemo(()=>{    
     const ast = traverseZodSchema(schema);
     const fieldConfig = getFieldsConfigFromSchemaAst(ast);
-    const schema2= schema.superRefine((data,ctx)=>{
-        
+    const schema2= schema.superRefine((data,ctx)=>{        
             for(let field of fieldConfig ){
-                if(field.required && field.type == ZodFirstPartyTypeKind.ZodString){
-                    const path = field.name.split(".").map((v)=>{
-                        if(/[0-9]/g.test(v)){
-                        return parseInt(v)
-                        }
-                        return v;
-                    });
-                    //TODO read value from path array
-                    const value = data[path[0]]
+                const path = getPath(field.name)
+                if(field.required && field.type == ZodFirstPartyTypeKind.ZodString && (path.length>1&&getValue(path.slice(0,-1),data) || path.length==1)){
+                    
+                    const value = getValue(path,data);
                     console.log(value,path);
                     if(!value||value?.length<1){
                         //console.log(ctx.path)
@@ -255,7 +257,8 @@ const config = useMemo(()=>{
         const textArea = fieldOptions[v.name]?.textArea??false;
         const type= getInputTypeFromZodType(v.type);
         const disabled=isSubmitting;
-        const error = errors[v.name]?.message?.toString();
+        
+        const error = getValue(getPath(v.name),errors)?.message?.toString();
         return {error,label,ordering,options,upload,textArea, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
     }).sort((a,b)=>a.ordering-b.ordering);
 },[refinedSchema,fieldConfig,register,isSubmitting,errors]);
