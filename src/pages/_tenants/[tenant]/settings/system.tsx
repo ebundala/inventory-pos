@@ -85,7 +85,8 @@ function SystemSettings() {
   const [setting] = useSetting();
   const [customers, loading, c] = useCustomers();
   const [warehouses, loading1, w] = useWarehouses();
-  const [currencies, loading2, cu] = useCurrencies()
+  const [currencies, loading2, cu] = useCurrencies();
+  
   const trpc = useTrpcTenant()
   const createSetting = trpc.setting.create.useMutation();
   const updateSetting = trpc.setting.update.useMutation();

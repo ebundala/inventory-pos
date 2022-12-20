@@ -10,10 +10,12 @@ export function useWarehouses() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.setting.warehouse.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setWarehouses({ warehouses: result.data ?? null });
+    }
   }, [result.isSuccess, setWarehouses, result.data]);
 
-  return [warehouses, result.isFetching, result.isSuccess] as [typeof warehouses, boolean, boolean];
+  return [warehouses, result.isLoading, result.isSuccess] as [typeof warehouses, boolean, boolean];
 }
 
 

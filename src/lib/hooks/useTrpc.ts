@@ -5,9 +5,9 @@ import { useMemo } from "react";
 import { useHost } from "@/lib/hooks/useHost";
 
 
-export function useTrpc(url?: string | null) {
-  const host = useHost()
-  const trpc = /* useMemo(() =>  */createTRPCNext<AppRouter>({
+export function useTrpc(host: string) {
+  const trpc = useMemo(() => {
+    return createTRPCNext<AppRouter>({
     config({ ctx }) {
 
       const url = `http://${host}/api/trpc`;
@@ -44,7 +44,9 @@ export function useTrpc(url?: string | null) {
         //   transformer: superjson,
       };
     },
-    ssr: true,
-  })/* , [host]); */
+    ssr: true,});
+  }
+  
+ , [host]); 
   return trpc;
 }

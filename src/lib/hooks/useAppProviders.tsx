@@ -7,12 +7,14 @@ import React, { ReactNode } from "react";
 import { NextComponentType, NextPageContext } from "next/types";
 import { useHost } from "@/lib/hooks/useHost";
 import { useChangeTheme } from "./useChangeTheme";
+import Loader from "@/components/app/Loader";
 
 export function useAppProviders() {
  
   useChangeTheme();
   const host = useHost();
-  const trpcWithHost = useTrpc(host);
+  const trpcWithHost = useTrpc(host??"");//pass empty host untill host is available
+  if(!host) return Loader;
   return trpcWithHost.withTRPC(({
     Component, pageProps: { session, ...pageProps },
   }: AppProps<{ session: Session; }> & {

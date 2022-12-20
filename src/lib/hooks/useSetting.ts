@@ -11,8 +11,10 @@ export function useSetting() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.setting.findFirst.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setSetting({ tenantSetting: result.data ?? null });
-  }, [result.isSuccess, setSetting, result.data, loading, success, tenant?.tenantId]);
+    }
+  }, [result.isSuccess, setSetting, result.data]);
 
-  return [setting, result.isFetching, result.isSuccess] as [typeof setting, boolean, boolean];
+  return [setting, result.isLoading, result.isSuccess] as [typeof setting, boolean, boolean];
 }

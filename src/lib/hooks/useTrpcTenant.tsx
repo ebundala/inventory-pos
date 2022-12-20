@@ -4,5 +4,5 @@ import { useHost } from "@/lib/hooks/useHost";
 
 export function useTrpcTenant() {
   const host = useHost();
-  return useTrpc(host);
+  return useTrpc(host!);
 }

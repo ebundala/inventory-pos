@@ -10,8 +10,10 @@ export function useCustomers() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.people.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setCustomers({ customers: result.data ?? null });
+    }
   }, [result.isSuccess, setCustomers, result.data]);
 
-  return [customers, result.isFetching, result.isSuccess] as [typeof customers, boolean, boolean];
+  return [customers, result.isLoading, result.isSuccess] as [typeof customers, boolean, boolean];
 }

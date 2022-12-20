@@ -10,8 +10,10 @@ export function useBrands() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.brand.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setBrands({ brands: result.data ?? null });
+    }
   }, [result.isSuccess, setBrands, result.data]);
 
-  return [brands, result.isFetching, result.isSuccess] as [typeof brands, boolean, boolean];
+  return [brands, result.isLoading, result.isSuccess] as [typeof brands, boolean, boolean];
 }

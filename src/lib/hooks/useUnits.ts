@@ -10,8 +10,10 @@ export function useUnits() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.unit.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setUnits({ units: result.data ?? null });
+    }
   }, [result.isSuccess, setUnits, result.data]);
 
-  return [units, result.isFetching, result.isSuccess] as [typeof units, boolean, boolean];
+  return [units, result.isLoading, result.isSuccess] as [typeof units, boolean, boolean];
 }

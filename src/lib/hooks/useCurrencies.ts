@@ -10,8 +10,10 @@ export function useCurrencies() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.setting.currency.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+   if(result.isSuccess){
     setCurrencies({ currencies: result.data ?? null });
-  }, [result.isSuccess, setCurrencies, result.data]);
+   }
+  }, [/* result.isSuccess,result.isLoading,result.isFetching, */result.isSuccess, setCurrencies, result.data]);
 
-  return [currencies, result.isFetching, result.isSuccess] as [typeof currencies, boolean, boolean];
+  return [currencies, result.isLoading, result.isSuccess] as [typeof currencies, boolean, boolean];
 }

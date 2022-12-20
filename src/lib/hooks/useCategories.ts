@@ -10,8 +10,10 @@ export function useCategories() {
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.category.search.useQuery({ where: { tenantId: tenant?.tenantId } });
   useEffect(() => {
+    if(result.isSuccess){
     setCategories({ categories: result.data ?? null });
+    }
   }, [result.isSuccess, setCategories, result.data]);
 
-  return [categories, result.isFetching, result.isSuccess] as [typeof categories, boolean, boolean];
+  return [categories, result.isLoading, result.isSuccess] as [typeof categories, boolean, boolean];
 }
