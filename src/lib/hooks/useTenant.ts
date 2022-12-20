@@ -1,7 +1,5 @@
 import { useStore } from "@/lib/context";
-import { useEffect, useRef } from "react"
-import { useHost } from "@/lib/hooks/useHost";
-import { useTrpc } from "@/lib/hooks/useTrpc";
+import { useCallback } from "react"
 import { useSubDomain } from "./useSubDomain";
 import { useTrpcTenant } from "./useTrpcTenant";
 
@@ -10,14 +8,19 @@ export function useTenant() {
   
   const subdomain = useSubDomain();
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.tenant.findFirst.useQuery({ where: { subdomain: subdomain } });
-  useEffect(() => {
-    if(result.isSuccess){
-     setTenant({ tenant: result.data ?? null })
-    }
-  }, [result.isSuccess, setTenant, result.data])
-
-  return [tenant,result.isLoading,result.isSuccess] as [typeof tenant,boolean,boolean];
+  const result = trpcWithHost.tenant.findFirst.useQuery({ where: { subdomain: subdomain } },{
+    onSuccess(data) {
+      setTenant({ tenant: data ?? null });
+    },
+  });
+const refetch = useCallback(async (opts?: Parameters<typeof result.refetch>[0]) => {
+  const rResult = await result.refetch(opts);
+  if (rResult.isSuccess) {
+    setTenant({ tenant: rResult.data ?? null })
+  }
+  return rResult;
+}, [result.refetch])
+  return [tenant,result.isLoading,result.isSuccess,refetch] as [typeof tenant,boolean,boolean,typeof refetch];
 }
 
 

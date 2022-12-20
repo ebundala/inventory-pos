@@ -15,6 +15,7 @@ import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "../../../../components/FormInputField";
 import { createPosSettingInputSchema, updatePosSettingInputSchema } from "@/core/pos_setting/index.zod";
 import { useMemo } from "react";
+import { PosSetting, Setting } from "@prisma/client";
 
 
 function SettingsIndex() {
@@ -81,15 +82,19 @@ export default SettingsIndex;
 
 
 function SystemSettings() {
-  const [tenant] = useTenant();
-  const [setting] = useSetting();
-  const [customers, loading, c] = useCustomers();
-  const [warehouses, loading1, w] = useWarehouses();
-  const [currencies, loading2, cu] = useCurrencies();
+  const [tenant,t,_t,tr] = useTenant();
+  const [setting,s,_s,refetchSetting] = useSetting();
+  const [customers, loading, c,cur] = useCustomers();
+  const [warehouses, loading1, w, wr] = useWarehouses();
+  const [currencies, loading2, cu,c3] = useCurrencies();
   
   const trpc = useTrpcTenant()
-  const createSetting = trpc.setting.create.useMutation();
-  const updateSetting = trpc.setting.update.useMutation();
+  const refetchOpts={
+    onSuccess:(data:Setting)=>refetchSetting()
+  }
+  const createSetting = trpc.setting.create.useMutation(refetchOpts);
+  const updateSetting = trpc.setting.update.useMutation(refetchOpts);
+
   const fieldOptions = useMemo((): Parameters<typeof useZodForm>[1] => {
     return {
       currencyId: {
@@ -155,7 +160,7 @@ function SystemSettings() {
 
 function PosSettings() {
   const [tenant] = useTenant();
-  const [posSetting, loading, p] = usePosSetting();
+  const [posSetting, loading, p,refetchPosSettings] = usePosSetting();
   const fieldOptions = useMemo((): Parameters<typeof useZodForm>[1] => {
     //const options = [{ label: "Yes", value: true }, { label: "No", value: false }]
     return {
@@ -191,9 +196,13 @@ function PosSettings() {
     { defaultValues: { tenantId: tenant?.tenantId, ...(posSetting ?? {}) } })
 
   const trpc = useTrpcTenant()
-  const createSetting = trpc.setting.pos.create.useMutation();
-  const updateSetting = trpc.setting.pos.update.useMutation();
+  const refetchOpts={
+    onSuccess:(data:PosSetting)=>refetchPosSettings()
+  }
+  const createSetting = trpc.setting.pos.create.useMutation(refetchOpts);
+  const updateSetting = trpc.setting.pos.update.useMutation(refetchOpts);
   if(loading) return <Loader/>
+  
   return (
     <FormContainer title={<h1>POS receipt settings </h1>}>
       <form onSubmit={form.handleSubmit(async (data) => {

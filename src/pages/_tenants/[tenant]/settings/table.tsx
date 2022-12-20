@@ -368,7 +368,7 @@ function TableComponent({
   );
 }
 export function CustomTable({rowsData,collumsData,pageOptions}:{rowsData:any[],collumsData:()=>{Header:any,accessor?:string,Cell?:any}[],pageOptions:{value:number,label:string}[]}) {
-  const data = useMemo(() => rowsData, []);
+  const data = useMemo(() => rowsData, [rowsData]);
   const columns = useMemo(collumsData, []);
   const {
     getTableProps,

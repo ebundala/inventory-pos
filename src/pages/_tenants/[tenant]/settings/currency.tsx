@@ -6,15 +6,18 @@ import { useStore } from "@/lib/context";
 import { useCurrencies } from "@/lib/hooks/useCurrencies";
 import { useModal } from "@/lib/hooks/useModel";
 import { useTenant } from "@/lib/hooks/useTenant";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useZodForm } from "@/lib/util/form-gen";
 import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
+import { Currency } from "@prisma/client";
+import { UseMutationResult } from "@tanstack/react-query";
 import { FC, ReactNode, useEffect, useMemo, useState } from "react";
-import { ZodFirstPartySchemaTypes } from "zod";
+import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "./table";
 
-export default function Currency() {
-    const [currencies, loading, success] = useCurrencies();
+export default function CurrencyIndex() {
+    const [currencies, loading, success,refetch] = useCurrencies();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -37,17 +40,34 @@ export default function Currency() {
         }
     }),[]);
     
-
+   const trpcWithHost = useTrpcTenant();
+   const result1 = trpcWithHost.setting.currency.create.useMutation({
+    onSuccess:(data,variable,ctx)=>{
+        hide();
+        refetch();
+    }
+   });
+   const result2 = trpcWithHost.setting.currency.update.useMutation({
+    onSuccess:(data,variable,ctx)=>{
+        hide();
+        refetch()
+    }
+   });
     if (loading) return <Loader />
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
-            <button className="btn btn-success btn-sm"
+            <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
+                        
                         showModal({
                             content:(props) => {                       
-                       return <CurrencyForm {...props} schema={createCurrencyInputSchema} fieldOptions={options} title={
+                       return <CurrencyForm 
+                       {...props} 
+                       useMutationResult={result1}
+                       schema={createCurrencyInputSchema} 
+                       fieldOptions={options} title={
                         "Create Currency"
                        }/>
                             }
@@ -108,15 +128,17 @@ export default function Currency() {
                                     console.log(row);
                                     showModal({
                                         content:(props) => {                       
-                                   return <CurrencyForm {...props} 
+                                   return <CurrencyForm 
+                                   {...props} 
+                                   useMutationResult={result2}
                                    schema={updateCurrencyInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
                                    title="Update Currency"/>
                                    
                                 }})
-                            }} className="btn btn-info btn-sm rounded-md">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md">Delete</button>
+                            }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
+                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
@@ -127,9 +149,9 @@ export default function Currency() {
 
 }
 
-Currency.getLayout = getLayout
+CurrencyIndex.getLayout = getLayout
 
-type ZodFormSchema<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
+type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;
     hide: () => void;
     ModalContainer: FC<ModalSectionProps>;
@@ -137,11 +159,12 @@ type ZodFormSchema<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes
     ModalAction: FC<ModalSectionProps>;
     title?:ReactNode,
     schema:T
-    defaultValues?: {}
+    defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
+    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
 }
 
-const CurrencyForm:FC<ZodFormSchema> =({ show, hide, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const CurrencyForm:FC<ZodFormSchema<Currency>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const [tenant] = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -151,7 +174,7 @@ const CurrencyForm:FC<ZodFormSchema> =({ show, hide, ModalContainer, ModalConten
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-
+                  await useMutationResult.mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

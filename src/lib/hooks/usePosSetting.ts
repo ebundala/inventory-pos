@@ -1,7 +1,5 @@
 import { useStore } from "@/lib/context";
-import { useEffect } from "react";
-import { useHost } from "@/lib/hooks/useHost";
-import { useTrpc } from "@/lib/hooks/useTrpc";
+import { useCallback } from "react";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
@@ -11,12 +9,19 @@ export function usePosSetting() {
   const [tenant, loading, success] = useTenant();
 
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.setting.pos.findFirst.useQuery({ where: { tenantId: tenant?.tenantId } });
-  useEffect(() => {
-    if(result.isSuccess){
-    setPosSetting({ posSetting: result.data ?? null });
+  const result = trpcWithHost.setting.pos.findFirst.useQuery(
+    { where: { tenantId: tenant?.tenantId } },
+    {
+      onSuccess(data) {
+        setPosSetting({ posSetting: data ?? null });
+      },
+    });
+  const refetch = useCallback(async (opts?: Parameters<typeof result.refetch>[0]) => {
+    const rResult = await result.refetch(opts);
+    if (rResult.isSuccess) {
+      setPosSetting({ posSetting: rResult.data ?? null })
     }
-  }, [result.isSuccess, setPosSetting, result.data, loading, success, tenant?.tenantId]);
-
-  return [posSetting, result.isLoading, result.isSuccess] as [typeof posSetting, boolean, boolean];
+    return rResult;
+  }, [result.refetch])
+  return [posSetting, result.isLoading, result.isSuccess,refetch] as [typeof posSetting, boolean, boolean,typeof refetch];
 }
