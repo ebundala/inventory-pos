@@ -134,7 +134,7 @@ function TableSelectMenu({ value,
   );
   return (
     <Listbox value={value} onChange={setValue} disabled={disabled}>
-      <div className={`relative w-full ${className}`}>
+      <div className={`relative input input-bordered w-full ${className}`}>
         <Listbox.Button
           className={`relative w-full  rounded-xl py-3 pl-3 pr-10 text-base text-gray-700 text-left shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none
           ${
@@ -396,7 +396,7 @@ export function CustomTable({rowsData,collumsData,pageOptions}:{rowsData:any[],c
   );
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-2">
+      <div className="flex flex-col sm:flex-row justify-between gap-2 items-center">
         <TableGlobalSearchFilter
           className="sm:w-64"
           globalFilter={state.globalFilter}

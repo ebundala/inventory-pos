@@ -1,93 +1,179 @@
+import { FormInputField } from "@/components/FormInputField";
 import Loader from "@/components/sites/Loader";
+import { createCurrencyInputSchema, updateCurrencyInputSchema } from "@/core/currency/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useStore } from "@/lib/context";
 import { useCurrencies } from "@/lib/hooks/useCurrencies";
-import { useEffect, useState } from "react";
+import { useModal } from "@/lib/hooks/useModel";
+import { useTenant } from "@/lib/hooks/useTenant";
+import { useZodForm } from "@/lib/util/form-gen";
+import { ModalData } from "@/types/ModalData";
+import { ModalSectionProps } from "@/types/ModalSectionProps";
+import { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import { ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "./table";
 
-export default function Currency(){
-   const[currencies,loading,success] = useCurrencies();
-
-   if(loading) return <Loader/>
-   
-   return <CustomTable 
-   pageOptions={[
-    {
-        label:"1 item per page",
-        value: 1
-    },
-    {
-        label:"2 item per page",
-        value: 2
-    }
-   ]}
-   rowsData={currencies??[]} 
-   collumsData={()=>{
-
-    return [
-        {
-            Header:()=><label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs "/></label>
-            ,
-            accessor:"id",
-            disableSortBy:true,
-            Cell:({row,value}:{row:any,value:any})=>{
-                return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs "/></label>
-            }
+export default function Currency() {
+    const [currencies, loading, success] = useCurrencies();
+    const [showModal, hide, data] = useModal();
+    const options = useMemo(()=>({
+        tenantId:{
+            hidden:true
         },
-        {
-            Header:"Currency name",
-            accessor:"name"
+        id:{
+            hidden:true
         },
-        {
-            Header:"Symbol",
-            accessor:"symbol"
+        name:{
+            label:"Currency name",
+            ordering:1
         },
-        {
-            Header:"Currency Code",
-            accessor:"code"
+        code:{
+            label:"Currency code",
+            ordering:2
         },
-        {
-            Header:"Actions",
-            accessor:"tenantId",
-            disableSortBy:true,
-            Cell:({row,value}:{row:any,value:any})=>{
-                return <div className="flex flex-row gap-2">
-               <button className="btn btn-info btn-sm rounded-md">Edit</button>
-               <button className="btn btn-warning btn-sm rounded-md">Delete</button>
-                </div>
-            }
-        },
+        symbol:{
+            label:"Currency symbol",
+            ordering:3
+        }
+    }),[]);
+    
 
-    ]
-   } }/>
-    return(<div className="overflow-x-auto w-full">
-        <table className="table w-full">
-            <thead>
-            <tr>
-                <th><label ><input type="checkbox" className="checkbox"/></label></th>
-                <th>name</th>
-                <th>symbol</th>
+    if (loading) return <Loader />
 
-            </tr>
-            </thead>
-            <tbody>
-                {currencies&&currencies?.map((v)=>(
-                <tr key={v.id}>
-                <th><label ><input type="checkbox" className="checkbox"/></label></th>
-                <td>{v.name}</td>
-                <td>{v.symbol}</td>
-                </tr>
-                ))}
-            </tbody>
-            <tfoot>
-                <th></th>
-                <th>code</th>
-                <th>name</th>
-            </tfoot>
-        </table>
-   
+    return <div className="flex flex-col justify-start">
+        <div className="flex flex-row justify-end ">
+            <button className="btn btn-success btn-sm"
+                onClick={
+                    (e) => {
+                        showModal({
+                            content:(props) => {                       
+                       return <CurrencyForm {...props} schema={createCurrencyInputSchema} fieldOptions={options} title={
+                        "Create Currency"
+                       }/>
+                            }
+                          
+                        })
+                    }
+                }
+            >create</button>
+        </div>
 
-    </div>)
+        <CustomTable
+            pageOptions={[
+                {
+                    label: "1 item per page",
+                    value: 1
+                },
+                {
+                    label: "2 item per page",
+                    value: 2
+                },
+                {
+                    label: "All items",
+                    value: 10000
+                }
+            ]}
+            rowsData={currencies ?? []}
+            collumsData={() => {
+
+                return [
+                    {
+                        Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
+                        ,
+                        accessor: "id",
+                        disableSortBy: true,
+                        Cell: ({ row, value }: { row: any, value: any }) => {
+                            return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
+                        }
+                    },
+                    {
+                        Header: "Currency name",
+                        accessor: "name"
+                    },
+                    {
+                        Header: "Symbol",
+                        accessor: "symbol"
+                    },
+                    {
+                        Header: "Currency Code",
+                        accessor: "code"
+                    },
+                    {
+                        Header: "Actions",
+                        accessor: "tenantId",
+                        disableSortBy: true,
+                        Cell: ({ row, value }: { row: any, value: any }) => {
+                            return <div className="flex flex-row gap-2">
+                                <button onClick={(e)=>{
+                                    console.log(row);
+                                    showModal({
+                                        content:(props) => {                       
+                                   return <CurrencyForm {...props} 
+                                   schema={updateCurrencyInputSchema} 
+                                   fieldOptions={options} 
+                                   defaultValues={row.original}
+                                   title="Update Currency"/>
+                                   
+                                }})
+                            }} className="btn btn-info btn-sm rounded-md">Edit</button>
+                                <button className="btn btn-warning btn-sm rounded-md">Delete</button>
+                            </div>
+                        }
+                    },
+
+                ]
+            }} />
+    </div>
+
 }
 
 Currency.getLayout = getLayout
+
+type ZodFormSchema<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
+    show: (data: ModalData) => void;
+    hide: () => void;
+    ModalContainer: FC<ModalSectionProps>;
+    ModalContent: FC<ModalSectionProps>;
+    ModalAction: FC<ModalSectionProps>;
+    title?:ReactNode,
+    schema:T
+    defaultValues?: {}
+    fieldOptions?: Parameters<typeof useZodForm>[1]
+}
+
+const CurrencyForm:FC<ZodFormSchema> =({ show, hide, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+    const [tenant] = useTenant();
+    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+
+    return (
+
+        <ModalContainer>
+
+            <ModalContent>
+                <form onSubmit={form.handleSubmit(async (data) => {
+
+                }, (e) => {
+                    console.error(e)
+                })}>
+                    <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
+                    <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
+                        {config.map((i) => {
+                            return (<FormInputField key={i.name} {...i} />);
+                        })} 
+                    </div>
+                    <ModalAction >
+                        <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">
+                            cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary btn-xs">
+                            save
+                        </button>
+                    </ModalAction>
+                </form>
+            </ModalContent>
+
+
+        </ModalContainer>
+
+    )
+}

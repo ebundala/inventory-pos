@@ -1,9 +1,9 @@
 import React from "react";
-import { useModel } from "@/lib/hooks/useModel";
+import { useModal } from "@/lib/hooks/useModel";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 
 export function Modal() {
-    const [showModal, hide, data] = useModel();
+    const [showModal, hide, data] = useModal();
     const { show, content, position } = data ?? {};
 
 

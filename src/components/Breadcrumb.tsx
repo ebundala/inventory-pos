@@ -3,11 +3,11 @@ import { EndDrawerData } from "@/types/EndDrawerData";
 import { ModalData } from "@/types/ModalData";
 import { ModalPosition } from "@/types/ModalPosition";
 import { useEndDrawer } from "@/lib/hooks/useEndDrawer";
-import { useModel } from "@/lib/hooks/useModel";
+import { useModal } from "@/lib/hooks/useModel";
 
 
 export function Breadcrumb() {
-    const [show, hide, data] = useModel();
+    const [show, hide, data] = useModal();
     const { update } = useEndDrawer();
     const modalData: ModalData = {
         position: ModalPosition.middle,

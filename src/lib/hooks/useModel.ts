@@ -3,7 +3,7 @@ import { useStore } from "@/lib/context";
 import { ModalData } from "@/types/ModalData";
 
 
-export function useModel() {
+export function useModal() {
     const [data, setModelData] = useStore((s) => s.modalData);
 
     const clear = useCallback(() => {
