@@ -3,11 +3,12 @@ import React from "react";
 import { EndDrawerContainerProps } from "@/types/EndDrawerContainerProps";
 import { useEndDrawer } from "@/lib/hooks/useEndDrawer";
 import { useThemesList } from "@/lib/hooks/useThemesList";
+import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 
 export function EndDrawer({ children }: WithChildren) {
     const { data, open, close, update, toggle, reset } = useEndDrawer();
     const themes = useThemesList()
-                   
+    useChangeTheme()  
     const { show, content } = data ?? {};
     function ContentContainer({ children, className, ...props }: EndDrawerContainerProps) {
         return (
@@ -36,7 +37,7 @@ export function EndDrawer({ children }: WithChildren) {
             <div className="h-full bg-white">
             <div className="form-control p-4">
                 <span className="label">Theme</span>
-                <select className="select select-bordered rounded-sm" data-choose-theme>
+                <select className="select select-bordered rounded-sm" data-choose-theme >
                         <option key="" value="">Default</option>
                         {themes.map((t) => <option key={t} value={t}>{t}</option>)}
 

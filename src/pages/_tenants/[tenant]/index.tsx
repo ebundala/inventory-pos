@@ -2,9 +2,12 @@ import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
 import useRequireAuth from "@/lib/useRequireAuth";
 import { useTenant } from "@/lib/hooks/useTenant";
-import { WithChildren } from "@/types";
-import { ReactNode } from "react";
 import { getLayout } from "@/layouts/getLayout";
+import { FormContainer } from "@/components/FormContainer";
+import { FormSection } from "@/components/FormSection";
+import { useThemesList } from "@/lib/hooks/useThemesList";
+import { useEffect } from "react";
+import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 
 
 
@@ -13,6 +16,7 @@ function TenantIndex() {
     const router = useRouter();
   //  const [tenant, loading] = useTenant();
     const session = useRequireAuth();
+    
     
 
     if (router.isFallback /* || loading */ ) return <Loader />;
@@ -31,7 +35,7 @@ function TenantIndex() {
                     <FormInput label={"Input label"} />
                     <FormInput label="label input" />
                     
-                
+                   
                 </FormContainer>
             </FormSection>
         </div>
@@ -42,27 +46,6 @@ export default TenantIndex;
 TenantIndex.getLayout = getLayout;
 
 
-function FormSection({ children }: WithChildren) {
-    return (
-        <div className="m-auto  bg-gray-100 w-full h-full">
-            {children}
-        </div>
-    )
-}
-function FormContainer({ className, contentClassName, titleClassName, title, children }: {
-    className?: string, contentClassName?: string, titleClassName?: string, title: ReactNode, children: ReactNode
-}) {
-    return (
-        <div className={`flex flex-col  h-full py-2 m-4 bg-gray-300 rounded-lg ${className ?? ''}`}>
-            <div className={`flex px-4 pb-2 justify-start font-semibold text-sm text-gray-800 ${titleClassName ?? ""}`}>
-                {title}
-            </div>
-            <div className={`grid grid-flow-row grid-cols-3 px-4 py-4 h-fit bg-white ${contentClassName ?? ''}`}>
-                {children}
-            </div>
-        </div>
-    )
-}
 function FormInput({ className, labelClassName, inputClassName, label, ...props }: { label?: string, className?: string, labelClassName?: string, inputClassName?: string }) {
     // todo add errors props
     return (

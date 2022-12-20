@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {zodResolver} from '@hookform/resolvers/zod';
 import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, number, ZodIssueCode, any, } from "zod";
+import { authOptions } from "@/core/index";
 
 
 
@@ -153,7 +154,7 @@ type FormFieldConfig = {
     name: string
     type: ZodFirstPartyTypeKind
     allowedValues?:InputOptionValues
-    literalValue?:any
+    literalvalue?:any
 }
 export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentField: string="", parentType: string = '', config: FormFieldConfig[] = []) {
     const fieldName = (field: string,parent:string, isArray: boolean, isObject: boolean) => `${parent}${isArray ? `.0.${field}` : isObject ? `.${field}` : field}`;
@@ -178,7 +179,7 @@ export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentFie
             type:data.typeName,
             required:parentType !== ZodFirstPartyTypeKind.ZodOptional,
             allowedValues: data.allowedValues,
-            literalValue:data.literalValue
+            literalvalue:data.literalValue
         })
     }
     return config;
@@ -255,13 +256,17 @@ const config = useMemo(()=>{
         const options = fieldOptions[v.name]?.options??v.allowedValues;
         const upload = fieldOptions[v.name]?.upload??false;
         const textArea = fieldOptions[v.name]?.textArea??false;
+        // const setValueAs = v.type == ZodFirstPartyTypeKind.ZodBoolean?(i:any)=>{
+        //    if(i==="true")return true
+        //    return false;
+        // }:undefined;
         const type= getInputTypeFromZodType(v.type);
         const disabled=isSubmitting;
         
         const error = getValue(getPath(v.name),errors)?.message?.toString();
-        return {error,label,ordering,options,upload,textArea, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
+        return {error,label,ordering,options,upload, textArea, props:{type,hidden,disabled,...register(v.name,{valueAsDate,valueAsNumber})},...v}
     }).sort((a,b)=>a.ordering-b.ordering);
-},[refinedSchema,fieldConfig,register,isSubmitting,errors]);
+},[refinedSchema,fieldConfig,register,isSubmitting,errors,fieldOptions]);
 
 
 return [config,form] as [typeof config,typeof form]

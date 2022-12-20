@@ -52,7 +52,7 @@ export function Navbar() {
                     <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
                             {session.status == "authenticated" && <Image
-                                src={session.data.user.image ?? "/no_avator.png"}
+                                src={"/logo-yavin2.png" ?? session.data.user.image}
                                 width={40}
                                 height={40}
                                 alt={session.data.user.name ?? "User avatar"} />}

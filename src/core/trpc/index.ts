@@ -63,7 +63,6 @@ export const publicProcedure = t.procedure
 
 export const isAuthed = middleware(({ next, ctx }) => {
     if (!ctx.session?.user) {
-        //TODO uncomment below in production
          throw new TRPCError({code:'UNAUTHORIZED'});
     }
     return next({ ctx })
@@ -74,9 +73,9 @@ export const useInteractiveTransaction = middleware(async ({ next, ctx }) => {
     let result;
     try {
         result = await prisma!.$transaction(async (tx) => {
-            await prisma!.$queryRawUnsafe(`SET "app.CurrentTenant"="${ctx.tenantId}"`)
+            await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${ctx.tenantId}"`)
             return next({ ctx: { tx, ...ctx } })
-        },)
+        },/*{timeout:10000}*/)
     }
     catch (e) {
         

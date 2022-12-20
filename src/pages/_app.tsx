@@ -7,7 +7,7 @@ import { Provider as AppContextProvider } from "@/lib/context";
 import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 
 export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, }>) {
-  useChangeTheme();
+  
   const props = { ...rest, pageProps };
   
   return (
