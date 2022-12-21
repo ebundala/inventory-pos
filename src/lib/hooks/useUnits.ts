@@ -24,5 +24,5 @@ export function useUnits() {
   }, [result.refetch])
     ;
 
-  return [units, result.isLoading, result.isSuccess] as [typeof units, boolean, boolean];
+  return [units, result.isLoading, result.isSuccess, refetch] as [typeof units, boolean, boolean,typeof refetch];
 }

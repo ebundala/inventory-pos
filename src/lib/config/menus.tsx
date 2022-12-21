@@ -34,7 +34,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Category",
-                link: '#',
+                link: '/products/categories',
                 icon: <BsGenderAmbiguous />,
                 subMenus: []
             },
@@ -46,13 +46,13 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Brands",
-                link: '#',
+                link: '/products/brands',
                 icon: <BsAlarm />,
                 subMenus: []
             },
             {
                 name: "Units",
-                link: '#',
+                link: '/products/units',
                 icon: <BsUnlock />,
                 subMenus: []
             }
@@ -204,19 +204,19 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Customers",
-                link: '#',
+                link: '/peoples/customers',
                 icon: <FaAccessibleIcon />,
                 subMenus: []
             },
             {
                 name: "Suppliers",
-                link: '#',
+                link: '/peoples/suppliers',
                 icon: <BsCalculator />,
                 subMenus: []
             },
             {
                 name: "Users",
-                link: '#',
+                link: '/peoples/users',
                 icon: <BsCalculator />,
                 subMenus: []
             }
