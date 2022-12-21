@@ -2,7 +2,6 @@ import { FormInputField } from "@/components/FormInputField";
 import Loader from "@/components/sites/Loader";
 import { createCurrencyInputSchema, updateCurrencyInputSchema } from "@/core/currency/index.zod";
 import { getLayout } from "@/layouts/getLayout"
-import { useStore } from "@/lib/context";
 import { useCurrencies } from "@/lib/hooks/useCurrencies";
 import { useModal } from "@/lib/hooks/useModel";
 import { useTenant } from "@/lib/hooks/useTenant";
@@ -12,9 +11,9 @@ import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 import { Currency } from "@prisma/client";
 import { UseMutationResult } from "@tanstack/react-query";
-import { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
-import { CustomTable } from "./table";
+import { CustomTable } from "@/components/table";
 
 export default function CurrencyIndex() {
     const [currencies, loading, success,refetch] = useCurrencies();
