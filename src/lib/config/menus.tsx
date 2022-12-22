@@ -22,13 +22,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Products",
-                link: '#',
+                link: '/products/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Products",
-                link: '#',
+                link: '/products',
                 icon: <BsCalculator />,
                 subMenus: []
             },
@@ -40,7 +40,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Print Barcode",
-                link: '#',
+                link: '/product/barcode',
                 icon: <FaBarcode />,
                 subMenus: []
             },

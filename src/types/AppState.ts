@@ -5,9 +5,11 @@ import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 import { ToastMessage } from "@/types/ToastMessage";
 import { WithShow } from "@/types/WithShow";
 import { TenantProp } from "@/types/TenantProp";
-import { Brand, Category, Currency, Customer, PosSetting, Setting, Supplier, Unit, Warehouse } from "@prisma/client";
+import { Brand, Category, Currency, Customer, PosSetting, Product, Setting, Supplier, Unit, Warehouse } from "@prisma/client";
 
 export interface AppState {
+    editingProduct: Product | null,
+    products:Product[]|null,
     suppliers: Supplier[] | null;
     currencies: Currency[] | null;
     units: Unit[] | null;
