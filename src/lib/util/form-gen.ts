@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, z, CustomErrorParams, ZodEffects, ZodTypeAny, number, ZodIssueCode, any, } from "zod";
-import { authOptions } from "@/core/index";
-
+import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, ZodTypeAny, ZodIssueCode, } from "zod";
 
 
 type ParsedZodFieldType = {
@@ -202,12 +200,9 @@ type FormFieldOption = {
 }
 
 export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
-    schema: T, fieldOptions: { [K: string]: FormFieldOption | undefined | null } = {},
+    schema: T, fieldOptions: { [k:string]: FormFieldOption | undefined | null } = {},
     props?: Parameters<typeof useForm>[0]) {
-
-    
-    
-
+console.log(props?.defaultValues);
     const [fieldConfig, refinedSchema] = useMemo(() => {
         const ast = traverseZodSchema(schema);
         const fieldConfig = getFieldsConfigFromSchemaAst(ast);
@@ -229,11 +224,15 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             }
 
         });
+        
         return [fieldConfig, schema2] as [typeof fieldConfig, typeof schema2];
 
     }, [schema, fieldOptions]);
+    const formInput =  useMemo(()=>{        
+        return ({ resolver: zodResolver(refinedSchema), ...props })
+    },[props,fieldOptions])
 
-    const form = useForm({ resolver: zodResolver(refinedSchema), ...props });
+    const form = useForm(formInput);
     const register = form.register;
     const errors = form.formState.errors;
     const isSubmitting = form.formState.isSubmitting;
@@ -267,7 +266,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
 }
 
 export type ZodFormFieldConfig = ReturnType<typeof useZodForm>[0][0];
-
+export type ZodFormFieldOptions = Parameters<typeof useZodForm>[1]
 
 export function isZodFormFieldArray(name: string) {
     return /[0-9]/g.test(name);

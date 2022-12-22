@@ -8,10 +8,13 @@ import { useCategories } from "@/lib/hooks/useCategories";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useUnits } from "@/lib/hooks/useUnits";
-import { getValue, isZodFormFieldArray, useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
+import { useZodForm, ZodFormFieldOptions } from "@/lib/util/form-gen";
 import { useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
-import { ZodFirstPartyTypeKind } from "zod";
+import { renderFieldArrayForm } from "./renderFieldArrayForm";
+import { useFieldArrayName } from "./useFieldArrayName";
+import { useProductFormFieldOptions } from "./useProductFormFieldOptions";
+import { useSplitFormConfigToFieldArray } from "./useSplitFormConfigToFieldArray";
 
 
 export default function CreateProduct() {
@@ -19,140 +22,13 @@ export default function CreateProduct() {
     const [categories, categoryLoading] = useCategories();
     const [brands, brandsLoading] = useBrands();
     const [units, unitsLoading] = useUnits();
-    const options = useMemo((): Parameters<typeof useZodForm>[1] => {
-        const unitsWithlabels = units?.map((c) => ({ label: c.name, value: c.id })) ?? [];
-        const brandsWithlabels = brands?.map((c) => ({ label: c.name, value: c.id })) ?? [];
-        const categoriesWithLabels = categories?.map((c) => ({ label: c.name, value: c.id })) ?? [];
-        const barcodeSymbologyLabels = [{
-            label: "Code 128",
-            value: "Code 128"
-        }, {
-            label: "Code 39",
-            value: "Code 39"
-        }, {
-            label: "EAN8",
-            value: "EAN8"
-        }, {
-            label: "EAN13",
-            value: "EAN13"
-        }, {
-            label: "UPC",
-            value: "UPC"
-        }];
-        const taxMethods = [{ label: "Inclusive", value: "inclusive" }, { label: "Exclusive", value: "Exclusive" }];
-        return {
-            name: {
-                label: "Product name",
-                ordering: 1
-            },
-            code: {
-                label: "Product code",
-                ordering: 2
-            },
-            typeBarcode: {
-                label: "Barcode symbology",
-                ordering: 3,
-                options: barcodeSymbologyLabels
-            },
-            cost: {
-                label: "Purchase price",
-                ordering: 4
-            },
-            price: {
-                label: "Sale price",
-                ordering: 5
-            },
-            categoryId: {
-                label: "Category",
-                ordering: 6,
-                options: categoriesWithLabels
-            },
-            brandId: {
-                label: "Brand",
-                ordering: 6,
-                options: brandsWithlabels
-            },
-            unitId: {
-                label: "Stock unit",
-                ordering: 7,
-                options: unitsWithlabels
-            },
-            unitSaleId: {
-                label: "Sale unit",
-                ordering: 6,
-                options: unitsWithlabels
-            },
-            unitPurchaseId: {
-                label: "Purchase unit",
-                ordering: 6,
-                options: unitsWithlabels
-            },
-            taxNet: {
-                label: "Order Tax (%)",
-                ordering: 7
-            },
-            taxMethod: {
-                label: "Tax method",
-                ordering: 8,
-                options: taxMethods
-            },
-            stockAlert: {
-                label: "Stock alert",
-                ordering: 9
-            },
-            note: {
-                label: "Description",
-                ordering: 10,
-                textArea: true
-            },
-            image: {
-                label: "Product images",
-                // upload:true,
-                ordering: 11
-            },
-            isVariant: {
-                label: "Product has variants",
-                ordering: 12
-            },
-            isActive: {
-                label: "In sale",
-
-            },
-            isImei: {
-                label: "Product has IMEI",
-                hidden: true
-            },
-            "productVariants.0.name": {
-                label: "Variant name",
-
-            },
-            "productVariants.0.qty": {
-                label: "Quantity",
-                hidden: true
-            },
-            tenantId: {
-                hidden: true
-            }
-        }
-    }, [units, categories, brands])
+    const options = useProductFormFieldOptions(units,brands,categories);
     const [config, form] = useZodForm(createProductInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId }
     });
 
-    const [reguralConfig, fieldArrayConfig] = useMemo(() => {
-        const regular: typeof config = []
-        const fieldArray: typeof config = []
-        for (let v of config) {
-            if (isZodFormFieldArray(v.name)) {
-                fieldArray.push(v);
-            }
-            else {
-                regular.push(v);
-            }
-        }
-        return [regular, fieldArray];
-    }, [config])
-    const fname = useMemo(() => fieldArrayConfig[0].name.split(".").slice(0, 1)[0], []);
+    const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
+    const fname = useFieldArrayName(fieldArrayConfig);
     const hasVariant = form.watch("isVariant", false);
     const productVariantsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
        useMemo(()=>{
@@ -223,14 +99,4 @@ export default function CreateProduct() {
 
 CreateProduct.getLayout = getLayout;
 
-function renderFieldArrayForm({ config, key, index,errors, register, name }:
-    { config: ZodFormFieldConfig[]; key: string; errors:any, index: number; register: (name: string,opts:any) => any; name: string; }) {
-    return config.map((v, i) => {
-        const fieldName = v.name.split(".").slice(-1)[0];
-        const error = getValue([name,index,fieldName], errors??{})?.message?.toString();
-        const valueAsDate = v.type == ZodFirstPartyTypeKind.ZodDate;
-        const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
-        const props = {...v,error, key: `${key}_${index}_${i}`, props: { ...v.props, ...register(`${name}.${index}.${fieldName}`,{ valueAsDate, valueAsNumber }) } }
-        return (<FormInputField  {...props} />)
-    })
-}
+

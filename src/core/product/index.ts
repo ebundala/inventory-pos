@@ -100,7 +100,7 @@ export const updateProduct = async (input: UpdateProductInput,ctx:TenantContext)
         const variantToUpdate = product.productVariants
             .filter((v) => productVariants.find((s) => s.id === v.id))
             .map((v) => {
-                const { id, ...rest } = v;
+                const { id,productId, ...rest } = v;
                 return { where: { id: id }, data: rest };
             });
             

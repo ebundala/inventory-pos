@@ -1,6 +1,6 @@
 import { useStore } from "@/lib/context";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 export function useProduct(id: number) {
 
@@ -13,15 +13,21 @@ export function useProduct(id: number) {
     });
     const refetch = useCallback(async () => {
         const rResult = await result.refetch();
-        if (result.isSuccess) {
-            setEditingProduct({ editingProduct: result.data ?? null });
+        if (rResult.isSuccess) {
+            setEditingProduct({ editingProduct: rResult.data ?? null });
         }
     }, [result.refetch]);
-    useEffect(()=>{
-        if(!id){
+    useMemo(() => {
+        if (!id) {
             console.log("Invalid id aborting query");
-           result.remove();
+            //result.remove();
         }
-    },[id]);
-    return [result.data, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    }, [id]);
+    useEffect(()=>{
+    return ()=>{
+        console.log("creaning up editing product",editingProduct);
+        setEditingProduct({ editingProduct: null });
+    }
+    },[])
+    return [editingProduct, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
 }

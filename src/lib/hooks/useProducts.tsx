@@ -3,7 +3,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useCallback } from "react";
 
-function useProducts() {
+export function useProducts() {
 
     const [products, setProducts] = useStore((s) => s.products);
     const [tenant] = useTenant();
@@ -19,5 +19,6 @@ function useProducts() {
             setProducts({ products: result.data ?? null });
         }
     }, [result.refetch]);
-    return [result.data, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    
+    return [products, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
 }
