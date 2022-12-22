@@ -1,8 +1,8 @@
 import Loader from "@/components/sites/Loader";
 import { ReactNode } from 'react';
-
+export type CollectHooksReturnType<T extends unknown=unknown>={ data: T; isLoading: boolean; }
 export function CollectRequiredDataWrapper({ useHooks, children }: {
-    useHooks: () => { data: any; isLoading: boolean; };
+    useHooks: () =>CollectHooksReturnType;
     children: ReactNode | {
         (props: any): ReactNode;
     };

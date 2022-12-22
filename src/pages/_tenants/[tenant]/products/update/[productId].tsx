@@ -10,14 +10,14 @@ import { useZodForm } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
 import { useProduct } from "@/lib/hooks/useProduct";
-import { useProductFormFieldOptions } from "../useProductFormFieldOptions";
+import { useProductFormFieldOptions } from "@/lib/hooks/useProductFormFieldOptions";
 import { createElement, FC, useEffect, useMemo } from 'react';
-import { useFieldArrayName } from "../useFieldArrayName";
-import { useSplitFormConfigToFieldArray } from "../useSplitFormConfigToFieldArray";
-import { renderFieldArrayForm } from "../renderFieldArrayForm";
+import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
+import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
+import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { CollectRequiredDataWrapper } from "./CollectRequiredDataWrapper";
+import { CollectHooksReturnType, CollectRequiredDataWrapper } from "../../../../../components/CollectRequiredDataWrapper";
 
 interface PathProps extends ParsedUrlQuery {
     productId: string;
@@ -90,7 +90,7 @@ export function UpdateProduct({tenant,categories,brands,units,product,refetch}:P
                     </div>
                     <button onClick={(e) => {
                         e.preventDefault();
-                        productVariantsForm.append({ name: "", qty: 0 })
+                        productVariantsForm.append({ name: "", qty: 0 ,id:-1})
                     }} className="btn btn-outline btn-accent btn-xs rounded-md my-4">add variant</button>
                 </div>}
                 <div className="flex flex-row py-3 justify-start">

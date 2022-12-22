@@ -202,7 +202,6 @@ type FormFieldOption = {
 export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
     schema: T, fieldOptions: { [k:string]: FormFieldOption | undefined | null } = {},
     props?: Parameters<typeof useForm>[0]) {
-console.log(props?.defaultValues);
     const [fieldConfig, refinedSchema] = useMemo(() => {
         const ast = traverseZodSchema(schema);
         const fieldConfig = getFieldsConfigFromSchemaAst(ast);

@@ -8,13 +8,13 @@ import { useCategories } from "@/lib/hooks/useCategories";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useUnits } from "@/lib/hooks/useUnits";
-import { useZodForm, ZodFormFieldOptions } from "@/lib/util/form-gen";
+import { useZodForm } from "@/lib/util/form-gen";
 import { useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
-import { renderFieldArrayForm } from "./renderFieldArrayForm";
-import { useFieldArrayName } from "./useFieldArrayName";
-import { useProductFormFieldOptions } from "./useProductFormFieldOptions";
-import { useSplitFormConfigToFieldArray } from "./useSplitFormConfigToFieldArray";
+import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
+import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
+import { useProductFormFieldOptions } from "@/lib/hooks/useProductFormFieldOptions";
+import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 
 
 export default function CreateProduct() {

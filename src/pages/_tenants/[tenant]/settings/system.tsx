@@ -14,8 +14,9 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "../../../../components/FormInputField";
 import { createPosSettingInputSchema, updatePosSettingInputSchema } from "@/core/pos_setting/index.zod";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { PosSetting, Setting } from "@prisma/client";
+import { CollectHooksReturnType, CollectRequiredDataWrapper } from "../../../../components/CollectRequiredDataWrapper";
 
 
 function SettingsIndex() {
@@ -70,8 +71,16 @@ function SettingsIndex() {
 
   return (
     <>
-      <SystemSettings></SystemSettings>
-      <PosSettings></PosSettings>
+      <CollectRequiredDataWrapper useHooks={useSettingRequiredData}>
+        {(props)=>
+      <SystemSettings {...props}/>
+      }
+      </CollectRequiredDataWrapper>
+      <CollectRequiredDataWrapper useHooks={usePosRequiredData}>
+        {(props)=>
+      <PosSettings {...props}/>
+      }
+      </CollectRequiredDataWrapper>
     </>
   );
 }
@@ -79,14 +88,22 @@ function SettingsIndex() {
 SettingsIndex.getLayout = getLayout
 export default SettingsIndex;
 
-
-
-function SystemSettings() {
+function useSettingRequiredData(){
   const [tenant,t,_t,tr] = useTenant();
   const [setting,s,_s,refetchSetting] = useSetting();
   const [customers, loading, c,cur] = useCustomers();
   const [warehouses, loading1, w, wr] = useWarehouses();
   const [currencies, loading2, cu,c3] = useCurrencies();
+return {data:{tenant,setting,customers,warehouses,currencies,refetchSetting},isLoading:t||s||loading||loading1||loading2}
+}
+
+type SystemSettingsProps = ReturnType<typeof useSettingRequiredData>['data']
+function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchSetting}:SystemSettingsProps) {
+  // const [tenant,t,_t,tr] = useTenant();
+  // const [setting,s,_s,refetchSetting] = useSetting();
+  // const [customers, loading, c,cur] = useCustomers();
+  // const [warehouses, loading1, w, wr] = useWarehouses();
+  // const [currencies, loading2, cu,c3] = useCurrencies();
   
   const trpc = useTrpcTenant()
   const refetchOpts={
@@ -127,13 +144,16 @@ function SystemSettings() {
       tenantId: { label: "tenantId", hidden: true, ordering: 11 },
       id: { label: "id", hidden: true, ordering: 12 }
     }
-  }, [warehouses, currencies, customers, c, w, cu]);
+  }, [warehouses, currencies, customers]);
 
   const [config, form] = useZodForm(setting?.id ? updateSettingInputSchema : createSettingInputSchema,
     fieldOptions, { defaultValues: { tenantId: tenant?.tenantId, ...(setting ?? {}) } })
 
-    if(loading || loading1 || loading2 ) return <Loader/>
-
+   useEffect(()=>{
+    if(setting){
+      form.reset(setting);
+    }
+   },[setting])
 
   return (
     <FormContainer title={<h1>System settings </h1>}>
@@ -157,10 +177,18 @@ function SystemSettings() {
   );
 }
 
-
-function PosSettings() {
-  const [tenant] = useTenant();
+function usePosRequiredData(){
+  const [tenant,tenantLoading] = useTenant();
   const [posSetting, loading, p,refetchPosSettings] = usePosSetting();
+return {data:{posSetting,refetchPosSettings,tenant},isLoading:loading || tenantLoading}
+}
+
+type PosSettingProps = ReturnType<typeof usePosRequiredData>['data']
+
+function PosSettings({tenant,posSetting,refetchPosSettings}:PosSettingProps) {
+  //const [tenant] = useTenant();
+  //const [posSetting, loading, p,refetchPosSettings] = usePosSetting();
+
   const fieldOptions = useMemo((): Parameters<typeof useZodForm>[1] => {
     //const options = [{ label: "Yes", value: true }, { label: "No", value: false }]
     return {
@@ -189,7 +217,7 @@ function PosSettings() {
         hidden: true
       }
     }
-  }, [posSetting, p,loading])
+  }, [])
 
   const [config, form] = useZodForm(posSetting?.id ? updatePosSettingInputSchema : createPosSettingInputSchema,
     fieldOptions,
@@ -201,8 +229,12 @@ function PosSettings() {
   }
   const createSetting = trpc.setting.pos.create.useMutation(refetchOpts);
   const updateSetting = trpc.setting.pos.update.useMutation(refetchOpts);
-  if(loading) return <Loader/>
-  
+  useEffect(()=>{
+    if(posSetting){
+      form.reset(posSetting)
+    }
+  },[posSetting]);
+
   return (
     <FormContainer title={<h1>POS receipt settings </h1>}>
       <form onSubmit={form.handleSubmit(async (data) => {
