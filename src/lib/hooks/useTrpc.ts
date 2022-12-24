@@ -3,7 +3,7 @@ import { createTRPCNext } from "@trpc/next";
 import { AppRouter } from "@/lib/routers";
 import { useMemo } from "react";
 import { useHost } from "@/lib/hooks/useHost";
-
+import superjson from 'superjson';
 
 export function useTrpc(host: string) {
   const trpc = useMemo(() => {
@@ -41,7 +41,7 @@ export function useTrpc(host: string) {
             },
           }),
         ],
-        //   transformer: superjson,
+        transformer: superjson,
       };
     },
     ssr: true,});

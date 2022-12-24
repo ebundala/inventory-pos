@@ -15,6 +15,7 @@ import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useProductFormFieldOptions } from "@/lib/hooks/useProductFormFieldOptions";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
+import { Prisma } from "@prisma/client";
 
 
 export default function CreateProduct() {

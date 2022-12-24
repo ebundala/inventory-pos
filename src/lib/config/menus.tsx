@@ -65,13 +65,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create adjustment",
-                link: '#',
+                link: '/adjustments/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All adjustment",
-                link: '#',
+                link: '/adjustments',
                 icon: <BsCalculator />,
                 subMenus: []
             }

@@ -266,7 +266,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
 
 export type ZodFormFieldConfig = ReturnType<typeof useZodForm>[0][0];
 export type ZodFormFieldOptions = Parameters<typeof useZodForm>[1]
-
+export type ZodFormRegisterCallbacksTypes =ReturnType<ReturnType<typeof useZodForm>[1]['register']>;
 export function isZodFormFieldArray(name: string) {
     return /[0-9]/g.test(name);
 }

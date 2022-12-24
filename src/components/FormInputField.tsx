@@ -1,7 +1,7 @@
-import { useZodForm } from "@/lib/util/form-gen";
+import { ZodFormFieldConfig } from "@/lib/util/form-gen";
 import { ReactNode } from "react";
 
-export function FormInputField({ label, name, required, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ReturnType<typeof useZodForm>[0][0]) {
+export function FormInputField({ label, name, required, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ZodFormFieldConfig) {
   const hidden = props.hidden ? 'hidden' : '';
   let el: ReactNode
   if (props.type === 'checkbox') {
@@ -58,7 +58,7 @@ export function FormInputField({ label, name, required, props, options, error, t
   return (<div className={`form-control ${hidden}`} {...rest}>
     {el}
     {error &&
-      <span className={`pt-2 text text-error text-xs font-semibold ${props.hidden ? 'hidden' : ''}`}>{error}</span>}
+      <span className={`pt-2 text text-error text-xs font-semibold ${hidden ? 'hidden' : ''}`}>{error}</span>}
 
   </div>);
 }
