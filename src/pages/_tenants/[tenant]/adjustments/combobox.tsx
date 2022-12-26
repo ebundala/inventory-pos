@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react'
 import { Combobox, Transition } from '@headlessui/react'
 import { FaCheck } from 'react-icons/fa'
 import { getLayout } from '@/layouts/getLayout'
-import { useProductSearch } from './create'
+import { useProductSearch } from "./useProductSearch"
 import { ZodFormFieldConfig, ZodFormRegisterCallbacksTypes } from "@/lib/util/form-gen";
 type ComboBoxDataHook<TOptions, TData,> = (opts?: TOptions) => [TData[], (text: string) => void, boolean]
 

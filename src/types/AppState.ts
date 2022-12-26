@@ -5,11 +5,41 @@ import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 import { ToastMessage } from "@/types/ToastMessage";
 import { WithShow } from "@/types/WithShow";
 import { TenantProp } from "@/types/TenantProp";
-import { Brand, Category, Currency, Customer, PosSetting, Product, Setting, Supplier, Unit, Warehouse } from "@prisma/client";
+import { Adjustment, Brand, Category, Currency, Customer, PosSetting, Product, Purchase, PurchaseReturn, Quotation, Sale, SaleReturn, Setting, Supplier, Transfer, Unit, Warehouse } from "@prisma/client";
 
 export interface AppState {
+   //
+    editingPurchase: Purchase | null
+    purchases: Purchase[]|null
+    //
+    editingSale: Sale | null,
+    sales: Sale [] | null,
+   //
+    editingSaleReturn: SaleReturn | null,
+    saleReturns: SaleReturn [] | null,
+    //
+    editingPurchaseReturn: PurchaseReturn | null,
+    purchaseReturns: PurchaseReturn [] | null,
+    //
+    editingTransfer: Transfer | null,
+    transfers: Transfer[] | null,
+    //
+    editingQuotation: Quotation | null,
+    quotations: Quotation[] | null,
+    //
+    editingAdjustment: Adjustment | null,
+    adjustments: Adjustment[] | null;
+    //
     editingProduct: Product | null,
     products:Product[]|null,
+
+    //data single
+    defaultCustomer: Customer | null;
+    defaultCurrency: Currency | null;
+    defaultWarehouse: Warehouse | null,
+    tenant: TenantProp;
+
+    //data lists
     suppliers: Supplier[] | null;
     currencies: Currency[] | null;
     units: Unit[] | null;
@@ -17,11 +47,13 @@ export interface AppState {
     categories: Category[] | null
     customers: Customer[] | null;
     warehouses: Warehouse[] | null;
+    //Settings
     posSetting: PosSetting | null;
     tenantSetting: Setting | null;
-    themes: string[];
     host: string | null;
-    tenant: TenantProp;
+    themes: string[];
+    
+    //UI data
     drawerFocusedMenuKey: string | null;
     progressIndicator: ProgressIndicatorData & WithShow | null;
     toastMessages: Set<ToastMessage>;

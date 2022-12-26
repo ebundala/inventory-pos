@@ -7,6 +7,7 @@ import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../auth/auth';
 import { APP_HOST } from '@/lib/util';
 import superjson from 'superjson';
+
 export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
     const session = await unstable_getServerSession(req,res,authOptions);
     const hostname = req?.headers?.host||APP_HOST!;

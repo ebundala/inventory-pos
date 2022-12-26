@@ -17,7 +17,7 @@ import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigTo
 import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { CollectHooksReturnType, CollectRequiredDataWrapper } from "../../../../../components/CollectRequiredDataWrapper";
+import { CollectHooksReturnType, CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
 interface PathProps extends ParsedUrlQuery {
     productId: string;

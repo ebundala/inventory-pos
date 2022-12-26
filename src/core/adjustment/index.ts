@@ -4,7 +4,12 @@ import { TenantContext } from "../trpc";
 const include = {
     user: true,
     warehouse: true,
-    adjustmentDetails: true
+    adjustmentDetails:{
+        include:{
+            product:true,
+            productVariant:true,
+        }
+    }
 };
 
 export type CreateAdjustmentDetailsInput = {
@@ -59,14 +64,41 @@ export type UpdateAdjustmentInput = {
 }
 export const updateAdjustment = async (input: UpdateAdjustmentInput,ctx:TenantContext) => {
     const {id, adjustmentDetails, ...data } = input;
+    const {tenantId}=ctx;
+    const adjustment = await ctx.tx!.adjustment.findUnique({
+        where: { id }, include: {
+            adjustmentDetails: true
+        }
+    });
     let details = {};
-    if (adjustmentDetails && adjustmentDetails.length) {
+    if (adjustmentDetails && adjustment && adjustment.adjustmentDetails && adjustment.adjustmentDetails.length) {
+        const savedadjustments = adjustment.adjustmentDetails.map((v) => v.id);
+        const adjustmentToDelete = adjustment.adjustmentDetails
+            .filter((v) => !adjustmentDetails.find((s) => s.id === v.id))
+            .map((v) => ({ id: v.id }));
+
+        const adjustmentToUpdate = adjustment.adjustmentDetails
+            .filter((v) => adjustmentDetails.find((s) => s.id === v.id))
+            .map((v) => {
+                const { id,adjustmentId, ...rest } = v;
+    
+                return { where: { id: id }, data: rest };
+            });
+            
+        const adjustmentsToCreate = adjustmentDetails
+            .filter((v) => !savedadjustments.find((s) => s === v.id))
+            .map((v) => {
+                const { id, ...rest } = v
+                return { ...rest, tenantId };
+            });
         details = {
             adjustmentDetails: {
-                updateMany: adjustmentDetails.map((v) => {
-                    const {id,...rest}=v;
-                    return { where: { id: id }, data: rest };
-                })
+                createMany: { 
+                    skipDuplicates:true,
+                    data: adjustmentsToCreate 
+                },
+                deleteMany: adjustmentToDelete,
+                updateMany: adjustmentToUpdate
             }
         }
     }
