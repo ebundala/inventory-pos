@@ -1,13 +1,59 @@
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useState } from "react";
-import { Prisma, Product, ProductVariant } from '@prisma/client';
-import { useSearch } from "./useSearch";
-import { TSearchArgs } from "./TSearchArgs";
+import { Prisma, Product, ProductVariant, QuotationDetail } from '@prisma/client';
+import { useSearch ,TSearchArgs} from "@/lib/hooks/useSearch";
 import { ProductFindManySchema } from "prisma/generated/schemas/findManyProduct.schema";
-import { AdjustmentDetailFormat } from "./getProductFormatedName";
+import { AdjustmentDetailFormat } from "@/lib/util/getProductFormatedName";
 import { z } from "zod";
 
-export const productDefaultFormater = <T extends Product&{productVariants:ProductVariant[]} = Product&{productVariants:ProductVariant[]}>(data: T[]) => {
+export type QuotationDetailFormat = Partial<Omit<QuotationDetail,'tenantId'| "createdAt"|"updatedAt"|'quotationId'>> & {product:Partial<Product>,productVariant?:Partial<ProductVariant>}
+
+export const productToQuotationDetailFormater = <T extends Product&{productVariants:ProductVariant[]} = Product&{productVariants:ProductVariant[]}>(data: T[]) => {
+    let list: QuotationDetailFormat[] = []
+    if (data)
+        for (let product of data) {
+            if (product.isVariant) {
+                for (let variant of product.productVariants) {
+                    list.push({
+                        product: product,
+                        productVariant: variant,
+                        productId: product.id,
+                        productVariantId: variant.id,
+                        quantity: 1,
+                      //  price:product.price,
+                        saleUnitId:product.unitSaleId,
+                        taxMethod:product.taxMethod,
+                       // taxNet:0,
+                        discount:0,                        
+                        discountMethod:"default",
+                     //   total:product.price,
+                        imeiNumber:"",
+                        
+                    })
+                }
+            } else {
+                list.push({
+                    product: product,
+                        //productVariant: variant,
+                        productId: product.id,
+                        productVariantId: -1,
+                        quantity: 1,
+                      //  price:product.price,
+                        saleUnitId:product.unitSaleId,
+                        taxMethod:product.taxMethod,
+                       // taxNet:0,
+                        discount:0,                        
+                        discountMethod:"default",
+                     //   total:product.price,
+                        imeiNumber:"",
+                    
+                })
+            }
+        }
+    return list;
+}
+
+export const productToAdjustmentDetailFormater = <T extends Product&{productVariants:ProductVariant[]} = Product&{productVariants:ProductVariant[]}>(data: T[]) => {
     let list: AdjustmentDetailFormat[] = []
     if (data)
         for (let product of data) {
@@ -34,6 +80,7 @@ export const productDefaultFormater = <T extends Product&{productVariants:Produc
         }
     return list;
 }
+
 export const productDefaultQueryBuilder = (dText: string):TProductSearchInput => ({
     take: 5,
     where: {
@@ -73,7 +120,7 @@ export function useProductSearch<S extends Product = Product, Q extends TProduct
         queryBuilder, format, defaultQuery, debounce,
     }: TSearchArgs<Array<S>, Q, L> = {
         queryBuilder: productDefaultQueryBuilder,
-        format: productDefaultFormater,
+        format: productToAdjustmentDetailFormater,
         defaultQuery: { take: 0 },
     } as TSearchArgs<Array<S>, Q, L>) {
     const trpc = useTrpcTenant();

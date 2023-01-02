@@ -13,12 +13,12 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { Prisma } from "@prisma/client";
 import { CustomTable } from "@/components/table";
-import { FormComboBox } from "../combobox";
-import { useProductSearch } from "../useProductSearch";
-import { getProductFormatedName } from "../getProductFormatedName";
-import { useRenderFieldArrayForm } from "./useRenderFieldArrayForm";
-import { useGetZodFormField } from "./useGetZodFormField";
-import { useAdjustmentRequiredData } from "./useAdjustmentRequiredData";
+import { FormComboBox } from "@/components/combobox";
+import { useProductSearch } from "@/lib/hooks/useProductSearch";
+import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
+import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
+import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 
 export interface PathProps extends ParsedUrlQuery {
     adjustmentId: string;
@@ -116,6 +116,7 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
                             accessor: "productId"
                             ,
                             disableSortBy: true,
+                            
                             Cell: ({ row }: { row: any }) => {
                                 return getProductFormatedName(row.original)
                             }

@@ -5,7 +5,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-function Adjustments({categories,brands,units,tenant,router}:TAppConfig) {
+function Adjustments({router}:TAppConfig) {
 
     const [adjustments, loading] = useAdjustments();
     
@@ -15,7 +15,7 @@ function Adjustments({categories,brands,units,tenant,router}:TAppConfig) {
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
-                    (e) => {
+                    () => {
 
                      router.push("/adjustments/create");
                     }
@@ -47,14 +47,14 @@ function Adjustments({categories,brands,units,tenant,router}:TAppConfig) {
                         ,
                         accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: () => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         }
                     },
                     {
                         Header: "Date",
                         accessor: "date",
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row }: { row: any, value: any }) => {
                             return (row.original.date as Date)?.toLocaleDateString()??"";
                         }
                     },
@@ -83,14 +83,14 @@ function Adjustments({categories,brands,units,tenant,router}:TAppConfig) {
                         Header: "Actions",
                         accessor: "tenantId",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row }: { row: any, value: any }) => {
                             return <div className="flex flex-row gap-2">
-                                <button onClick={(e) => {
+                                <button onClick={() => {
                                     console.log(row);
 
                                 }} className="btn btn-success btn-xs rounded-md btn-outline">View</button>
 
-                                <button onClick={(e) => {
+                                <button onClick={() => {
                                     const id = row.original.id;
                                     //console.log(row);
                                     router.push(`/adjustments/update/${id}`);

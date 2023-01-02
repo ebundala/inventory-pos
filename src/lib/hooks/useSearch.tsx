@@ -7,6 +7,7 @@ export type TSearchOptions<TState, TQuery, TLabel, TDefaultQuery extends TQuery 
     defaultQuery: TDefaultQuery
     debounce: number
 }
+export type TSearchArgs<TState extends unknown = any, TQuery extends unknown = any, TLabel extends any = any> = Omit<TSearchOptions<TState, TQuery, TLabel>, "state">;
 
 export function useSearch<TQuery extends unknown=any, TFormat extends unknown=any, TResult extends unknown=any>({ state, format, queryBuilder, defaultQuery, debounce = 250 }: TSearchOptions<TResult, TQuery, TFormat>) {
     const [text, setSearchText] = useState("");

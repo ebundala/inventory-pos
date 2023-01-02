@@ -10,7 +10,7 @@ import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 import { Unit } from "@prisma/client";
 import { UseMutationResult } from "@tanstack/react-query";
-import { FC, ReactNode, useMemo } from "react";
+import { FC, ReactNode, useEffect, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useUnits } from "@/lib/hooks/useUnits";
@@ -47,7 +47,7 @@ export default function UnitIndex() {
             },
             {
                 label:"Division",
-                value:"%"
+                value:"/"
             }
         ]
         },
@@ -198,7 +198,9 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const [tenant] = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
-
+     useEffect(()=>{
+        form.reset({tenantId:tenant?.tenantId,...defaultValues})
+     },[])
     return (
 
         <ModalContainer>

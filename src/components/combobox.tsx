@@ -1,8 +1,6 @@
 import { Fragment, useState } from 'react'
 import { Combobox, Transition } from '@headlessui/react'
 import { FaCheck } from 'react-icons/fa'
-import { getLayout } from '@/layouts/getLayout'
-import { useProductSearch } from "./useProductSearch"
 import { ZodFormFieldConfig, ZodFormRegisterCallbacksTypes } from "@/lib/util/form-gen";
 type ComboBoxDataHook<TOptions, TData,> = (opts?: TOptions) => [TData[], (text: string) => void, boolean]
 
@@ -13,19 +11,22 @@ type ComboBoxProps<TData = { [k: string]: any }, TLabel = { [k: string]: any }, 
   displayValuePath?: string | { (value: TData): string },
   valuePath?: string | { (value: TData): string },
   onChange?: (value: TData, reset?: () => void) => void,
-  displayName?:boolean
+  displayName?: boolean
 } & Omit<ZodFormFieldConfig, "ordering" |
-  "options" |
+  "control" |
+  "readonly" |
+   "literalValue" | 'allowedValues'|
+  "options" | 
   "upload" |
   "textArea" | "type"> & { props?: Partial<ZodFormRegisterCallbacksTypes> };
 
-export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displayValuePath = 'name', keyPath = "id",displayName=true, name, required, label, error, props }: ComboBoxProps) {
+export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displayValuePath = 'name', keyPath = "id", displayName = true, name, required, label, error, props }: ComboBoxProps) {
   const [selected, setSelected] = useState(value)
   const reset = () => setSelected(undefined);
   const [items, setSearchText, isLoading] = useGetDataHook();
   const displayValue = (item: typeof items[0]) => {
     if (displayValuePath instanceof Function) {
-      return item ? displayValuePath(item): "";
+      return item ? displayValuePath(item) : "";
     } else {
       return item ? (item as any)[displayValuePath] : "";
     }
@@ -58,10 +59,10 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
       setSelected(v)
       if (onChange) {
         onChange({ target: { value: getValue(v) } }, reset);
-      }else  if (formOnChange) {
+      } else if (formOnChange) {
         formOnChange({ target: { value: getValue(v) } });
       }
-      
+
 
     }} >
       <div className={`relative form-control z-20 ${hidden}`}>
@@ -77,9 +78,9 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
 
           className='input input-bordered'
           {...props}
-          displayValue={(item) => displayName?"":displayValue(item as any)}
+          displayValue={(item) => displayName ? "" : displayValue(item as any)}
           onChange={(event) => setSearchText(event.target.value)}
-          
+
           {...inputProps}
         />
         {/* <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">

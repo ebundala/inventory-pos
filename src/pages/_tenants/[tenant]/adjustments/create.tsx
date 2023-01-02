@@ -3,20 +3,21 @@ import { FormInputField } from "@/components/FormInputField";
 import { createAdjustmentInputSchema } from "@/core/adjustment/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
+import { useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
-import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { Prisma } from '@prisma/client'
-import { FormComboBox } from "./combobox";
+import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
-import { getProductFormatedName } from "./getProductFormatedName";
-import { useProductSearch } from "./useProductSearch";
+import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { useProductSearch } from "@/lib/hooks/useProductSearch";
+import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
+import { useGetZodFormField,} from "@/lib/hooks/useGetZodFormField";
 
 
 
@@ -50,30 +51,9 @@ export function CreateAdjustment({ tenant, user, warehouses, setting }: TAppConf
     }, [])
     const errors = form.formState.errors;
 
-    const detailsData = useMemo(() => adjustmentDetailsForm.fields.map((item, i) => {
-        return {
-            fields: renderFieldArrayForm({
-                config: fieldArrayConfig,
-                errors, index: i,
-                key: item.key,
-                register: form.register,
-                name: fname
-            }), ...item
-        }
-    }), [adjustmentDetailsForm.fields, errors, fname, form.register]);
+    const detailsData = useRenderFieldArrayForm(fname,adjustmentDetailsForm,form,fieldArrayConfig);
 
-    const { notesField, otherFields } = useMemo(() => {
-        let notesField;
-        const otherFields: ZodFormFieldConfig[] = []
-        for (let f of regularConfig) {
-            if (f.name === Prisma.AdjustmentScalarFieldEnum.notes) {
-                notesField = f;
-            } else {
-                otherFields.push(f)
-            }
-        }
-        return { notesField, otherFields }
-    }, []);
+    const [ notesField, otherFields ] = useGetZodFormField(Prisma.AdjustmentScalarFieldEnum.notes,regularConfig)
 
 
     return (

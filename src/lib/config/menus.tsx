@@ -84,13 +84,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Quatation",
-                link: '#',
+                link: '/quotations/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Quatation",
-                link: '#',
+                link: '/quotation',
                 icon: <BsCalculator />,
                 subMenus: []
             }

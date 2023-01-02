@@ -8,7 +8,8 @@ export function renderFieldArrayForm({ config, key, index, errors, register, nam
         const error = getValue([name, index, fieldName], errors ?? {})?.message?.toString();
         const valueAsDate = v.type == ZodFirstPartyTypeKind.ZodDate;
         const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
-        const props = { ...v, error, key: `${key}_${index}_${i}`, props: { ...v.props, ...register(`${name}.${index}.${fieldName}`, { valueAsDate, valueAsNumber }) } };
+        const name1 = `${name}.${index}.${fieldName}`;
+        const props = { ...v,name:name1, error, key: `${key}_${index}_${i}`, props: { ...v.props, ...register(name1, { valueAsDate, valueAsNumber }) } };
         return (<FormInputField {...props} />);
     });
 }
