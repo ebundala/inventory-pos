@@ -18,14 +18,14 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder, TProductSearchInput } from "@/lib/hooks/useProductSearch";
 import { useGetZodFormField, useGetZodFormFields } from "@/lib/hooks/useGetZodFormField";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
+import {useDefaultCustomer} from '@/lib/hooks/useDefaultCustomer';
 
 
 
-
-export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrency, defaultCustomer, }: TAppConfig) {
-   const symbol = defaultCurrency?.symbol??""
-
-    const options = {
+export function CreateQuotation({ tenant, user,units, warehouses,setting, defaultCurrency, }: TAppConfig) {
+   const symbol = defaultCurrency?.symbol??"";
+   const [defaultCustomer,customerLoading] = useDefaultCustomer(setting!.customerId!);
+    const options = useMemo(()=>({
         date: {
             label: "Date",
             ordering: 1
@@ -39,7 +39,7 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
         customerId: {
             label: "Customer",
             ordering: 3,
-            options:[{label:defaultCustomer!.name,value:defaultCustomer!.id}]
+            options:defaultCustomer?[{label:defaultCustomer!.name,value:defaultCustomer!.id}]:[]
         },
 
         taxRate: {
@@ -163,7 +163,7 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
 
 
 
-    }
+    }),[customerLoading,defaultCustomer,warehouses])
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
@@ -305,11 +305,12 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
     })
 
     useMemo(() => {
-        console.log(data);
+       // console.log(data);
         const values = form.getValues();
         for (let v of data) {
+            // Todo find better way to detect changes 
             if (v.value !== getValue(v.path, values)) {
-                 console.log("changed ",v.value,getValue(v.path,values))
+                // console.log("changed ",v.value,getValue(v.path,values))
                  if(!v.value){
                 form.setValue(v.path.join('.'), v.default);
                  }else{
@@ -340,6 +341,40 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
             })}>
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
+                        if(i.name!=="date"){
+                            return  <FormComboBox
+                            key={i.name}
+                            label={i.name}
+                          //  name={i.name}
+                          //  required={true}
+                           // error={undefined}
+                            hideValue={true}
+                           // hideLabel={false}
+                            keyPath={(v) => getProductFormatedName(v as any)}
+                            displayValuePath={(v) => getProductFormatedName(v as any)}
+                            onChange={(e, reset) => {
+                                const v = e.target.value;
+                                //console.log(v)
+                               // quotationDetailsForm.append(v);
+                                // if (reset) {
+                                // //    reset();
+    
+                                // }
+    
+                            }}
+                            useGetDataHook={() => {
+                                const [_, result, labels, setSearchText] = useProductSearch(
+                                    {
+                                        format: productToQuotationDetailFormater,
+                                        queryBuilder: productDefaultQueryBuilder,
+                                    } as any
+                                )
+                                return [labels, setSearchText, result.isLoading]
+                            }}
+    
+                           // props={{ type: "text", hidden: false, disabled: false, }}
+                        />
+                        }
                         return (<FormInputField key={i.name} {...i} />);
                     })}
 
@@ -347,10 +382,10 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
                 <div className="w-full">
                     <FormComboBox
                         label="Products "
-                        name="Product search"
-                        required={true}
-                        error={undefined}
-                        hideLabel={false}
+                       // name="Product search"
+                       // required={true}
+                       // error={undefined}
+                        //hideLabel={false}
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
@@ -358,7 +393,7 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
                             //console.log(v)
                             quotationDetailsForm.append(v);
                             if (reset) {
-                                reset();
+                               reset();
 
                             }
 
@@ -373,7 +408,7 @@ export function CreateQuotation({ tenant, user,units, warehouses, defaultCurrenc
                             return [labels, setSearchText, result.isLoading]
                         }}
 
-                        props={{ type: "text", hidden: false, disabled: false, }}
+                       // props={{ type: "text", hidden: false, disabled: false, }}
                     />
                 </div>
 

@@ -2,36 +2,29 @@ import { Fragment, useState } from 'react'
 import { Combobox, Transition } from '@headlessui/react'
 import { FaCheck } from 'react-icons/fa'
 import { ZodFormFieldConfig, ZodFormRegisterCallbacksTypes } from "@/lib/util/form-gen";
-type ComboBoxDataHook<TOptions, TData,> = (opts?: TOptions) => [TData[], (text: string) => void, boolean]
+import { ComboboxFieldOptions } from '@/types/ComboboxFieldOptions';
 
-type ComboBoxProps<TData = { [k: string]: any }, TLabel = { [k: string]: any }, TOptions = unknown> = {
-  useGetDataHook: ComboBoxDataHook<TOptions, TData>
-  value?: TData,
-  keyPath?: string | { (value: TData): string },
-  displayValuePath?: string | { (value: TData): string },
-  valuePath?: string | { (value: TData): string },
-  onChange?: (value: TData, reset?: () => void) => void,
-  displayName?: boolean
-} & Omit<ZodFormFieldConfig, "ordering" |
+type ComboBoxProps<TData = { [k: string]: any }, TOptions = unknown> = ComboboxFieldOptions<TData,TOptions> 
+& Partial<Omit<ZodFormFieldConfig, "ordering" |
   "control" |
   "readonly" |
    "literalValue" | 'allowedValues'|
   "options" | 
   "upload" |
-  "textArea" | "type"> & { props?: Partial<ZodFormRegisterCallbacksTypes> };
+  "textArea" | "type">> & { props?: Partial<ZodFormRegisterCallbacksTypes> };
 
-export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displayValuePath = 'name', keyPath = "id", displayName = true, name, required, label, error, props }: ComboBoxProps) {
+export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displayValuePath = 'name', keyPath = "id", hideValue, name, required, label, error, props,hideLabel }: ComboBoxProps) {
   const [selected, setSelected] = useState(value)
   const reset = () => setSelected(undefined);
   const [items, setSearchText, isLoading] = useGetDataHook();
-  const displayValue = (item: typeof items[0]) => {
+  const displayValueFn = (item: typeof items[0]) => {
     if (displayValuePath instanceof Function) {
       return item ? displayValuePath(item) : "";
     } else {
       return item ? (item as any)[displayValuePath] : "";
     }
   }
-  const getKey = (item: typeof items[0]) => {
+  const getKeyFn = (item: typeof items[0]) => {
     if (keyPath instanceof Function) {
       return keyPath(item)
     }
@@ -40,9 +33,9 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
 
     }
   }
-  const getValue = (item: typeof items[0]): any => {
+  const getValueFn = (item: typeof items[0]): any => {
     if (valuePath instanceof Function) {
-      return getValue(item)
+      return getValueFn(item)
     }
     else if (valuePath?.length) {
       return item ? (item as any)[valuePath] : "";
@@ -58,27 +51,23 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
     <Combobox value={selected} onChange={(v) => {
       setSelected(v)
       if (onChange) {
-        onChange({ target: { value: getValue(v) } }, reset);
+        onChange({ target: { value: getValueFn(v) } }, reset);
       } else if (formOnChange) {
-        formOnChange({ target: { value: getValue(v) } });
+        formOnChange({ target: { value: getValueFn(v) } });
       }
 
 
     }} >
       <div className={`relative form-control z-20 ${hidden}`}>
-        <Combobox.Label className={`label ${hidden}`}>
+        {!hideLabel&&<Combobox.Label className={`label ${hidden}`}>
           <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
-        </Combobox.Label>
-        {/* <div className="relative mt-1  p-0 pt-1 "> */}
-        {/* <div className=" relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm"> */}
-        {/*               classNames="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 "
- */}
-        {/* <div className='input input-bordered'> */}
+        </Combobox.Label>}
+       
         <Combobox.Input
 
           className='input input-bordered'
           {...props}
-          displayValue={(item) => displayName ? "" : displayValue(item as any)}
+          displayValue={(item) => hideValue ? "" : displayValueFn(item as any)}
           onChange={(event) => setSearchText(event.target.value)}
 
           {...inputProps}
@@ -115,7 +104,7 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
 
               items.map((item) => (
                 <Combobox.Option
-                  key={getKey(item)}
+                  key={getKeyFn(item)}
                   className={({ active }) =>
                     `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-primary text-white' : 'text-gray-900'
                     }`
@@ -128,7 +117,7 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
                         className={`block truncate ${selected ? 'font-medium' : 'font-normal'
                           }`}
                       >
-                        {displayValue(item)}
+                        {displayValueFn(item)}
                       </span>
                       {selected ? (
                         <span
