@@ -3,6 +3,7 @@ import { Combobox, Transition } from '@headlessui/react'
 import { FaCheck } from 'react-icons/fa'
 import { ZodFormFieldConfig, ZodFormRegisterCallbacksTypes } from "@/lib/util/form-gen";
 import { ComboboxFieldOptions } from '@/types/ComboboxFieldOptions';
+import { Control, FieldValues, useController } from 'react-hook-form';
 
 type ComboBoxProps<TData = { [k: string]: any }, TOptions = unknown> = ComboboxFieldOptions<TData,TOptions> 
 & Partial<Omit<ZodFormFieldConfig, "ordering" |
@@ -11,12 +12,16 @@ type ComboBoxProps<TData = { [k: string]: any }, TOptions = unknown> = ComboboxF
    "literalValue" | 'allowedValues'|
   "options" | 
   "upload" |
-  "textArea" | "type">> & { props?: Partial<ZodFormRegisterCallbacksTypes> };
+  "textArea" | "type">> & { props?: Partial<ZodFormRegisterCallbacksTypes>,control?:Control<FieldValues, unknown> };
 
-export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displayValuePath = 'name', keyPath = "id", hideValue, name, required, label, error, props,hideLabel }: ComboBoxProps) {
+export function FormComboBox({ useGetDataHook, value,defaultOption,elevation=20, onChange, valuePath, displayValuePath = 'name', keyPath = "id", hideValue, name, required, label, error,control, props,hideLabel }: ComboBoxProps) {
+  const hidden = props?.hidden ? 'hidden' : '';
+  const { onBlur, onChange: formOnChange, ref, name: formFieldName, ...inputProps } = props ?? {};
+  const controller = useController({name:formFieldName!,control:control})
+ 
   const [selected, setSelected] = useState(value)
   const reset = () => setSelected(undefined);
-  const [items, setSearchText, isLoading] = useGetDataHook();
+  const [items, setSearchText, isLoading,dtext] = useGetDataHook();
   const displayValueFn = (item: typeof items[0]) => {
     if (displayValuePath instanceof Function) {
       return item ? displayValuePath(item) : "";
@@ -35,7 +40,7 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
   }
   const getValueFn = (item: typeof items[0]): any => {
     if (valuePath instanceof Function) {
-      return getValueFn(item)
+      return valuePath(item)
     }
     else if (valuePath?.length) {
       return item ? (item as any)[valuePath] : "";
@@ -44,21 +49,29 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
       return item;
     }
   }
-  const hidden = props?.hidden ? 'hidden' : '';
-  const { onBlur, onChange: formOnChange, ref, name: formFieldName, ...inputProps } = props ?? {};
-  return (
 
-    <Combobox value={selected} onChange={(v) => {
+  
+  
+  return (
+    <Combobox 
+    value={selected}
+    onChange={(v) => {
       setSelected(v)
       if (onChange) {
         onChange({ target: { value: getValueFn(v) } }, reset);
-      } else if (formOnChange) {
-        formOnChange({ target: { value: getValueFn(v) } });
+      } 
+      if (formOnChange) {
+        const value = getValueFn(v)
+
+        console.log( value)
+        formOnChange({ target: { value},type:"change"});
+       // controller.field.onChange(value)
+        
       }
 
 
     }} >
-      <div className={`relative form-control z-20 ${hidden}`}>
+      <div className={`relative form-control z-${elevation} ${hidden}`}>
         {!hideLabel&&<Combobox.Label className={`label ${hidden}`}>
           <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
         </Combobox.Label>}
@@ -68,8 +81,21 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
           className='input input-bordered'
           {...props}
           displayValue={(item) => hideValue ? "" : displayValueFn(item as any)}
-          onChange={(event) => setSearchText(event.target.value)}
-
+          onChange={(e) =>{
+            console.log(e.type)
+            const value = getValueFn(selected ??{});
+            // if(formOnChange){
+            //   formOnChange({ target: {...e.target, value}, type: e.type});
+            // }
+             setSearchText(e.target.value)
+            }
+            }
+          onBlur={(e:any)=>{
+            const value = getValueFn(selected ??{});
+            if(onBlur){
+            onBlur({ target: {...e.target, value}, type: e.type});
+            }
+          }}
           {...inputProps}
         />
         {/* <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -97,10 +123,12 @@ export function FormComboBox({ useGetDataHook, value, onChange, valuePath, displ
         >
           <Combobox.Options className="absolute top-20 mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {items.length === 0 && !isLoading ? (
+            defaultOption?defaultOption:(
               <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
                 Nothing found.
               </div>
-            ) : (
+            )) : 
+            (
 
               items.map((item) => (
                 <Combobox.Option

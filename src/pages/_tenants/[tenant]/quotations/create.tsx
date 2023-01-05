@@ -3,29 +3,31 @@ import { FormInputField } from "@/components/FormInputField";
 import { createQuotationInputSchema } from "@/core/quotation/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { getValue, useZodForm } from "@/lib/util/form-gen";
-import { useEffect, useMemo, useRef } from "react";
+import { getValue, useZodForm, ZodFormFieldOptions } from "@/lib/util/form-gen";
+import { useEffect, useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray, useWatch } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { Prisma, Product, ProductVariant, Quotation, QuotationDetail, Unit } from '@prisma/client'
+import { Prisma, Product, ProductVariant, QuotationDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 //import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder, TProductSearchInput } from "@/lib/hooks/useProductSearch";
+import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { useGetZodFormField, useGetZodFormFields } from "@/lib/hooks/useGetZodFormField";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import {useDefaultCustomer} from '@/lib/hooks/useDefaultCustomer';
+import { useDefaultCustomer } from '@/lib/hooks/useDefaultCustomer';
+import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
+import { useCustomerSearch } from "@/lib/hooks/useCustomerSearch";
 
 
 
-export function CreateQuotation({ tenant, user,units, warehouses,setting, defaultCurrency, }: TAppConfig) {
-   const symbol = defaultCurrency?.symbol??"";
-   const [defaultCustomer,customerLoading] = useDefaultCustomer(setting!.customerId!);
-    const options = useMemo(()=>({
+export function CreateQuotation({ tenant, user, units, warehouses, setting, defaultCurrency, }: TAppConfig) {
+    const symbol = defaultCurrency?.symbol ?? "";
+    const [defaultCustomer, customerLoading] = useDefaultCustomer(setting!.customerId!);
+    const options = useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
             ordering: 1
@@ -33,13 +35,36 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
         warehouseId: {
             label: "Warehouse",
             ordering: 2,
-            options:(warehouses??[]).map((v)=>({label:v.name,value:v.id}))
+            // options:(warehouses??[]).map((v)=>({label:v.name,value:v.id})),
+            combobox: {
+                elevation:30,
+                value:warehouses?warehouses[0]:undefined,
+                valuePath:"id",
+                displayValuePath:"name",
+                useGetDataHook: () => {
+                    const [_, result, labels, setSearchText, dtext] = useWarehouseSearch();
+                    return [labels, setSearchText, result.isLoading, dtext]
+
+                }
+            }
         },
 
         customerId: {
             label: "Customer",
             ordering: 3,
-            options:defaultCustomer?[{label:defaultCustomer!.name,value:defaultCustomer!.id}]:[]
+            // options:defaultCustomer?[{label:defaultCustomer!.name,value:defaultCustomer!.id}]:[]
+            combobox: {
+                elevation:30,
+                value:defaultCustomer??undefined,
+                valuePath:"id",
+                displayValuePath:"name",
+                useGetDataHook: () => {
+                    const [_, result, labels, setSearchText, dtext] = useCustomerSearch();
+                    return [labels, setSearchText, result.isLoading, dtext]
+
+                }
+            }
+
         },
 
         taxRate: {
@@ -97,7 +122,7 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
         "quotationDetails.0.price": {
             label: "Unit Price",
             hideLabel: true,
-            readonly:true,
+            readonly: true,
             ordering: 14,
             //hidden: true
 
@@ -106,24 +131,24 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
             label: "Quantity",
             ordering: 15,
             hideLabel: true,
-            
+
         },
         "quotationDetails.0.discount": {
             label: "Discount",
             ordering: 16,
             hideLabel: true,
-            readonly:true
+            readonly: true
         },
         "quotationDetails.0.taxNet": {
             label: "Tax",
             hideLabel: true,
-            readonly:true,
+            readonly: true,
             ordering: 17
         },
         "quotationDetails.0.total": {
             label: "Subtotal",
             hideLabel: true,
-            readonly:true,
+            readonly: true,
             ordering: 18
         },
 
@@ -156,14 +181,14 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
         "quotationDetails.0.discountMethod": {
             label: "Discount method",
             ordering: 27
-            
+
         },
 
 
 
 
 
-    }),[customerLoading,defaultCustomer,warehouses])
+    }), [customerLoading, defaultCustomer, warehouses])
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
@@ -177,10 +202,7 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.quotation.create.useMutation();
 
-    // useMemo(() => {
-    //     console.log("quotation details changed");
-    //     // form.setValue(Prisma.QuotationScalarFieldEnum.items, quotationDetailsForm.fields.length)
-    // }, [quotationDetailsForm.fields.length]);
+
 
     useEffect(() => {
         form.setValue(Prisma.QuotationScalarFieldEnum.date, new Date())
@@ -208,28 +230,7 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
         Prisma.QuotationScalarFieldEnum.status,
     ], fields2)
 
-     //useComputedZodFormValues({
-    //     control: form.control, compute: (data) => {
-    //         let taxRate = 0, discount = 0, shipping = 0, subTotal = 0;
-    //         if (data) {
-    //             taxRate = data['taxRate'] ?? 0;
-    //             discount = data['discount'] ?? 0;
-    //             shipping = data['shipping'] ?? 0;
-    //             const details = data['quotationDetails'];
-    //             if (details && details instanceof Array) {
-    //                 for (let item of details) {
-    //                     if (item) {
-    //                         let detail = item as Partial<QuotationDetail & { product?: Product, productVariant?: ProductVariant }>;
-    //                         //TODO edit format method in product to collect price and tax data before handling this part
-    //                         let totalPrice = detail?.total ?? 0.00
-    //                         subTotal += totalPrice;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         return { taxRate, discount, shipping, subTotal }
-    //     }
-    // });
+
 
     const data = useComputedZodFormValues({
         control: form.control, compute: (data) => {
@@ -258,7 +259,7 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
 
                             // Todo add tax rate per product to calcurate taxNet per product
                             const productTaxRate = (detail.product?.taxNet ?? 0);
-                            
+
                             const productTaxMethod = detail.product?.taxMethod ?? "inclusive";
                             const productTaxMethodAction = (productTaxMethod === "inclusive" ? -1 : 0);
 
@@ -268,34 +269,34 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
                             const saleUnitId = detail.product?.unitSaleId;
                             const stockUnitId = detail.product?.unitId;
                             const productPrice = (detail.product?.price ?? 0);
-                            const taxValue = (productTaxRate/100*productPrice);
-                            const productPriceBeforeTax = productPrice+(taxValue*productTaxMethodAction)
-                            const productTaxNet = taxValue * productQuantity 
-                            
+                            const taxValue = (productTaxRate / 100 * productPrice);
+                            const productPriceBeforeTax = productPrice + (taxValue * productTaxMethodAction)
+                            const productTaxNet = taxValue * productQuantity
+
 
 
                             const productSubTotal = productQuantity * productPriceBeforeTax + productTaxNet - productDiscount;
                             subTotal += productSubTotal;
                             console.log(productPriceBeforeTax)
                             partialData.push(...[
-                                { value: productQuantity,default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.quantity] },
-                                { value: productTaxMethod,default:"inclusive", path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxMethod] },
-                                { value: productPriceBeforeTax,default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.price] },
-                                { value: productTaxNet,default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxNet] },
-                                { value: productSubTotal,default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.total] },
-                                { value: productDiscount,default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discount] },
-                                { value: "default",default:0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discountMethod] }
+                                { value: productQuantity, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.quantity] },
+                                { value: productTaxMethod, default: "inclusive", path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxMethod] },
+                                { value: productPriceBeforeTax, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.price] },
+                                { value: productTaxNet, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxNet] },
+                                { value: productSubTotal, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.total] },
+                                { value: productDiscount, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discount] },
+                                { value: "default", default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discountMethod] }
                             ])
                         }
                     }
                     taxNet = (subTotal - discount) * (taxRate / 100);
-                    grandTotal = (subTotal + taxNet)+shipping;
+                    grandTotal = (subTotal + taxNet) + shipping;
                     partialData.push(...[
-                        { value: taxNet, default:0,path: [Prisma.QuotationScalarFieldEnum.taxNet]},
-                        {value: grandTotal,default:0, path: [Prisma.QuotationScalarFieldEnum.grandTotal]},
-                        { value: discount, default:0,path: [Prisma.QuotationScalarFieldEnum.discount]},
-                        { value: taxRate, default:0,path: [Prisma.QuotationScalarFieldEnum.taxRate]},
-                        { value: shipping, default:0,path: [Prisma.QuotationScalarFieldEnum.shipping]},
+                        { value: taxNet, default: 0, path: [Prisma.QuotationScalarFieldEnum.taxNet] },
+                        { value: grandTotal, default: 0, path: [Prisma.QuotationScalarFieldEnum.grandTotal] },
+                        { value: discount, default: 0, path: [Prisma.QuotationScalarFieldEnum.discount] },
+                        { value: taxRate, default: 0, path: [Prisma.QuotationScalarFieldEnum.taxRate] },
+                        { value: shipping, default: 0, path: [Prisma.QuotationScalarFieldEnum.shipping] },
 
                     ])
                 }
@@ -305,28 +306,28 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
     })
 
     useMemo(() => {
-       // console.log(data);
+        // console.log(data);
         const values = form.getValues();
         for (let v of data) {
             // Todo find better way to detect changes 
             if (v.value !== getValue(v.path, values)) {
                 // console.log("changed ",v.value,getValue(v.path,values))
-                 if(!v.value){
-                form.setValue(v.path.join('.'), v.default);
-                 }else{
+                if (!v.value) {
+                    form.setValue(v.path.join('.'), v.default);
+                } else {
                     form.setValue(v.path.join('.'), v.value);
 
-                 }
+                }
             }
         }
     }, [data]);
 
-    const [ taxRate,taxNet, discount, shipping, grandTotal ] = form.watch([
+    const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
         Prisma.QuotationScalarFieldEnum.taxRate,
-    Prisma.QuotationScalarFieldEnum.taxNet,
-     Prisma.QuotationScalarFieldEnum.discount, 
-     Prisma.QuotationScalarFieldEnum.shipping, 
-     Prisma.QuotationScalarFieldEnum.grandTotal])
+        Prisma.QuotationScalarFieldEnum.taxNet,
+        Prisma.QuotationScalarFieldEnum.discount,
+        Prisma.QuotationScalarFieldEnum.shipping,
+        Prisma.QuotationScalarFieldEnum.grandTotal])
 
     return (
         <FormContainer title={<h2>Create Quotation</h2>}>
@@ -341,51 +342,16 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
             })}>
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
-                        if(i.name!=="date"){
-                            return  <FormComboBox
-                            key={i.name}
-                            label={i.name}
-                          //  name={i.name}
-                          //  required={true}
-                           // error={undefined}
-                            hideValue={true}
-                           // hideLabel={false}
-                            keyPath={(v) => getProductFormatedName(v as any)}
-                            displayValuePath={(v) => getProductFormatedName(v as any)}
-                            onChange={(e, reset) => {
-                                const v = e.target.value;
-                                //console.log(v)
-                               // quotationDetailsForm.append(v);
-                                // if (reset) {
-                                // //    reset();
-    
-                                // }
-    
-                            }}
-                            useGetDataHook={() => {
-                                const [_, result, labels, setSearchText] = useProductSearch(
-                                    {
-                                        format: productToQuotationDetailFormater,
-                                        queryBuilder: productDefaultQueryBuilder,
-                                    } as any
-                                )
-                                return [labels, setSearchText, result.isLoading]
-                            }}
-    
-                           // props={{ type: "text", hidden: false, disabled: false, }}
-                        />
-                        }
+
+
                         return (<FormInputField key={i.name} {...i} />);
                     })}
 
                 </div>
                 <div className="w-full">
                     <FormComboBox
-                        label="Products "
-                       // name="Product search"
-                       // required={true}
-                       // error={undefined}
-                        //hideLabel={false}
+                        label="Search products by name/Scan barcode"
+                        hideValue={true}
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
@@ -393,22 +359,22 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
                             //console.log(v)
                             quotationDetailsForm.append(v);
                             if (reset) {
-                               reset();
+                                reset();
 
                             }
 
                         }}
                         useGetDataHook={() => {
-                            const [_, result, labels, setSearchText] = useProductSearch(
+                            const [_, result, labels, setSearchText, dtext] = useProductSearch(
                                 {
                                     format: productToQuotationDetailFormater,
                                     queryBuilder: productDefaultQueryBuilder,
                                 } as any
                             )
-                            return [labels, setSearchText, result.isLoading]
+                            return [labels, setSearchText, result.isLoading, dtext]
                         }}
 
-                       // props={{ type: "text", hidden: false, disabled: false, }}
+                    // props={{ type: "text", hidden: false, disabled: false, }}
                     />
                 </div>
 
@@ -425,15 +391,15 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
                             disableSortBy: true,
                             Cell: ({ row }: { row: any }) => {
                                 return (
-                                <span className="text text-elipsis w-[150px]">
-                                    {getProductFormatedName(row.original)}
-                                </span>);
+                                    <span className="text text-elipsis w-[150px]">
+                                        {getProductFormatedName(row.original)}
+                                    </span>);
                             }
                         },
                         {
                             Header: `Unit price (${symbol})`,
                             accessor: "fields.1",
-                            disableSortBy: true,                            
+                            disableSortBy: true,
 
                         },
                         {
@@ -474,7 +440,7 @@ export function CreateQuotation({ tenant, user,units, warehouses,setting, defaul
                 </div>
                 <div className="w-full mt-10 flex justify-end">
                     <OrderSummary
-                        currency={defaultCurrency?.symbol??""}
+                        currency={defaultCurrency?.symbol ?? ""}
                         taxRate={taxRate}
                         tax={taxNet}
                         discount={discount}
@@ -525,29 +491,29 @@ type OrderSummaryProps = {
     grandTotal: number,
     currency: string,
 }
-function OrderSummary({ tax,taxRate, discount, shipping, grandTotal, currency }: OrderSummaryProps) {
-   
+function OrderSummary({ tax, taxRate, discount, shipping, grandTotal, currency }: OrderSummaryProps) {
+
     return (
         <table className="table table-zebra ">
             <tbody>
                 <tr className="hidden"></tr>
                 <tr>
-                    <td className="font-normal">Order Tax</td> <td><span>{currency} {(tax?tax:0).toFixed(2)} ({(taxRate??0).toFixed(2)} %)</span></td>
+                    <td className="font-normal">Order Tax</td> <td><span>{currency} {(tax ? tax : 0).toFixed(2)} ({(taxRate ?? 0).toFixed(2)} %)</span></td>
                 </tr>
                 <tr>
-                    <td className="font-normal">Discount</td> <td>{currency} {(discount??0).toFixed(2)}</td>
+                    <td className="font-normal">Discount</td> <td>{currency} {(discount ?? 0).toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td className="font-normal">Shipping</td> <td>{currency} {(shipping??0).toFixed(2)}</td>
+                    <td className="font-normal">Shipping</td> <td>{currency} {(shipping ?? 0).toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td><span className="font-bold">Grand Total</span></td> <td><span className="font-bold">{currency} {(grandTotal?grandTotal:0).toFixed(2)}</span></td>
+                    <td><span className="font-bold">Grand Total</span></td> <td><span className="font-bold">{currency} {(grandTotal ? grandTotal : 0).toFixed(2)}</span></td>
                 </tr>
             </tbody>
         </table>
     );
 }
-type TComputedFormFieldsResult = { value: any,default:any, path: (string | number)[] }[]
+type TComputedFormFieldsResult = { value: any, default: any, path: (string | number)[] }[]
 type TComputedFormValuesArgs<TResult extends TComputedFormFieldsResult = TComputedFormFieldsResult, TControl extends any = any, TData extends any = any> = {
     control: TControl,
     defaultValue?: TResult,

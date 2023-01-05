@@ -127,7 +127,7 @@ export function useProductSearch<S extends Product = Product, Q extends TProduct
     const [products, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query,text, labels, setSearchText } = useSearch({
         state: products,
         queryBuilder,
         format,
@@ -144,5 +144,5 @@ export function useProductSearch<S extends Product = Product, Q extends TProduct
         }
     });
 
-    return [products, result, labels, setSearchText] as [typeof products, typeof result, typeof labels, typeof setSearchText];
+    return [products, result, labels, setSearchText,text] as [typeof products, typeof result, typeof labels, typeof setSearchText,string];
 }

@@ -46,7 +46,7 @@ export function useBrandSearch<S extends Brand = Brand, Q extends TBrandSearchIn
     const [brands, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query,text, labels, setSearchText } = useSearch({
         state: brands,
         queryBuilder,
         format,
@@ -63,5 +63,5 @@ export function useBrandSearch<S extends Brand = Brand, Q extends TBrandSearchIn
         }
     });
 
-    return [brands, result, labels, setSearchText] as [typeof brands, typeof result, typeof labels, typeof setSearchText];
+    return [brands, result, labels, setSearchText,text] as [typeof brands, typeof result, typeof labels, typeof setSearchText,string];
 }

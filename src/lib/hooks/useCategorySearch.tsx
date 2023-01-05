@@ -46,7 +46,7 @@ export function useCategorySearch<S extends Category = Category, Q extends TCate
     const [categories, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query, text,labels, setSearchText } = useSearch({
         state: categories,
         queryBuilder,
         format,
@@ -63,5 +63,5 @@ export function useCategorySearch<S extends Category = Category, Q extends TCate
         }
     });
 
-    return [categories, result, labels, setSearchText] as [typeof categories, typeof result, typeof labels, typeof setSearchText];
+    return [categories, result, labels, setSearchText,text] as [typeof categories, typeof result, typeof labels, typeof setSearchText,string];
 }

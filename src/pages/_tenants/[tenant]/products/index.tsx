@@ -1,10 +1,7 @@
 import Loader from "@/components/sites/Loader";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
-import { useBrands } from "@/lib/hooks/useBrands";
-import { useCategories } from "@/lib/hooks/useCategories";
 import { useProducts } from "@/lib/hooks/useProducts";
-import { useUnits } from "@/lib/hooks/useUnits";
 import { Product, ProductVariant } from "@prisma/client";
 import { useRouter } from "next/router";
 
@@ -12,11 +9,11 @@ import { useRouter } from "next/router";
 export default function Products() {
     const router = useRouter();
     const [products, loading] = useProducts();
-    const [categories, catLoading] = useCategories();
-    const [brands, brandsLoading] = useBrands();
-    const [units, unitsLoading] = useUnits();
+   // const [categories, catLoading] = useCategories();
+   // const [brands, brandsLoading] = useBrands();
+   // const [units, unitsLoading] = useUnits();
 
-    if (loading || catLoading || brandsLoading || unitsLoading) return <Loader />
+    if (loading /* || catLoading || brandsLoading || unitsLoading */) return <Loader />
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">

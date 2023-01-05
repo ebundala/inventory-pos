@@ -46,7 +46,7 @@ export function useUnitSearch<S extends Unit = Unit, Q extends TUnitSearchInput 
     const [units, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query,text, labels, setSearchText } = useSearch({
         state: units,
         queryBuilder,
         format,
@@ -63,5 +63,5 @@ export function useUnitSearch<S extends Unit = Unit, Q extends TUnitSearchInput 
         }
     });
 
-    return [units, result, labels, setSearchText] as [typeof units, typeof result, typeof labels, typeof setSearchText];
+    return [units, result, labels, setSearchText,text] as [typeof units, typeof result, typeof labels, typeof setSearchText,string];
 }

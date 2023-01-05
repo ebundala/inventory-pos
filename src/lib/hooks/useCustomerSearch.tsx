@@ -51,7 +51,7 @@ export function useCustomerSearch<S extends Customer = Customer, Q extends TCust
     const [customers, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query,text, labels, setSearchText } = useSearch({
         state: customers,
         queryBuilder,
         format,
@@ -68,5 +68,5 @@ export function useCustomerSearch<S extends Customer = Customer, Q extends TCust
         }
     });
 
-    return [customers, result, labels, setSearchText] as [typeof customers, typeof result, typeof labels, typeof setSearchText];
+    return [customers, result, labels, setSearchText,text] as [typeof customers, typeof result, typeof labels, typeof setSearchText,string];
 }

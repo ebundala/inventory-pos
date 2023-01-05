@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { ComboBoxDataHook } from './ComboBoxDataHook';
 
 export type ComboboxFieldOptions<TData = { [k: string]: any; }, TOptions = unknown> = {
@@ -8,4 +9,6 @@ export type ComboboxFieldOptions<TData = { [k: string]: any; }, TOptions = unkno
   valuePath?: string | { (value: TData): string; };
   onChange?: (e: {target:{value:TData}}, reset?: () => void) => void;
   hideValue?: boolean;
+  elevation?:number;
+  defaultOption?:ReactNode;
 };

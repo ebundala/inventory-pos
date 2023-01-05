@@ -63,7 +63,7 @@ export function useWarehouseSearch<S extends Warehouse = Warehouse, Q extends TW
     const [warehouses, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query,text, labels, setSearchText } = useSearch({
         state: warehouses,
         queryBuilder,
         format,
@@ -80,5 +80,5 @@ export function useWarehouseSearch<S extends Warehouse = Warehouse, Q extends TW
         }
     });
 
-    return [warehouses, result, labels, setSearchText] as [typeof warehouses, typeof result, typeof labels, typeof setSearchText];
+    return [warehouses, result, labels, setSearchText,text] as [typeof warehouses, typeof result, typeof labels, typeof setSearchText,string];
 }

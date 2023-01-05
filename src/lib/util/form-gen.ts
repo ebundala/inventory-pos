@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, ZodTypeAny, ZodIssueCode, } from "zod";
+import { ComboboxFieldOptions } from "@/types/ComboboxFieldOptions";
 
 
 type ParsedZodFieldType = {
@@ -198,7 +199,8 @@ type FormFieldOption = {
     hidden?: boolean,
     options?: InputOptionValues,
     readonly?:boolean,
-    hideLabel?:boolean
+    hideLabel?:boolean,
+    combobox?:ComboboxFieldOptions
 }
 
 export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
@@ -250,7 +252,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const textArea = fieldOptions[v.name]?.textArea ?? false;
             const readonly = fieldOptions[v.name]?.readonly ?? false;
             const hideLabel = fieldOptions[v.name]?.hideLabel ?? false;
-
+            const comboboxProps = fieldOptions[v.name]?.combobox;
             const control = form.control;
             // const setValueAs = v.type == ZodFirstPartyTypeKind.ZodBoolean?(i:any)=>{
             //    if(i==="true")return true
@@ -262,7 +264,10 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const isArray = isZodFormFieldArray(v.name);
             const error = isArray?undefined:getValue(path, errors)?.message?.toString();
             const registration = isArray?{}:register(v.name, { valueAsDate, valueAsNumber })
-            return { error,hideLabel, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled, ...registration }, ...v }
+            
+            
+          
+            return { error,hideLabel,comboboxProps, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled, ...registration }, ...v }
         }).sort((a, b) => a.ordering - b.ordering);
     }, [refinedSchema, fieldConfig, register, isSubmitting, errors, fieldOptions]);
 
