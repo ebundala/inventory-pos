@@ -1,7 +1,12 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
-
+const include = {
+    customer:true,
+    currency:true,
+    warehouse:true,
+   }
+   
 export type CreateSettingInput = {
     email           :string
     currencyId      ?:number
@@ -19,6 +24,7 @@ export type CreateSettingInput = {
 export const createSetting = async (input: CreateSettingInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
     return ctx.tx!.setting.create({
+        include,
         data:{tenantId:tenantId,...data}
    })
 }
@@ -39,6 +45,7 @@ export type UpdateSettingInput = {
 export const updateSetting = async (input: UpdateSettingInput,ctx:TenantContext) => {
     const { id, ...data } = input;
     return ctx.tx!.setting.update({
+        include,
         where: {
             id: id
         },        
@@ -49,6 +56,7 @@ export type SettingId = number
 export type SettingIds = Array<number>
 export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
     return ctx.tx!.setting.findUnique({
+        include,
         where: {
             id: id
         }        
@@ -57,6 +65,7 @@ export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
 export const deleteSetting = async (id: SettingId,ctx:TenantContext) => {
 
     return ctx.tx!.setting.update({
+        include,
         where: {
             id: id
         },      
@@ -79,13 +88,14 @@ export const deleteManySetting = async (ids: SettingIds,ctx:TenantContext) => {
 export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">, ctx:TenantContext) => {
     
     return ctx.tx!.setting.findMany(
-       input
+      {...input,include}
     );
 }
 
 export const findFirstSetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
     
-    return ctx.tx!.setting.findFirst(
-       input
+    return ctx.tx!.setting.findFirst({
+       ...input,include
+    }
     );
 }

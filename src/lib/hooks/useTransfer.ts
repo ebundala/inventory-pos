@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 
 export function useTransfer(id: number) {
 
-    const [editingTransfer, setValue] = useStore((s) => s.editingTransfer);
+    const [transfer, setValue] = useStore((s) => s.editingTransfer);
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.transfer.get.useQuery(id, {
         onSuccess: (data) => {
@@ -26,5 +26,5 @@ export function useTransfer(id: number) {
         };
     }, []);
 
-    return [editingTransfer, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {transfer, result, refetch};
 }

@@ -5,7 +5,7 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
 export function useSetting() {
   const [setting, setSetting] = useStore((s) => s.tenantSetting);
-  const [tenant, loading, success] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.setting.findFirst.useQuery(
     { where: { tenantId: tenant?.tenantId } },{
@@ -21,5 +21,5 @@ export function useSetting() {
     return rResult;
   }, [result.refetch])
 
-  return [setting, result.isLoading, result.isSuccess,refetch] as [typeof setting, boolean, boolean,typeof refetch];
+  return {setting, result,refetch};
 }

@@ -1,12 +1,12 @@
 import { ZodFormFieldOptions } from "@/lib/util/form-gen";
 import { useMemo } from "react";
 import { Brand, Category, Unit } from "@prisma/client";
+import { useCategorySearch } from "./useCategorySearch";
+import { useUnitSearch } from "./useUnitSearch";
+import { useBrandSearch } from "./useBrandSearch";
 
-export function useProductFormFieldOptions(units: Unit[] | null, brands: Brand[] | null, categories: Category[] | null) {
+export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSaleUnit?:Unit,productPurchaseUnit?:Unit, brand?: Brand, category?: Category}) {
     return useMemo((): ZodFormFieldOptions => {
-        const unitsWithlabels = units?.map((c) => ({ label: c.name, value: c.id })) ?? [];
-        const brandsWithlabels = brands?.map((c) => ({ label: c.name, value: c.id })) ?? [];
-        const categoriesWithLabels = categories?.map((c) => ({ label: c.name, value: c.id })) ?? [];
         const barcodeSymbologyLabels = [{
             label: "Code 128",
             value: "Code 128"
@@ -27,7 +27,12 @@ export function useProductFormFieldOptions(units: Unit[] | null, brands: Brand[]
         return {
             name: {
                 label: "Product name",
-                ordering: 1
+                ordering: 1,
+                refine:(v)=>{
+                 if(v){
+                    return (v as string).length < 3?"product name too short":null ;
+                 }
+                }
             },
             code: {
                 label: "Product code",
@@ -40,63 +45,105 @@ export function useProductFormFieldOptions(units: Unit[] | null, brands: Brand[]
             },
             cost: {
                 label: "Purchase price",
-                ordering: 4
+                ordering: 4,
+                refine:(value:any) =>{
+                    return value<0?"price cannot be negative":null
+                },
+                
             },
             price: {
                 label: "Sale price",
-                ordering: 5
+                ordering: 5,
+                refine:(value:any) =>{
+                    return value<0?"price cannot be negative":null
+                },
+              
             },
             categoryId: {
                 label: "Category",
                 ordering: 6,
-                options: categoriesWithLabels
+                combobox:{
+                    elevation:40,    
+                    value:opts?.category, 
+                    valuePath:"id",               
+                    useGetDataHook:useCategorySearch
+                }
             },
             brandId: {
                 label: "Brand",
                 ordering: 6,
-                options: brandsWithlabels
+                combobox:{
+                    elevation:30,       
+                    value:opts?.brand ,
+                    valuePath:"id",            
+                    useGetDataHook:useBrandSearch
+                }
             },
             unitId: {
                 label: "Stock unit",
-                ordering: 7,
-                options: unitsWithlabels
+                ordering: 8,
+                combobox:{
+                    elevation:36,     
+                    value:opts?.productUnit,                   
+                    valuePath:"id",
+                    useGetDataHook:useUnitSearch
+                }
             },
             unitSaleId: {
                 label: "Sale unit",
-                ordering: 6,
-                options: unitsWithlabels
+                ordering: 7,
+                combobox:{
+                    elevation:10,     
+                    value:opts?.productsSaleUnit,                   
+                    valuePath:"id",
+                    useGetDataHook:useUnitSearch
+                }
             },
             unitPurchaseId: {
                 label: "Purchase unit",
                 ordering: 6,
-                options: unitsWithlabels
+                combobox:{
+                    elevation: 20, 
+                    value:opts?.productPurchaseUnit, 
+                    valuePath:"id",                
+                    useGetDataHook:useUnitSearch
+                }
             },
             taxNet: {
                 label: "Order Tax (%)",
-                ordering: 7
+                ordering: 9,
+                refine:(value:any) =>{
+                    return value<0?"Tax cannot be negative":null
+                },
+                
             },
             taxMethod: {
                 label: "Tax method",
-                ordering: 8,
+                ordering: 9,
                 options: taxMethods
             },
             stockAlert: {
                 label: "Stock alert",
-                ordering: 9
+                ordering: 10,
+                refine:(value:any) =>{
+                    return value<0?"stock cannot be negative":null
+                },
+                
             },
             note: {
                 label: "Description",
-                ordering: 10,
-                textArea: true
+                ordering: 11,
+                textArea: true,
+                
             },
             image: {
                 label: "Product images",
                 // upload:true,
-                ordering: 11
+                ordering: 12
             },
             isVariant: {
                 label: "Product has variants",
-                ordering: 12
+                ordering: 13
             },
             isActive: {
                 label: "In sale",
@@ -110,7 +157,10 @@ export function useProductFormFieldOptions(units: Unit[] | null, brands: Brand[]
             },
             "productVariants.0.qty": {
                 label: "Quantity",
-                hidden: true
+                hidden: true,
+                registerOptions:{
+                    setValueAs:(v:any)=>v?parseFloat(v):0
+                }
             },
             "productVariants.0.id": {
                 label: "Variant id",
@@ -123,5 +173,5 @@ export function useProductFormFieldOptions(units: Unit[] | null, brands: Brand[]
                 hidden:true
             }
         };
-    }, [units, categories, brands]);
+     }  , [opts?.brand,opts?.category,opts?.productPurchaseUnit,opts?.productUnit,opts?.productsSaleUnit]);
 }

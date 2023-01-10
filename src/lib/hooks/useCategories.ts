@@ -6,7 +6,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 
 export function useCategories() {
   const [categories, setCategories] = useStore((s) => s.categories);
-  const [tenant] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.category.search.useQuery(
     { where: { tenantId: tenant?.tenantId } },

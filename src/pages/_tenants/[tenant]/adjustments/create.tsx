@@ -22,9 +22,9 @@ import { useGetZodFormField,} from "@/lib/hooks/useGetZodFormField";
 
 
 
-export function CreateAdjustment({ tenant, user, warehouses, setting }: TAppConfig) {
+export function CreateAdjustment({ tenant, user,defaultWarehouse,}: TAppConfig) {
 
-    const options = useAdjustmentFormFieldOptions(warehouses)
+    const options = useAdjustmentFormFieldOptions({warehouse:defaultWarehouse});
 
     const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, items: 0 }
@@ -76,14 +76,14 @@ export function CreateAdjustment({ tenant, user, warehouses, setting }: TAppConf
                 <div className="w-full">
                     <FormComboBox
                         label="Products"
-                        name="Product search"
-                        required={true}
-                        error={undefined}
+                        name="Search product by name/code"
+                        hideValue={true}
+                        control={form.control}
                         keyPath={(v) => getProductFormatedName(v as any)}
-                        displayValuePath={(v) => getProductFormatedName(v as any)}
+                       displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
-                            //console.log(v)
+                           // console.log(v)
                             adjustmentDetailsForm.append(v);
                             if (reset) {
                                 reset();
@@ -91,12 +91,12 @@ export function CreateAdjustment({ tenant, user, warehouses, setting }: TAppConf
                             }
                     
                         }}
-                        useGetDataHook={() => {
-                            const [_, result, labels, setSearchText] = useProductSearch()
-                            return [labels, setSearchText, result.isLoading]
-                        }}
+                        useGetDataHook={()=>{
+                            const {labels,data,...rest}= useProductSearch();
+                            return {data:labels,...rest}
+                           }
+                        }
 
-                        props={{ type: "search", hidden: false, disabled: false, }}
                     />
                 </div>
 

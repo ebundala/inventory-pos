@@ -1,5 +1,5 @@
 import { prisma, } from "@/core";
-import { Prisma, RecordStatus } from "@prisma/client";
+import { Prisma, Product, ProductVariant, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
 const include = {
     productVariants: true,

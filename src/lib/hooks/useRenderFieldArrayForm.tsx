@@ -5,7 +5,9 @@ import { useFieldArray, useForm } from "react-hook-form";
 
 export function useRenderFieldArrayForm(fname: string, fieldArrayForm: ReturnType<typeof useFieldArray>, form: ReturnType<typeof useForm>, fieldArrayConfig: ZodFormFieldConfig[]) {
     const errors = form.formState.errors;
-    return useMemo(() => fieldArrayForm.fields.map((item, i) => {
+    const len = fieldArrayForm.fields.length;
+    return useMemo(() => 
+    fieldArrayForm.fields.map((item, i) => {
         return {
             fields: renderFieldArrayForm({
                 config: fieldArrayConfig,
@@ -15,5 +17,5 @@ export function useRenderFieldArrayForm(fname: string, fieldArrayForm: ReturnTyp
                 name: fname
             }), ...item
         };
-    }), [fieldArrayForm.fields.length, errors, fname, form.register]);
+    }), [len, errors, fname, form.register]);
 }

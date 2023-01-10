@@ -22,9 +22,9 @@ import { CollectHooksReturnType, CollectRequiredDataWrapper } from "@/components
 interface PathProps extends ParsedUrlQuery {
     productId: string;
 }
-export function UpdateProduct({tenant,categories,brands,units,product,refetch}:ProductRequiredDataReturnType['data']) {
+export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturnType['data']) {
     
-    const options = useProductFormFieldOptions(units, brands, categories)
+    const options = useProductFormFieldOptions(product as any);
    
     const [config, form] = useZodForm(updateProductInputSchema, options, {
         defaultValues: { ...(product ?? {}) }
@@ -39,7 +39,9 @@ export function UpdateProduct({tenant,categories,brands,units,product,refetch}:P
     useEffect(()=>{
         if(product){
             // set initial form state 
+        
             form.reset(product);
+            
         }
 
     },[product])
@@ -121,11 +123,8 @@ Index.getLayout = getLayout;
 function useProductRequiredData() {
     const router = useRouter();
     const productId = parseInt((router.query as PathProps).productId ?? "");
-    const [tenant, tenantLoading] = useTenant();
-    const [categories, categoryLoading] = useCategories();
-    const [brands, brandsLoading] = useBrands();
-    const [units, unitsLoading] = useUnits();
-    const [product, loading, success, refetch] = useProduct(productId);
-    return {data:{ tenant, categories, brands, units, product,refetch },isLoading: tenantLoading || categoryLoading || brandsLoading || unitsLoading || loading};
+    const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
+    const {product, result:{isLoading:loading,}, refetch} = useProduct(productId);
+    return {data:{ tenant, product,refetch },isLoading: tenantLoading || loading};
 }
 type ProductRequiredDataReturnType = ReturnType<typeof useProductRequiredData>

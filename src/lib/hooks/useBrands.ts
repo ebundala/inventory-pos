@@ -6,7 +6,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 
 export function useBrands() {
   const [brands, setBrands] = useStore((s) => s.brands);
-  const [tenant] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.brand.search.useQuery(
     { where: { tenantId: tenant?.tenantId } },

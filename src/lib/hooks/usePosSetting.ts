@@ -6,7 +6,7 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
 export function usePosSetting() {
   const [posSetting, setPosSetting] = useStore((s) => s.posSetting);
-  const [tenant, loading, success] = useTenant();
+  const {tenant} = useTenant();
 
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.setting.pos.findFirst.useQuery(

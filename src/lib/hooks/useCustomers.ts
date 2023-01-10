@@ -6,7 +6,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 
 export function useCustomers() {
   const [customers, setCustomers] = useStore((s) => s.customers);
-  const [tenant] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.people.search.useQuery(
     { where: { tenantId: tenant?.tenantId } },

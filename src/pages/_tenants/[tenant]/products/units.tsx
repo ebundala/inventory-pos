@@ -16,7 +16,7 @@ import { CustomTable } from "@/components/table";
 import { useUnits } from "@/lib/hooks/useUnits";
 
 export default function UnitIndex() {
-    const [units, loading, success,refetch] = useUnits();
+    const {units,result:{isLoading:loading},refetch} = useUnits();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -196,11 +196,11 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 }
 
 const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
-     useEffect(()=>{
-        form.reset({tenantId:tenant?.tenantId,...defaultValues})
-     },[])
+    //  useEffect(()=>{
+    //     form.reset({tenantId:tenant?.tenantId,...defaultValues})
+    //  },[])
     return (
 
         <ModalContainer>

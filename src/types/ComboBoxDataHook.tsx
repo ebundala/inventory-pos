@@ -1,1 +1,1 @@
-export type ComboBoxDataHook<TOptions, TData> = (opts?: TOptions) => [TData[], (text: string) => void, boolean,string];
+export type ComboBoxDataHook<TOptions, TData> = (opts?: TOptions) => {data:TData[], setSearchText:(text: string) => void, loading:boolean,text:string};

@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 
 export function usePurchaseReturn(id: number) {
 
-    const [editingPurchaseReturn, setValue] = useStore((s) => s.editingPurchaseReturn);
+    const [purchaseReturn, setValue] = useStore((s) => s.editingPurchaseReturn);
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.purchase_return.get.useQuery(id, {
         onSuccess: (data) => {
@@ -26,5 +26,5 @@ export function usePurchaseReturn(id: number) {
         };
     }, []);
 
-    return [editingPurchaseReturn, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {purchaseReturn, result, refetch};
 }

@@ -14,7 +14,7 @@ import { TransferFindManySchema } from "prisma/generated/schemas/findManyTransfe
 
 export function useQuotations(args?: z.infer<typeof QuotationFindManySchema>) {
     const [quotations, setValue] = useStore((s) => s.quotations);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
 
     const options = useMemo(() => {
@@ -42,7 +42,7 @@ export function useQuotations(args?: z.infer<typeof QuotationFindManySchema>) {
 
 export function useTransfers(args?: z.infer<typeof TransferFindManySchema>) {
     const [transfers, setValue] = useStore((s) => s.transfers);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
 
     const options = useMemo(() => {
@@ -127,7 +127,7 @@ export function useTransfers(args?: z.infer<typeof TransferFindManySchema>) {
 
 export function useSales(args?: z.infer<typeof SaleFindManySchema>) {
     const [sales, setSales] = useStore((s) => s.sales);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
 
     const options = useMemo(() => {
@@ -155,7 +155,7 @@ export function useSales(args?: z.infer<typeof SaleFindManySchema>) {
 
 export function useAdjustments(args?: z.infer<typeof AdjustmentFindManySchema>) {
     const [adjustments, setAdjustments] = useStore((s) => s.adjustments);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
 
     const options = useMemo(() => {

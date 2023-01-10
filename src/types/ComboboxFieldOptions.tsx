@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { ComboBoxDataHook } from './ComboBoxDataHook';
 
-export type ComboboxFieldOptions<TData = { [k: string]: any; }, TOptions = unknown> = {
+export type ComboboxFieldOptions<TData = { [k: string]: any; }, TOptions=any> = {
   useGetDataHook: ComboBoxDataHook<TOptions, TData>;
   value?: TData;
   keyPath?: string | { (value: TData): string; };

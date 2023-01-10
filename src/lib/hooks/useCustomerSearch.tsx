@@ -68,5 +68,5 @@ export function useCustomerSearch<S extends Customer = Customer, Q extends TCust
         }
     });
 
-    return [customers, result, labels, setSearchText,text] as [typeof customers, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:customers, result,loading:result.isLoading, labels, setSearchText,text};
 }

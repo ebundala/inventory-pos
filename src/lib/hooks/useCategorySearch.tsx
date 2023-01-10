@@ -63,5 +63,5 @@ export function useCategorySearch<S extends Category = Category, Q extends TCate
         }
     });
 
-    return [categories, result, labels, setSearchText,text] as [typeof categories, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:categories, result,loading:result.isLoading, labels, setSearchText,text};
 }

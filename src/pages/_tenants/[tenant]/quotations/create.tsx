@@ -16,7 +16,8 @@ import { CustomTable } from "@/components/table";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
-import { useGetZodFormField, useGetZodFormFields } from "@/lib/hooks/useGetZodFormField";
+import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
+import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useDefaultCustomer } from '@/lib/hooks/useDefaultCustomer';
 import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
@@ -24,9 +25,9 @@ import { useCustomerSearch } from "@/lib/hooks/useCustomerSearch";
 
 
 
-export function CreateQuotation({ tenant, user, units, warehouses, setting, defaultCurrency, }: TAppConfig) {
+export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
-    const [defaultCustomer, customerLoading] = useDefaultCustomer(setting!.customerId!);
+    const { customer: defaultCustomer, result: { isLoading: customerLoading } } = useDefaultCustomer(setting!.customerId!);
     const options = useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
@@ -37,36 +38,29 @@ export function CreateQuotation({ tenant, user, units, warehouses, setting, defa
             ordering: 2,
             // options:(warehouses??[]).map((v)=>({label:v.name,value:v.id})),
             combobox: {
-                elevation:30,
-                value:warehouses?warehouses[0]:undefined,
-                valuePath:"id",
-                displayValuePath:"name",
-                useGetDataHook: () => {
-                    const [_, result, labels, setSearchText, dtext] = useWarehouseSearch();
-                    return [labels, setSearchText, result.isLoading, dtext]
-
-                }
+                elevation: 30,
+                value: defaultWarehouse ?? undefined,
+                valuePath: "id",
+                displayValuePath: "name",
+                useGetDataHook: useWarehouseSearch
             }
-        },
+        }
+        ,
 
         customerId: {
             label: "Customer",
             ordering: 3,
             // options:defaultCustomer?[{label:defaultCustomer!.name,value:defaultCustomer!.id}]:[]
             combobox: {
-                elevation:30,
-                value:defaultCustomer??undefined,
-                valuePath:"id",
-                displayValuePath:"name",
-                useGetDataHook: () => {
-                    const [_, result, labels, setSearchText, dtext] = useCustomerSearch();
-                    return [labels, setSearchText, result.isLoading, dtext]
+                elevation: 30,
+                value: defaultCustomer ?? undefined,
+                valuePath: "id",
+                displayValuePath: "name",
+                useGetDataHook: useCustomerSearch
 
-                }
             }
-
-        },
-
+        }
+        ,
         taxRate: {
             label: "Tax (%)",
             ordering: 4
@@ -188,7 +182,7 @@ export function CreateQuotation({ tenant, user, units, warehouses, setting, defa
 
 
 
-    }), [customerLoading, defaultCustomer, warehouses])
+    }), [customerLoading, defaultCustomer,])
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
@@ -352,6 +346,7 @@ export function CreateQuotation({ tenant, user, units, warehouses, setting, defa
                     <FormComboBox
                         label="Search products by name/Scan barcode"
                         hideValue={true}
+                        control={form.control}
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
@@ -360,18 +355,18 @@ export function CreateQuotation({ tenant, user, units, warehouses, setting, defa
                             quotationDetailsForm.append(v);
                             if (reset) {
                                 reset();
-
                             }
 
                         }}
                         useGetDataHook={() => {
-                            const [_, result, labels, setSearchText, dtext] = useProductSearch(
+                            const { labels, data, ...rest } = useProductSearch(
                                 {
                                     format: productToQuotationDetailFormater,
                                     queryBuilder: productDefaultQueryBuilder,
                                 } as any
-                            )
-                            return [labels, setSearchText, result.isLoading, dtext]
+                            );
+
+                            return { data: labels, ...rest }
                         }}
 
                     // props={{ type: "text", hidden: false, disabled: false, }}

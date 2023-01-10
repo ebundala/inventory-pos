@@ -63,5 +63,5 @@ export function useUnitSearch<S extends Unit = Unit, Q extends TUnitSearchInput 
         }
     });
 
-    return [units, result, labels, setSearchText,text] as [typeof units, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:units, result,loading:result.isLoading, labels, setSearchText,text};
 }

@@ -1,3 +1,4 @@
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import Loader from "@/components/sites/Loader";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
@@ -6,14 +7,13 @@ import { Product, ProductVariant } from "@prisma/client";
 import { useRouter } from "next/router";
 
 
-export default function Products() {
+export function Products({products,refetch}:ProductListProps) {
     const router = useRouter();
-    const [products, loading] = useProducts();
+   // const {products, result} = useProducts();
    // const [categories, catLoading] = useCategories();
    // const [brands, brandsLoading] = useBrands();
    // const [units, unitsLoading] = useUnits();
 
-    if (loading /* || catLoading || brandsLoading || unitsLoading */) return <Loader />
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -128,4 +128,19 @@ export default function Products() {
     </div>
 }
 
-Products.getLayout = getLayout;
+type ProductListProps = ReturnType<typeof useProducts>
+
+export default function Index() {
+    return (
+        <CollectRequiredDataWrapper useHooks={() => {
+            const data = useProducts();
+            return { data, isLoading: data.result.isLoading }
+        }}>
+            {(props) =>
+                <Products {...props} />
+            }
+        </CollectRequiredDataWrapper>
+    );
+}
+
+Index.getLayout = getLayout;

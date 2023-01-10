@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 
 export function useSaleReturn(id: number) {
 
-    const [editingSaleReturn, setValue] = useStore((s) => s.editingSaleReturn);
+    const [saleReturn, setValue] = useStore((s) => s.editingSaleReturn);
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.sale_return.get.useQuery(id, {
         onSuccess: (data) => {
@@ -26,5 +26,5 @@ export function useSaleReturn(id: number) {
         };
     }, []);
 
-    return [editingSaleReturn, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {saleReturn, result, refetch};
 }

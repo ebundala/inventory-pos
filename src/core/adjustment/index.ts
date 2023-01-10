@@ -80,7 +80,7 @@ export const updateAdjustment = async (input: UpdateAdjustmentInput,ctx:TenantCo
         const adjustmentToUpdate = adjustment.adjustmentDetails
             .filter((v) => adjustmentDetails.find((s) => s.id === v.id))
             .map((v) => {
-                const { id,adjustmentId, ...rest } = v;
+                const { id,adjustmentId, productVariantId,...rest } = v;
     
                 return { where: { id: id }, data: rest };
             });
@@ -88,8 +88,9 @@ export const updateAdjustment = async (input: UpdateAdjustmentInput,ctx:TenantCo
         const adjustmentsToCreate = adjustmentDetails
             .filter((v) => !savedadjustments.find((s) => s === v.id))
             .map((v) => {
-                const { id, ...rest } = v
-                return { ...rest, tenantId };
+                const { id,productVariantId:variantId, ...rest } = v
+                const productVariantId = variantId?variantId:undefined;
+                return { ...rest,productVariantId, tenantId };
             });
         details = {
             adjustmentDetails: {

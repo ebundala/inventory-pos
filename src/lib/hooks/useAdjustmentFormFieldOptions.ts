@@ -2,18 +2,24 @@ import { ZodFormFieldOptions } from "@/lib/util/form-gen";
 import { useMemo } from "react";
 import { Warehouse } from '@prisma/client';
 import { sortLabelsByDefaultId } from "@/lib/util/sortLabelsByDefaultId";
+import { useWarehouseSearch } from "./useWarehouseSearch";
 
 
-export function useAdjustmentFormFieldOptions(warehouses: Warehouse[]|null,defaultWarehouseId?:number) {
+export function useAdjustmentFormFieldOptions(opts?:{warehouse?: Warehouse | null}) {
+     const {warehouse}=opts??{};
     return useMemo((): ZodFormFieldOptions => {
 
-      const warehouseLabels = sortLabelsByDefaultId(warehouses,defaultWarehouseId);
 
        return {
             warehouseId: {
                 label: "Warehouse",
                 ordering: 1,
-                options: warehouseLabels
+               combobox:{
+                elevation:40,
+                valuePath:"id",
+                value:(warehouse) as any,
+                useGetDataHook:useWarehouseSearch
+               }
             },
             date: {
                 label: "Date",
@@ -59,5 +65,5 @@ export function useAdjustmentFormFieldOptions(warehouses: Warehouse[]|null,defau
                 ]
             }
         };
-}, [warehouses]);
+}, [warehouse]);
 }

@@ -68,5 +68,5 @@ export function useCurrencySearch<S extends Currency = Currency, Q extends TCurr
         }
     });
 
-    return [currencies, result, labels, setSearchText,text] as [typeof currencies, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:currencies, result,loading:result.isLoading, labels, setSearchText,text};
 }

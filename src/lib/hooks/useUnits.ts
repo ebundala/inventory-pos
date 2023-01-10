@@ -6,7 +6,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 
 export function useUnits() {
   const [units, setUnits] = useStore((s) => s.units);
-  const [tenant] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.product.unit.search.useQuery(
     { where: { tenantId: tenant?.tenantId } },
@@ -24,5 +24,5 @@ export function useUnits() {
   }, [result.refetch])
     ;
 
-  return [units, result.isLoading, result.isSuccess, refetch] as [typeof units, boolean, boolean,typeof refetch];
+  return {units, result, refetch};
 }

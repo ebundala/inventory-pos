@@ -9,7 +9,7 @@ import { z } from "zod";
 export function useSaleReturns(args?: z.infer<typeof SaleReturnFindManySchema>) {
 
     const [saleReturns, setValue] = useStore((s) => s.saleReturns);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
     const options = useMemo(() => {
         const { where, ...rest } = args ?? {};
@@ -28,5 +28,5 @@ export function useSaleReturns(args?: z.infer<typeof SaleReturnFindManySchema>) 
         }
     }, [result.refetch]);
 
-    return [saleReturns, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {saleReturns, result, refetch};
 }

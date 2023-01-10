@@ -12,7 +12,7 @@ import { z } from "zod";
 export function useSales(args?: z.infer<typeof SaleFindManySchema>) {
 
     const [sales, setValue] = useStore((s) => s.sales);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
     const options = useMemo(() => {
         const { where, ...rest } = args ?? {};
@@ -31,5 +31,5 @@ export function useSales(args?: z.infer<typeof SaleFindManySchema>) {
         }
     }, [result.refetch]);
 
-    return [sales, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {sales, result, refetch};
 }

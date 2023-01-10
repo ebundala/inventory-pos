@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { RegisterOptions, useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, ZodTypeAny, ZodIssueCode, } from "zod";
 import { ComboboxFieldOptions } from "@/types/ComboboxFieldOptions";
@@ -189,10 +189,10 @@ export const getInputTypeFromZodType = (i: ZodFirstPartyTypeKind) => {
     return i.replace('Zod', '').toLowerCase()
 }
 type InputOptionValues = Array<{ label: string, value: any }> | string[] | number[];
-
+type TRegisterOptiopns = Partial<RegisterOptions>
 type FormFieldOption = {
     label?: string,
-    refine?: Parameters<ZodTypeAny['refine']>,
+    refine?: (value:any)=>string|null|undefined,
     upload?: boolean,
     textArea?: boolean,
     ordering?: number,
@@ -200,7 +200,8 @@ type FormFieldOption = {
     options?: InputOptionValues,
     readonly?:boolean,
     hideLabel?:boolean,
-    combobox?:ComboboxFieldOptions
+    combobox?:ComboboxFieldOptions,
+    registerOptions?:TRegisterOptiopns
 }
 
 export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>(
@@ -212,6 +213,8 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
         const schema2 = schema.superRefine((data, ctx) => {
             for (let field of fieldConfig) {
                 const path = getPath(field.name)
+                const fieldOption:FormFieldOption | null | undefined = getValue(path,fieldOptions);
+
                 if (field.required && field.type == ZodFirstPartyTypeKind.ZodString && (path.length > 1 && getValue(path.slice(0, -1), data) || path.length == 1)) {
                   // TODO refine arrays beyond index 0
                     const value = getValue(path, data);
@@ -221,6 +224,18 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
                             code: ZodIssueCode.custom,
                             path: path,
                             message: `${label} is required`
+                        });
+                    }
+                }
+
+                if(fieldOption&&fieldOption.refine){
+                    const value = getValue(path, data);
+                    const message = fieldOption.refine(value);
+                    if (message){
+                        ctx.addIssue({
+                            code: ZodIssueCode.custom,
+                            path: path,
+                            message
                         });
                     }
                 }
@@ -254,6 +269,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const hideLabel = fieldOptions[v.name]?.hideLabel ?? false;
             const comboboxProps = fieldOptions[v.name]?.combobox;
             const control = form.control;
+            const registerOptions = fieldOptions[v.name]?.registerOptions??{};
             // const setValueAs = v.type == ZodFirstPartyTypeKind.ZodBoolean?(i:any)=>{
             //    if(i==="true")return true
             //    return false;
@@ -263,7 +279,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const path = getPath(v.name);
             const isArray = isZodFormFieldArray(v.name);
             const error = isArray?undefined:getValue(path, errors)?.message?.toString();
-            const registration = isArray?{}:register(v.name, { valueAsDate, valueAsNumber })
+            const registration = isArray?{}:register(v.name, { valueAsDate, valueAsNumber,...registerOptions })
             
             
           

@@ -49,7 +49,9 @@ export interface AppState {
     warehouses: Warehouse[] | null;
     //Settings
     posSetting: PosSetting | null;
-    tenantSetting: Setting | null;
+    tenantSetting: Setting&{
+        warehouse?:Warehouse | null,customer?:Customer|null,currency?:Currency|null
+    } | null;
     host: string | null;
     themes: string[];
     

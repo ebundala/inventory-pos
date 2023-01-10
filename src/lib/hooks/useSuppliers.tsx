@@ -6,7 +6,7 @@ import { useTenant } from "@/lib/hooks/useTenant";
 
 export function useSuppliers() {
   const [suppliers, setSuppliers] = useStore((s) => s.suppliers);
-  const [tenant] = useTenant();
+  const {tenant} = useTenant();
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.people.supplier.search.useQuery(
     { where: { tenantId: tenant?.tenantId } },
@@ -23,5 +23,5 @@ export function useSuppliers() {
     return rResult;
   }, [result.refetch])
 
-  return [suppliers, result.isLoading, result.isSuccess,refetch] as [typeof suppliers, boolean, boolean,typeof refetch];
+  return {suppliers, result,refetch};
 }

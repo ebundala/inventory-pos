@@ -63,5 +63,5 @@ export function useBrandSearch<S extends Brand = Brand, Q extends TBrandSearchIn
         }
     });
 
-    return [brands, result, labels, setSearchText,text] as [typeof brands, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:brands, result,loading:result.isLoading, labels, setSearchText,text} ;
 }

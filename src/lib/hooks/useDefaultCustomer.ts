@@ -20,6 +20,6 @@ export function useDefaultCustomer(userId: number) {
         return rResult;
     }, [result.refetch]);
 
-    return [customer, result.isLoading, result.isSuccess, refetch] as [typeof customer, boolean, boolean, typeof refetch];
+    return {customer, result, refetch};
 
 }

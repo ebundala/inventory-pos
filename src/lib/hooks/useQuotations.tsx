@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export function useQuotations(args?: z.infer<typeof QuotationFindManySchema>) {
     const [quotations, setValue] = useStore((s) => s.quotations);
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const trpcWithHost = useTrpcTenant();
     const options = useMemo(() => {
         const { where, ...rest } = args ?? {};
@@ -28,5 +28,5 @@ export function useQuotations(args?: z.infer<typeof QuotationFindManySchema>) {
         }
     }, [result.refetch]);
 
-    return [quotations, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {quotations, result, refetch};
 }

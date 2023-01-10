@@ -23,9 +23,9 @@ import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData
 export interface PathProps extends ParsedUrlQuery {
     adjustmentId: string;
 }
-export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: UpdateAdjustmentProps) {
+export function UpdateAdjustment({ defaultWarehouse, adjustment, loading, refetch }: UpdateAdjustmentProps) {
 
-    const options = useAdjustmentFormFieldOptions(warehouses)
+    const options = useAdjustmentFormFieldOptions(adjustment as any)
 
     const [config, form] = useZodForm(updateAdjustmentInputSchema, options, {
         defaultValues: { ...adjustment }
@@ -37,7 +37,13 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
     const adjustmentDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.adjustment.update.useMutation();
+    const result = trpcWithHost.adjustment.update.useMutation({
+        onSuccess: (data, variables, context) => {
+            console.log(data,variables);
+            //form.reset();
+            refetch();
+        },
+    });
 
     useMemo(() => {
         console.log("adjustment details changed");
@@ -45,28 +51,31 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
     }, [adjustmentDetailsForm.fields.length]);
 
     useEffect(() => {
-        form.reset({ ...adjustment });
+        const adjustmentDetails = adjustment?.adjustmentDetails?.map((v)=>{
+            const productVariantId = v.productVariantId?v.productVariantId:-1;
+        return {...v,productVariantId};
+        })
+        form.reset({ ...adjustment,adjustmentDetails});
     }, [adjustment])
 
-    const detailsData = useRenderFieldArrayForm(fname,adjustmentDetailsForm,form,fieldArrayConfig);
+    const detailsData = useRenderFieldArrayForm(fname, adjustmentDetailsForm, form, fieldArrayConfig);
 
-    const { field:notesField, otherFields } = useGetZodFormField(Prisma.AdjustmentScalarFieldEnum.notes,regularConfig)
-   
-   
+    const [notesField, otherFields] = useGetZodFormField(Prisma.AdjustmentScalarFieldEnum.notes, regularConfig)
+
+
     if ((!adjustment || !adjustment?.id) && !loading) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
             <span className="m-auto">Invalid adjustment</span>
         </div>)
-   
-   
-   return (
+
+
+    return (
         <FormContainer title={<h2>Update Adjustment</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
                 console.log(data);
                 await result.mutateAsync(data as any);
-                form.reset();
-                refetch();
+
 
             }, (e) => {
                 console.error(e);
@@ -81,26 +90,25 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
                     <FormComboBox
                         label="Products"
                         name="Product search"
-                        required={true}
-                        error={undefined}
+                        hideValue={true}
+                        control={form.control}
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            adjustmentDetailsForm.append({id:-1,...v});
+                            adjustmentDetailsForm.append({ id: -1, ...v });
                             if (reset) {
                                 reset();
-                                
+
                             }
-                           
+
                         }}
                         useGetDataHook={() => {
-                            const [_, result, labels, setSearchText] = useProductSearch()
-                            return [labels, setSearchText, result.isLoading]
-                        }}
-
-                        props={{ type: "search", hidden: false, disabled: false, }}
+                            const { labels, data, ...rest } = useProductSearch();
+                            return { data: labels, ...rest }
+                        }
+                        }
                     />
                 </div>
 
@@ -116,7 +124,7 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
                             accessor: "productId"
                             ,
                             disableSortBy: true,
-                            
+
                             Cell: ({ row }: { row: any }) => {
                                 return getProductFormatedName(row.original)
                             }
@@ -152,9 +160,10 @@ export function UpdateAdjustment({ warehouses, adjustment, loading, refetch }: U
                             accessor: "action",
                             disableSortBy: true,
                             Cell: ({ row }: { row: any }) => {
-                                return <button onClick={(e) =>{
+                                return <button onClick={(e) => {
                                     e.preventDefault();
-                                     adjustmentDetailsForm.remove(row.index)}} className="btn btn-warning btn-outline btn-xs">remove</button>
+                                    adjustmentDetailsForm.remove(row.index)
+                                }} className="btn btn-warning btn-outline btn-xs">remove</button>
                             }
                         }
                     ]} search={false} pagenation={false} />

@@ -80,5 +80,5 @@ export function useWarehouseSearch<S extends Warehouse = Warehouse, Q extends TW
         }
     });
 
-    return [warehouses, result, labels, setSearchText,text] as [typeof warehouses, typeof result, typeof labels, typeof setSearchText,string];
+    return {data:warehouses, result,loading:result.isLoading, labels, setSearchText,text};
 }

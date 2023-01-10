@@ -74,5 +74,5 @@ export function useSupplierSearch<S extends Supplier = Supplier, Q extends TSupp
         }
     });
 
-    return [suppliers, result, labels, setSearchText] as [typeof suppliers, typeof result, typeof labels, typeof setSearchText];
+    return {suppliers, result, labels, setSearchText};
 }

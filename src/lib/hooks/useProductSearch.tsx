@@ -1,14 +1,14 @@
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useState } from "react";
 import { Prisma, Product, ProductVariant, QuotationDetail } from '@prisma/client';
-import { useSearch ,TSearchArgs} from "@/lib/hooks/useSearch";
+import { useSearch, TSearchArgs } from "@/lib/hooks/useSearch";
 import { ProductFindManySchema } from "prisma/generated/schemas/findManyProduct.schema";
 import { AdjustmentDetailFormat } from "@/lib/util/getProductFormatedName";
 import { z } from "zod";
 
-export type QuotationDetailFormat = Partial<Omit<QuotationDetail,'tenantId'| "createdAt"|"updatedAt"|'quotationId'>> & {product:Partial<Product>,productVariant?:Partial<ProductVariant>}
+export type QuotationDetailFormat = Partial<Omit<QuotationDetail, 'tenantId' | "createdAt" | "updatedAt" | 'quotationId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
 
-export const productToQuotationDetailFormater = <T extends Product&{productVariants:ProductVariant[]} = Product&{productVariants:ProductVariant[]}>(data: T[]) => {
+export const productToQuotationDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
     let list: QuotationDetailFormat[] = []
     if (data)
         for (let product of data) {
@@ -20,40 +20,40 @@ export const productToQuotationDetailFormater = <T extends Product&{productVaria
                         productId: product.id,
                         productVariantId: variant.id,
                         quantity: 1,
-                      //  price:product.price,
-                        saleUnitId:product.unitSaleId,
-                        taxMethod:product.taxMethod,
-                       // taxNet:0,
-                        discount:0,                        
-                        discountMethod:"default",
-                     //   total:product.price,
-                        imeiNumber:"",
-                        
+                        //  price:product.price,
+                        saleUnitId: product.unitSaleId,
+                        taxMethod: product.taxMethod,
+                        // taxNet:0,
+                        discount: 0,
+                        discountMethod: "default",
+                        //   total:product.price,
+                        imeiNumber: "",
+
                     })
                 }
             } else {
                 list.push({
                     product: product,
-                        //productVariant: variant,
-                        productId: product.id,
-                        productVariantId: -1,
-                        quantity: 1,
-                      //  price:product.price,
-                        saleUnitId:product.unitSaleId,
-                        taxMethod:product.taxMethod,
-                       // taxNet:0,
-                        discount:0,                        
-                        discountMethod:"default",
-                     //   total:product.price,
-                        imeiNumber:"",
-                    
+                    //productVariant: variant,
+                    productId: product.id,
+                    productVariantId: -1,
+                    quantity: 1,
+                    //  price:product.price,
+                    saleUnitId: product.unitSaleId,
+                    taxMethod: product.taxMethod,
+                    // taxNet:0,
+                    discount: 0,
+                    discountMethod: "default",
+                    //   total:product.price,
+                    imeiNumber: "",
+
                 })
             }
         }
     return list;
 }
 
-export const productToAdjustmentDetailFormater = <T extends Product&{productVariants:ProductVariant[]} = Product&{productVariants:ProductVariant[]}>(data: T[]) => {
+export const productToAdjustmentDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
     let list: AdjustmentDetailFormat[] = []
     if (data)
         for (let product of data) {
@@ -72,7 +72,7 @@ export const productToAdjustmentDetailFormater = <T extends Product&{productVari
                 list.push({
                     product: product,
                     productId: product.id,
-                    productVariantId: null,
+                    productVariantId: -1,
                     quantity: 0,
                     type: "Addition"
                 })
@@ -81,7 +81,7 @@ export const productToAdjustmentDetailFormater = <T extends Product&{productVari
     return list;
 }
 
-export const productDefaultQueryBuilder = (dText: string):TProductSearchInput => ({
+export const productDefaultQueryBuilder = (dText: string): TProductSearchInput => ({
     take: 5,
     where: {
         OR: [
@@ -110,7 +110,7 @@ export const productDefaultQueryBuilder = (dText: string):TProductSearchInput =>
             }
         ]
     },
-    distinct:["id",'code']
+    distinct: ["id", 'code']
 })
 
 export type TProductSearchInput = z.infer<typeof ProductFindManySchema>;
@@ -127,7 +127,7 @@ export function useProductSearch<S extends Product = Product, Q extends TProduct
     const [products, setValue] = useState<Array<S>>([]);
 
 
-    const { query,text, labels, setSearchText } = useSearch({
+    const { query, text, labels, setSearchText } = useSearch({
         state: products,
         queryBuilder,
         format,
@@ -144,5 +144,5 @@ export function useProductSearch<S extends Product = Product, Q extends TProduct
         }
     });
 
-    return [products, result, labels, setSearchText,text] as [typeof products, typeof result, typeof labels, typeof setSearchText,string];
+    return { data: products, result, loading: result.isLoading, labels, setSearchText, text };
 }

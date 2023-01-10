@@ -4,7 +4,7 @@ import { useCallback, useEffect, } from "react";
 
 export function useProduct(id: number) {
 
-    const [editingProduct, setEditingProduct] = useStore((s) => s.editingProduct);
+    const [product, setEditingProduct] = useStore((s) => s.editingProduct);
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.product.get.useQuery(id, {
         onSuccess: (data) => {
@@ -21,10 +21,10 @@ export function useProduct(id: number) {
 
     useEffect(() => {
         return () => {
-            console.log("creaning up editing product", editingProduct);
+            console.log("creaning up editing product", product);
             setEditingProduct({ editingProduct: null });
         }
     }, [])
 
-    return [editingProduct, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {product, result, refetch};
 }

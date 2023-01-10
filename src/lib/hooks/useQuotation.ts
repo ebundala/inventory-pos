@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react";
 
 export function useQuotation(id: number) {
 
-    const [editingQuotation, setValue] = useStore((s) => s.editingQuotation);
+    const [quotation, setValue] = useStore((s) => s.editingQuotation);
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.quotation.get.useQuery(id, {
         onSuccess: (data) => {
@@ -26,5 +26,5 @@ export function useQuotation(id: number) {
         };
     }, []);
 
-    return [editingQuotation, result.isLoading, result.isSuccess, refetch] as [typeof result.data, boolean, boolean, typeof refetch];
+    return {quotation, result, refetch};
 }

@@ -20,7 +20,7 @@ const refetch = useCallback(async (opts?: Parameters<typeof result.refetch>[0]) 
   }
   return rResult;
 }, [result.refetch])
-  return [tenant,result.isLoading,result.isSuccess,refetch] as [typeof tenant,boolean,boolean,typeof refetch];
+  return {tenant,result,refetch};
 }
 
 
