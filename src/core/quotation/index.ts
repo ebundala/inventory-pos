@@ -4,22 +4,26 @@ import { TenantContext } from "../trpc";
 const include = {
     user: true,
     warehouse: true,
-    quotationDetails: true,
+    quotationDetails: {
+        include: {
+            product: true, productVariant: true, unit: true,
+        },
+    },
     customer: true
 };
 
 export type CreateQuotationDetailsInput = {
-  price            :number 
-  saleUnitId       ?:number 
-  taxNet          :number 
-  taxMethod        ?:string  
-  discount         ?:number
-  discountMethod   ?:string
-  total            :number
-  quantity         :number
-  productId        :number
-  productVariantId ?:number
-  imeiNumber       ?:string  
+    price: number
+    saleUnitId?: number
+    taxNet: number
+    taxMethod?: string
+    discount?: number
+    discountMethod?: string
+    total: number
+    quantity: number
+    productId: number
+    productVariantId?: number
+    imeiNumber?: string
 }
 export type CreateQuotationInput = {
     userId: string
@@ -28,16 +32,16 @@ export type CreateQuotationInput = {
     customerId: number
     warehouseId: number
     taxRate?: number
-    taxNet?:number
-    discount?:number
-    shipping?:number
-    grandTotal:number
+    taxNet?: number
+    discount?: number
+    shipping?: number
+    grandTotal: number
     status: string
     notes?: string
     quotationDetails: Array<CreateQuotationDetailsInput>
     tenantId: string
 }
-export const createQuotation = async (input: CreateQuotationInput,ctx:TenantContext) => {
+export const createQuotation = async (input: CreateQuotationInput, ctx: TenantContext) => {
     const { tenantId, quotationDetails, ...data } = input;
 
     return ctx.tx!.quotation.create({
@@ -46,7 +50,7 @@ export const createQuotation = async (input: CreateQuotationInput,ctx:TenantCont
             tenantId: tenantId, ...data,
             quotationDetails: {
                 createMany: {
-                    data: quotationDetails.map((v)=>({tenantId,...v}))
+                    data: quotationDetails.map((v) => ({ tenantId, ...v }))
                 }
             },
         },
@@ -54,17 +58,17 @@ export const createQuotation = async (input: CreateQuotationInput,ctx:TenantCont
 }
 export type UpdateQuotationDetailsInput = {
     id?: number
-    price            ?:number 
-  saleUnitId       ?:number 
-  taxNet          ?:number 
-  taxMethod        ?:string  
-  discount         ?:number
-  discountMethod   ?:string
-  total            ?:number
-  quantity         ?:number
-  productId        ?:number
-  productVariantId ?:number
-  imeiNumber       ?:string 
+    price?: number
+    saleUnitId?: number
+    taxNet?: number
+    taxMethod?: string
+    discount?: number
+    discountMethod?: string
+    total?: number
+    quantity?: number
+    productId?: number
+    productVariantId?: number
+    imeiNumber?: string
 
 }
 export type UpdateQuotationInput = {
@@ -75,16 +79,16 @@ export type UpdateQuotationInput = {
     customerId?: number
     warehouseId?: number
     taxRate?: number
-    taxNet?:number
-    discount?:number
-    shipping?:number
-    grandTotal?:number
+    taxNet?: number
+    discount?: number
+    shipping?: number
+    grandTotal?: number
     status?: string
     notes?: string
     quotationDetails?: Array<UpdateQuotationDetailsInput>
     tenantId: string
 }
-export const updateQuotation = async (input: UpdateQuotationInput,ctx:TenantContext) => {
+export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantContext) => {
     const { tenantId, id, quotationDetails, ...data } = input;
     const quotation = await ctx.tx!.quotation.findUnique({
         where: { id }, include: {
@@ -92,30 +96,30 @@ export const updateQuotation = async (input: UpdateQuotationInput,ctx:TenantCont
         }
     });
     let details = {};
-    if (quotationDetails &&quotation&& quotationDetails.length) {
+    if (quotationDetails && quotation && quotationDetails.length) {
         const savedDetails = quotation.quotationDetails.map((v) => v.id);
         const detailsToDelete = quotation.quotationDetails.filter((v) => !quotationDetails.find((s) => s.id = v.id))
-        .map((v) => ({ id: v.id }));
-    const detailsToCreate = quotationDetails
-        .filter((v) => !savedDetails.find((s) => v.id === s))
-        .map((v) => {
-            const { id, ...rest } = v;
-           return { ...rest, tenantId };
-        });
-    const detailsToUpdate = quotationDetails
-        .filter((v) => savedDetails.find((s) => v.id === s))
-        .map((v) => {
-            const { id, ...rest } = v;
-            return { where: { id: id }, data: rest };
-        })
+            .map((v) => ({ id: v.id }));
+        const detailsToCreate = quotationDetails
+            .filter((v) => !savedDetails.find((s) => v.id === s))
+            .map((v) => {
+                const { id, ...rest } = v;
+                return { ...rest, tenantId };
+            });
+        const detailsToUpdate = quotationDetails
+            .filter((v) => savedDetails.find((s) => v.id === s))
+            .map((v) => {
+                const { id,productVariantId, ...rest } = v;
+                return { where: { id: id }, data: rest };
+            })
         details = {
             quotationDetails: {
                 updateMany: detailsToUpdate,
-                deleteMany:detailsToDelete,
-                createMany:{
-                skipDuplicates:true,
-                data:detailsToCreate
-               }
+                deleteMany: detailsToDelete,
+                createMany: {
+                    skipDuplicates: true,
+                    data: detailsToCreate
+                }
             }
         }
     }
@@ -131,7 +135,7 @@ export const updateQuotation = async (input: UpdateQuotationInput,ctx:TenantCont
 };
 export type QuotationId = number
 export type QuotationIds = Array<number>
-export const getUniqueQuotation = async (id: QuotationId,ctx:TenantContext) => {
+export const getUniqueQuotation = async (id: QuotationId, ctx: TenantContext) => {
 
     return ctx.tx!.quotation.findUnique({
         include,
@@ -140,7 +144,7 @@ export const getUniqueQuotation = async (id: QuotationId,ctx:TenantContext) => {
         }
     })
 };
-export const deleteQuotation = async (id: QuotationId,ctx:TenantContext) => {
+export const deleteQuotation = async (id: QuotationId, ctx: TenantContext) => {
 
     return ctx.tx!.quotation.update({
         include,
@@ -152,7 +156,7 @@ export const deleteQuotation = async (id: QuotationId,ctx:TenantContext) => {
         }
     })
 };
-export const deleteManyQuotation = async (ids: QuotationIds,ctx:TenantContext) => {
+export const deleteManyQuotation = async (ids: QuotationIds, ctx: TenantContext) => {
     return ctx.tx!.quotation.updateMany({
         where: {
             id: { in: ids }
@@ -163,12 +167,12 @@ export const deleteManyQuotation = async (ids: QuotationIds,ctx:TenantContext) =
     })
 };
 
-export const findManyQuotation = async  (input: Omit<Prisma.QuotationFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-    
+export const findManyQuotation = async (input: Omit<Prisma.QuotationFindManyArgs, "select" | "include">, ctx: TenantContext) => {
+
     return ctx.tx!.quotation.findMany(
         {
             include,
-           ...input
+            ...input
         }
     );
 }

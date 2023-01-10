@@ -3,9 +3,9 @@ import { FormInputField } from "@/components/FormInputField";
 import { createQuotationInputSchema } from "@/core/quotation/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { getValue, useZodForm, ZodFormFieldOptions } from "@/lib/util/form-gen";
+import { getValue, useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
-import { FieldArrayPath, FieldValues, useFieldArray, useWatch } from "react-hook-form";
+import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
@@ -19,170 +19,16 @@ import { useProductSearch, productToQuotationDetailFormater, productDefaultQuery
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import { useDefaultCustomer } from '@/lib/hooks/useDefaultCustomer';
-import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
-import { useCustomerSearch } from "@/lib/hooks/useCustomerSearch";
+import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
+import { OrderSummary } from "@/components/OrderSummary";
+import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
 
 
 
 export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
-    const { customer: defaultCustomer, result: { isLoading: customerLoading } } = useDefaultCustomer(setting!.customerId!);
-    const options = useMemo((): ZodFormFieldOptions => ({
-        date: {
-            label: "Date",
-            ordering: 1
-        },
-        warehouseId: {
-            label: "Warehouse",
-            ordering: 2,
-            // options:(warehouses??[]).map((v)=>({label:v.name,value:v.id})),
-            combobox: {
-                elevation: 30,
-                value: defaultWarehouse ?? undefined,
-                valuePath: "id",
-                displayValuePath: "name",
-                useGetDataHook: useWarehouseSearch
-            }
-        }
-        ,
-
-        customerId: {
-            label: "Customer",
-            ordering: 3,
-            // options:defaultCustomer?[{label:defaultCustomer!.name,value:defaultCustomer!.id}]:[]
-            combobox: {
-                elevation: 30,
-                value: defaultCustomer ?? undefined,
-                valuePath: "id",
-                displayValuePath: "name",
-                useGetDataHook: useCustomerSearch
-
-            }
-        }
-        ,
-        taxRate: {
-            label: "Tax (%)",
-            ordering: 4
-        },
-
-        discount: {
-            label: "Discount",
-            ordering: 5
-        },
-        shipping: {
-            label: "Shipping",
-            ordering: 6
-        },
-
-        status: {
-            label: "Status",
-            ordering: 7,
-            options: [
-                "Pending", "Sent"
-            ]
-        },
-        notes: {
-            label: "Notes",
-            textArea: true,
-            ordering: 8
-        },
-        ref: {
-            label: "Reference",
-            hidden: true,
-            ordering: 9
-        },
-        taxNet: {
-            label: `Tax total (${symbol})`,
-            hidden: true,
-            ordering: 10,
-        },
-        grandTotal: {
-            label: "Grand total",
-            hidden: true,
-            ordering: 11
-        },
-        userId: {
-            hidden: true
-        },
-        tenantId: {
-            hidden: true
-        },
-        "quotationDetails.0.productId": {
-            label: "Product",
-            ordering: 13,
-            hidden: true
-        },
-        "quotationDetails.0.price": {
-            label: "Unit Price",
-            hideLabel: true,
-            readonly: true,
-            ordering: 14,
-            //hidden: true
-
-        },
-        "quotationDetails.0.quantity": {
-            label: "Quantity",
-            ordering: 15,
-            hideLabel: true,
-
-        },
-        "quotationDetails.0.discount": {
-            label: "Discount",
-            ordering: 16,
-            hideLabel: true,
-            readonly: true
-        },
-        "quotationDetails.0.taxNet": {
-            label: "Tax",
-            hideLabel: true,
-            readonly: true,
-            ordering: 17
-        },
-        "quotationDetails.0.total": {
-            label: "Subtotal",
-            hideLabel: true,
-            readonly: true,
-            ordering: 18
-        },
-
-        "quotationDetails.0.productVariantId": {
-            label: "Product",
-            ordering: 26,
-            hidden: true
-        },
-
-
-        "quotationDetails.0.imeiNumber": {
-            label: "IMEI/Serial number",
-            ordering: 30,
-            hidden: true
-        },
-        "quotationDetails.0.saleUnitId": {
-            label: "sale unit",
-            hidden: true,
-            ordering: 31
-        },
-
-
-        "quotationDetails.0.taxMethod": {
-            label: "Tax method",
-            hidden: true,
-            ordering: 30
-
-        },
-
-        "quotationDetails.0.discountMethod": {
-            label: "Discount method",
-            ordering: 27
-
-        },
-
-
-
-
-
-    }), [customerLoading, defaultCustomer,])
+    
+    const options = useQuotationFormFieldOptions(symbol);
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
@@ -478,56 +324,5 @@ export default function Index() {
 }
 Index.getLayout = getLayout;
 
-type OrderSummaryProps = {
-    tax: number,
-    taxRate: number,
-    discount: number,
-    shipping: number,
-    grandTotal: number,
-    currency: string,
-}
-function OrderSummary({ tax, taxRate, discount, shipping, grandTotal, currency }: OrderSummaryProps) {
 
-    return (
-        <table className="table table-zebra ">
-            <tbody>
-                <tr className="hidden"></tr>
-                <tr>
-                    <td className="font-normal">Order Tax</td> <td><span>{currency} {(tax ? tax : 0).toFixed(2)} ({(taxRate ?? 0).toFixed(2)} %)</span></td>
-                </tr>
-                <tr>
-                    <td className="font-normal">Discount</td> <td>{currency} {(discount ?? 0).toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td className="font-normal">Shipping</td> <td>{currency} {(shipping ?? 0).toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td><span className="font-bold">Grand Total</span></td> <td><span className="font-bold">{currency} {(grandTotal ? grandTotal : 0).toFixed(2)}</span></td>
-                </tr>
-            </tbody>
-        </table>
-    );
-}
-type TComputedFormFieldsResult = { value: any, default: any, path: (string | number)[] }[]
-type TComputedFormValuesArgs<TResult extends TComputedFormFieldsResult = TComputedFormFieldsResult, TControl extends any = any, TData extends any = any> = {
-    control: TControl,
-    defaultValue?: TResult,
-    compute: (data: TData) => TResult
-}
-function useTaxValue({ subTotal, discount, tax }: { subTotal: number, discount: number, tax: number }) {
-    return useMemo(() => {
-        return ((subTotal - discount) * (tax / 100))
-    }, [tax, discount, subTotal]);
-}
-function useGrandTotal({ subTotal, taxValue, shipping, discount }: { subTotal: number, taxValue: number, shipping: number, discount: number }) {
-    return useMemo(() => {
-        return subTotal + taxValue + shipping - discount;
-    }, [discount, shipping, subTotal, taxValue]);
-}
 
-function useComputedZodFormValues({ control, defaultValue, compute }: TComputedFormValuesArgs) {
-    const data = useWatch({ control, defaultValue });
-    return useMemo(() => {
-        return compute(data);
-    }, [data])
-}

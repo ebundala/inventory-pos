@@ -2,24 +2,21 @@ import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
 import { updateProductInputSchema } from "@/core/product/index.zod";
 import { getLayout } from "@/layouts/getLayout"
-import { useBrands } from "@/lib/hooks/useBrands";
-import { useCategories } from "@/lib/hooks/useCategories";
 import { useTenant } from "@/lib/hooks/useTenant";
-import { useUnits } from "@/lib/hooks/useUnits";
 import { useZodForm } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
 import { useProduct } from "@/lib/hooks/useProduct";
 import { useProductFormFieldOptions } from "@/lib/hooks/useProductFormFieldOptions";
-import { createElement, FC, useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { CollectHooksReturnType, CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
-interface PathProps extends ParsedUrlQuery {
+interface ProductPathProps extends ParsedUrlQuery {
     productId: string;
 }
 export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturnType['data']) {
@@ -122,7 +119,7 @@ Index.getLayout = getLayout;
 
 function useProductRequiredData() {
     const router = useRouter();
-    const productId = parseInt((router.query as PathProps).productId ?? "");
+    const productId = parseInt((router.query as ProductPathProps).productId ?? "");
     const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     const {product, result:{isLoading:loading,}, refetch} = useProduct(productId);
     return {data:{ tenant, product,refetch },isLoading: tenantLoading || loading};

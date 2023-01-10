@@ -90,7 +90,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "All Quatation",
-                link: '/quotation',
+                link: '/quotations',
                 icon: <BsCalculator />,
                 subMenus: []
             }

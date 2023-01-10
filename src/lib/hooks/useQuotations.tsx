@@ -16,7 +16,7 @@ export function useQuotations(args?: z.infer<typeof QuotationFindManySchema>) {
         return { where: { tenantId: tenant?.tenantId, ...where }, ...rest };
     }, [args, tenant]);
 
-    const result = trpcWithHost.sale.search.useQuery(options, {
+    const result = trpcWithHost.quotation.search.useQuery(options, {
         onSuccess: (data) => {
             setValue({ quotations: data });
         }
