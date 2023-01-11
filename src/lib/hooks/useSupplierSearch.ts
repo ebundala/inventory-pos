@@ -57,7 +57,7 @@ export function useSupplierSearch<S extends Supplier = Supplier, Q extends TSupp
     const [suppliers, setValue] = useState<Array<S>>([]);
 
 
-    const { query, labels, setSearchText } = useSearch({
+    const { query, text,labels, setSearchText } = useSearch({
         state: suppliers,
         queryBuilder,
         format,
@@ -74,5 +74,5 @@ export function useSupplierSearch<S extends Supplier = Supplier, Q extends TSupp
         }
     });
 
-    return {suppliers, result, labels, setSearchText};
+    return {data:suppliers, result,loading:result.isLoading,text, labels, setSearchText};
 }

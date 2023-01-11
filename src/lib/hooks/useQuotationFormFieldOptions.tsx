@@ -4,7 +4,7 @@ import { Customer, Warehouse } from '@prisma/client';
 import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
 import { useCustomerSearch } from "@/lib/hooks/useCustomerSearch";
 
-export function useQuotationFormFieldOptions(symbol: string, opts?: { warehouse?: Warehouse; customer?: Customer; }) {
+export function useQuotationFormFieldOptions(opts?: { warehouse?: Warehouse; customer?: Customer; }) {
     const { customer, warehouse } = opts ?? {};
     return useMemo((): ZodFormFieldOptions => ({
         date: {
@@ -148,5 +148,5 @@ export function useQuotationFormFieldOptions(symbol: string, opts?: { warehouse?
             label: "Discount method",
             ordering: 27
         },
-    }), [customer, warehouse, symbol]);
+    }), [customer, warehouse,]);
 }

@@ -5,8 +5,10 @@ import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";
 import { productRouter } from "./products/product";
 import { purchaseRouter } from "./purchases/purchase";
+import { purchaseReturnRouter } from "./purchase_return/purchase_return";
 import { quotationRouter } from "./quotations/quotation";
 import { saleRouter } from "./sales/sale";
+import { saleReturnRouter } from "./sale_return/sale_return";
 import { settingRouter } from "./settings/setting";
 import { tenantRouter } from "./tenants/tenant";
 import { transferRouter } from "./transfers/transfer";
@@ -19,7 +21,9 @@ export const appRouter = router({
     product:productRouter,
     adjustment:adjustmentRouter,
     sale:saleRouter,
+    sale_return:saleReturnRouter,
     purchase:purchaseRouter,
+    purchase_return:purchaseReturnRouter,
     quotation:quotationRouter,
     setting:settingRouter,
     transfer:transferRouter,

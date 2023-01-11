@@ -28,7 +28,7 @@ import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldO
 export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
     
-    const options = useQuotationFormFieldOptions(symbol);
+    const options = useQuotationFormFieldOptions();
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }

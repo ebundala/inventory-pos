@@ -103,13 +103,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Purchase",
-                link: '#',
+                link: '/purchases/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Purchases",
-                link: '#',
+                link: '/purchases',
                 icon: <BsCalculator />,
                 subMenus: []
             }
