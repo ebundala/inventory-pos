@@ -6,7 +6,11 @@ const include = {
     supplier: true,
     user: true,
     warehouse: true,
-    purchaseDetails: true,
+    purchaseDetails: {
+        include: {
+            product: true, productVariant: true, unit: true,
+        },
+    },
     paymentPurchases: true
 };
 export type CreatePurchaseDetailsInput = {

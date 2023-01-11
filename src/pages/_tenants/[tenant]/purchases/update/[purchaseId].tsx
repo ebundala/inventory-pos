@@ -1,13 +1,12 @@
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
-import { updateQuotationInputSchema } from "@/core/quotation/index.zod";
+import { updatePurchaseInputSchema } from "@/core/purchase/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTenant } from "@/lib/hooks/useTenant";
-import { getValue, useZodForm } from "@/lib/util/form-gen";
+import { getValue, useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
-import { useQuotation } from "@/lib/hooks/useQuotation";
-import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
+import { usePurchase } from "@/lib/hooks/usePurchase";
 import { useEffect, useMemo } from 'react';
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
@@ -18,70 +17,81 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useSetting } from "@/lib/hooks/useSetting";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
-import { Prisma, Product, ProductVariant, QuotationDetail, Unit } from "@prisma/client";
+import { Prisma, Product, ProductVariant, PurchaseDetail, Unit } from "@prisma/client";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { FormComboBox } from "@/components/combobox";
 import { OrderSummary } from "@/components/OrderSummary";
 import { CustomTable } from "@/components/table";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
-import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
+import { useProductSearch, productToPurchaseDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { usePurchaseFormFieldOptions } from "../usePurchaseFormFieldOptions";
 
-interface QuotationPathProps extends ParsedUrlQuery {
-    quotationId: string;
+interface PurchasePathProps extends ParsedUrlQuery {
+    purchaseId: string;
 }
-export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:QuotationRequiredDataReturnType['data']) {
+export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:PurchaseRequiredDataReturnType['data']) {
     
     const symbol = defaultCurrency?.symbol ?? "";
     
-    const options = useQuotationFormFieldOptions(symbol,quotation as any);
+    const options = usePurchaseFormFieldOptions(purchase as any);
 
-    const [config, form] = useZodForm(updateQuotationInputSchema, options, {
-        defaultValues:{ ...(quotation??{})}
+    const [config, form] = useZodForm(updatePurchaseInputSchema, options, {
+        defaultValues: { ...(purchase??{}) }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
-    const fname = useFieldArrayName(fieldArrayConfig);
+    const groupedFieldArray = useMemo(()=>{
+        const fields = new Map<string,ZodFormFieldConfig[]>();
+        for(let v of fieldArrayConfig){
+           const fieldName = v.name.split('.')[0] as string;
+           const data = fields.get(fieldName) ?? [];
+           data.push(v);
+           fields.set(fieldName,data);
+        }
+        return fields;
+      
+    },[fieldArrayConfig]);
+    const purchaseDetailFieldConfig = groupedFieldArray.get('purchaseDetails');
+    const paymentPurchaseFieldConfig = groupedFieldArray.get('paymentPurchases')
+    const purchaseDetailFormName = useFieldArrayName(purchaseDetailFieldConfig!);
+    const paymentPurchaseFormName = useFieldArrayName(paymentPurchaseFieldConfig!);
 
-    const quotationDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
+    const purchaseDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: purchaseDetailFormName });
+    const paymentPurchasesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchaseFormName });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.quotation.update.useMutation({
+    const result = trpcWithHost.purchase.update.useMutation({
         onSuccess:(data, variables, context) =>{
-            form.reset();
-            refetch();
+           form.reset();
+           refetch()
         },
     });
 
 
 
     useEffect(() => {
-        if(quotation){
-         form.reset(quotation);
-        }
-        // form.setValue(Prisma.QuotationScalarFieldEnum.date, new Date())
-        // form.setValue(Prisma.QuotationScalarFieldEnum.ref, Date.now().toString())
-        // form.setValue(Prisma.QuotationScalarFieldEnum.taxRate, 0)
-        // form.setValue(Prisma.QuotationScalarFieldEnum.discount, 0)
-        // form.setValue(Prisma.QuotationScalarFieldEnum.shipping, 0)
+        if(purchase){
+         form.reset(purchase);
+        }      
+    }, [purchase])
 
-    }, [quotation])
-
-    const detailsData = useRenderFieldArrayForm(fname, quotationDetailsForm, form, fieldArrayConfig)
+    const detailsData = useRenderFieldArrayForm(purchaseDetailFormName, purchaseDetailsForm, form, purchaseDetailFieldConfig!)
+    const purchasesData = useRenderFieldArrayForm(paymentPurchaseFormName, paymentPurchasesForm, form, paymentPurchaseFieldConfig!)
 
 
-    const [notesField, fields] = useGetZodFormField(Prisma.QuotationScalarFieldEnum.notes, regularConfig)
+    const [notesField, fields] = useGetZodFormField(Prisma.PurchaseScalarFieldEnum.notes, regularConfig)
 
     const [mainFields, fields2] = useGetZodFormFields([
-        Prisma.QuotationScalarFieldEnum.date,
-        Prisma.QuotationScalarFieldEnum.warehouseId,
-        Prisma.QuotationScalarFieldEnum.customerId], fields)
+        Prisma.PurchaseScalarFieldEnum.date,
+        Prisma.PurchaseScalarFieldEnum.warehouseId,
+        Prisma.PurchaseScalarFieldEnum.supplierId], fields)
 
     const [secondaryFields, hiddenFields] = useGetZodFormFields([
-        Prisma.QuotationScalarFieldEnum.taxRate,
-        Prisma.QuotationScalarFieldEnum.discount,
-        Prisma.QuotationScalarFieldEnum.shipping,
-        Prisma.QuotationScalarFieldEnum.status,
+        Prisma.PurchaseScalarFieldEnum.taxRate,
+        Prisma.PurchaseScalarFieldEnum.discount,
+        Prisma.PurchaseScalarFieldEnum.shipping,
+        Prisma.PurchaseScalarFieldEnum.status,
     ], fields2)
 
 
@@ -89,20 +99,20 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
     const data = useComputedZodFormValues({
         control: form.control, compute: (data) => {
             const partialData: TComputedFormFieldsResult = [];
-            const rootPath = 'quotationDetails';
+            const rootPath = 'purchaseDetails';
             let taxRate = 0, discount = 0, shipping = 0, grandTotal = 0, subTotal = 0, taxNet = 0;
 
             if (data) {
                 const details = data[rootPath];
-                taxRate = data[Prisma.QuotationScalarFieldEnum.taxRate] ?? 0;
-                discount = data[Prisma.QuotationScalarFieldEnum.discount] ?? 0;
-                shipping = data[Prisma.QuotationScalarFieldEnum.shipping] ?? 0;
+                taxRate = data[Prisma.PurchaseScalarFieldEnum.taxRate] ?? 0;
+                discount = data[Prisma.PurchaseScalarFieldEnum.discount] ?? 0;
+                shipping = data[Prisma.PurchaseScalarFieldEnum.shipping] ?? 0;
 
                 if (details && details instanceof Array) {
                     for (let i = 0; i < details.length; i++) {
                         const item = details[i];
                         if (item) {
-                            let detail = item as Partial<QuotationDetail & {
+                            let detail = item as Partial<PurchaseDetail & {
                                 product: Product & {
                                     productUnit?: Unit,
                                     productPurchaseUnit?: Unit,
@@ -133,24 +143,24 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
                             subTotal += productSubTotal;
                             console.log(productPriceBeforeTax)
                             partialData.push(...[
-                                { value: productQuantity, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.quantity] },
-                                { value: productTaxMethod, default: "inclusive", path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxMethod] },
-                                { value: productPriceBeforeTax, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.price] },
-                                { value: productTaxNet, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxNet] },
-                                { value: productSubTotal, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.total] },
-                                { value: productDiscount, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discount] },
-                                { value: "default", default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.discountMethod] }
+                                { value: productQuantity, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.quantity] },
+                                { value: productTaxMethod, default: "inclusive", path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxMethod] },
+                                { value: productPriceBeforeTax, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.cost] },
+                                { value: productTaxNet, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxNet] },
+                                { value: productSubTotal, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.total] },
+                                { value: productDiscount, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.discount] },
+                                { value: "default", default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.discountMethod] }
                             ])
                         }
                     }
                     taxNet = (subTotal - discount) * (taxRate / 100);
                     grandTotal = (subTotal + taxNet) + shipping;
                     partialData.push(...[
-                        { value: taxNet, default: 0, path: [Prisma.QuotationScalarFieldEnum.taxNet] },
-                        { value: grandTotal, default: 0, path: [Prisma.QuotationScalarFieldEnum.grandTotal] },
-                        { value: discount, default: 0, path: [Prisma.QuotationScalarFieldEnum.discount] },
-                        { value: taxRate, default: 0, path: [Prisma.QuotationScalarFieldEnum.taxRate] },
-                        { value: shipping, default: 0, path: [Prisma.QuotationScalarFieldEnum.shipping] },
+                        { value: taxNet, default: 0, path: [Prisma.PurchaseScalarFieldEnum.taxNet] },
+                        { value: grandTotal, default: 0, path: [Prisma.PurchaseScalarFieldEnum.grandTotal] },
+                        { value: discount, default: 0, path: [Prisma.PurchaseScalarFieldEnum.discount] },
+                        { value: taxRate, default: 0, path: [Prisma.PurchaseScalarFieldEnum.taxRate] },
+                        { value: shipping, default: 0, path: [Prisma.PurchaseScalarFieldEnum.shipping] },
 
                     ])
                 }
@@ -177,19 +187,14 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
     }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
-        Prisma.QuotationScalarFieldEnum.taxRate,
-        Prisma.QuotationScalarFieldEnum.taxNet,
-        Prisma.QuotationScalarFieldEnum.discount,
-        Prisma.QuotationScalarFieldEnum.shipping,
-        Prisma.QuotationScalarFieldEnum.grandTotal])
+        Prisma.PurchaseScalarFieldEnum.taxRate,
+        Prisma.PurchaseScalarFieldEnum.taxNet,
+        Prisma.PurchaseScalarFieldEnum.discount,
+        Prisma.PurchaseScalarFieldEnum.shipping,
+        Prisma.PurchaseScalarFieldEnum.grandTotal])
 
-
-        if (!quotation || !quotation?.id) return (
-            <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-                <span className="m-auto">Invalid quotation</span>
-            </div>)
     return (
-        <FormContainer title={<h2>Update Quotation</h2>}>
+        <FormContainer title={<h2>Update Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
                 console.log(data);
@@ -209,7 +214,7 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
                 </div>
                 <div className="w-full">
                     <FormComboBox
-                        label="Search/scan products"
+                        label="Search products by name/Scan barcode"
                         hideValue={true}
                         control={form.control}
                         keyPath={(v) => getProductFormatedName(v as any)}
@@ -217,7 +222,7 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            quotationDetailsForm.append(v);
+                            purchaseDetailsForm.append(v);
                             if (reset) {
                                 reset();
                             }
@@ -226,7 +231,7 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
                         useGetDataHook={() => {
                             const { labels, data, ...rest } = useProductSearch(
                                 {
-                                    format: productToQuotationDetailFormater,
+                                    format: productToPurchaseDetailFormater,
                                     queryBuilder: productDefaultQueryBuilder,
                                 } as any
                             );
@@ -293,7 +298,7 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
                             accessor: "action",
                             disableSortBy: true,
                             Cell: ({ row }: { row: any }) => {
-                                return <button onClick={() => quotationDetailsForm.remove(row.index)} className="btn btn-warning btn-outline btn-xs">remove</button>
+                                return <button onClick={() => purchaseDetailsForm.remove(row.index)} className="btn btn-warning btn-outline btn-xs">remove</button>
                             }
                         }
                     ]} search={false} pagenation={false} />
@@ -337,9 +342,9 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={useQuotationRequiredData}>
+        <CollectRequiredDataWrapper useHooks={usePurchaseRequiredData}>
             {(props)=>{
-                return <UpdateQuotation {...props}/>
+                return <UpdatePurchase {...props}/>
             }}
         </CollectRequiredDataWrapper>
     )
@@ -349,12 +354,12 @@ Index.getLayout = getLayout;
 
 
 
-function useQuotationRequiredData() {
+function usePurchaseRequiredData() {
     const router = useRouter();
-    const quotationId = parseInt((router.query as QuotationPathProps).quotationId ?? "");
+    const purchaseId = parseInt((router.query as PurchasePathProps).purchaseId ?? "");
     const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     const {setting, result:{isLoading:settingLoading}} = useSetting(); 
-    const {quotation, result:{isLoading:loading,}, refetch} = useQuotation(quotationId);
-    return {data:{ tenant,setting,defaultCurrency:setting?.currency ,quotation,refetch },isLoading: tenantLoading || loading || settingLoading};
+    const {purchase, result:{isLoading:loading,}, refetch} = usePurchase(purchaseId);
+    return {data:{ tenant,setting,defaultCurrency:setting?.currency ,purchase,refetch },isLoading: tenantLoading || loading || settingLoading};
 }
-type QuotationRequiredDataReturnType = ReturnType<typeof useQuotationRequiredData>
+type PurchaseRequiredDataReturnType = ReturnType<typeof usePurchaseRequiredData>

@@ -34,7 +34,7 @@ export function UpdateQuotation({tenant,quotation,defaultCurrency,refetch}:Quota
     
     const symbol = defaultCurrency?.symbol ?? "";
     
-    const options = useQuotationFormFieldOptions(symbol,quotation as any);
+    const options = useQuotationFormFieldOptions(quotation as any);
 
     const [config, form] = useZodForm(updateQuotationInputSchema, options, {
         defaultValues:{ ...(quotation??{})}

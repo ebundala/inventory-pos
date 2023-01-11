@@ -1,11 +1,12 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
-import { useQuotations } from "@/lib/hooks/useQuotations";
+import { usePurchases } from "@/lib/hooks/usePurchases";
+import { Purchase } from "@prisma/client";
 import { useRouter } from "next/router";
 
 
-export function Quotations({quotations,refetch}:QuitationListProps) {
+export function Purchases({purchases,refetch}:QuitationListProps) {
     const router = useRouter();
     const dateFm = new Intl.DateTimeFormat()
     
@@ -16,6 +17,7 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
+                        router.push("/purchases/create");
 
 
                     }
@@ -38,7 +40,7 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
                     value: 10000
                 }
             ]}
-            rowsData={quotations ?? []}
+            rowsData={purchases ?? []}
             collumsData={() => {
 
                 return [
@@ -63,8 +65,8 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
                         accessor: "ref"
                     },
                     {
-                        Header: "Customer",
-                        accessor: "customer.name",
+                        Header: "Supplier",
+                        accessor: "supplier.name",
 
                     },
                     {
@@ -81,7 +83,23 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
                         Header: "Grand Total",
                         accessor: "grandTotal"
                     },
-                    
+                    {
+                        Header: "Paid",
+                        accessor: "paidAmount"
+                    },
+                    {
+                        Header: "Due",
+                        accessor: "due",
+                        Cell:({row}:{row:any})=>{
+                            const v= row.original as Purchase;
+                            const due = v.grandTotal-v.paidAmount;
+                            return due;
+                        }
+                    },
+                    {
+                        Header: "Payment Status",
+                        accessor: "paymentStatus"
+                    },
                     {
                         Header: "Actions",
                         accessor: "tenantId",
@@ -96,7 +114,7 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
                                 <button onClick={(e) => {
                                     const id = row.original.id;
                                     //console.log(row);
-                                     router.push(`/quotations/update/${id}`);
+                                     router.push(`/purchases/update/${id}`);
                                 }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
                                 <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                             </div>
@@ -108,16 +126,16 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
     </div>
 }
 
-type QuitationListProps = ReturnType<typeof useQuotations>
+type QuitationListProps = ReturnType<typeof usePurchases>
 
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
-            const data = useQuotations();
+            const data = usePurchases();
             return { data, isLoading: data.result.isLoading }
         }}>
             {(props) =>
-                <Quotations {...props} />
+                <Purchases {...props} />
             }
         </CollectRequiredDataWrapper>
     );
