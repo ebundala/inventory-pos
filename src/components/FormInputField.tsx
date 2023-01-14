@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
 import { FormComboBox } from "./combobox";
 
-export function FormInputField({ label, hideLabel, comboboxProps, name, control, required, readonly, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ZodFormFieldConfig) {
+export function FormInputField({ label, hideLabel, disabled,comboboxProps, name, control, required, readonly, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ZodFormFieldConfig) {
   const hidden = props.hidden ? 'hidden' : '';
   let el: ReactNode
   
@@ -15,6 +15,7 @@ export function FormInputField({ label, hideLabel, comboboxProps, name, control,
       required={required}
       error={error}
       hideLabel={hideLabel}
+      
       props={{...props,type:'search'}}      
       {...comboboxProps}
     />
@@ -60,8 +61,13 @@ export function FormInputField({ label, hideLabel, comboboxProps, name, control,
     )
   }
   else if (readonly) {
+    let format;
+    if(readonly instanceof Object){
+      format = readonly.format;
+    }
     return (<ReadonlyFormField
       required={required}
+      format={format}
       hideLabel={hideLabel}
       name={name}
       error={error}
@@ -90,7 +96,7 @@ export function FormInputField({ label, hideLabel, comboboxProps, name, control,
 
 
 
-function ReadonlyFormField({ control, hideLabel, error, name, props, label, required, ...rest }: Pick<ZodFormFieldConfig, 'control' | 'required' | 'props' | 'name' | 'error' | 'label' | 'hideLabel'>) {
+function ReadonlyFormField({ control, hideLabel,format, error, name, props, label, required, ...rest }: Pick<ZodFormFieldConfig, 'control' | 'required' | 'props' | 'name' | 'error' | 'label' | 'hideLabel'>&{format?:(v:any)=>string}) {
   const hidden = props.hidden ? 'hidden' : '';
 
   const data = useWatch({ control });
@@ -100,7 +106,7 @@ function ReadonlyFormField({ control, hideLabel, error, name, props, label, requ
     {!hideLabel && <label className={`label ${hidden}`}>
       <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
     </label>}
-    {value}
+    <span className="p-2">{format?format(value):value}</span>
     {error &&
       <span className={`pt-2 text text-error text-xs font-semibold ${hidden ? 'hidden' : ''}`}>{error}</span>}
 

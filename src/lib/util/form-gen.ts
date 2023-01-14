@@ -197,8 +197,9 @@ type FormFieldOption = {
     textArea?: boolean,
     ordering?: number,
     hidden?: boolean,
+    disabled?:boolean,
     options?: InputOptionValues,
-    readonly?:boolean,
+    readonly?:boolean | {format:(v:any)=>string},
     hideLabel?:boolean,
     combobox?:ComboboxFieldOptions,
     registerOptions?:TRegisterOptiopns
@@ -268,6 +269,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const readonly = fieldOptions[v.name]?.readonly ?? false;
             const hideLabel = fieldOptions[v.name]?.hideLabel ?? false;
             const comboboxProps = fieldOptions[v.name]?.combobox;
+            const disabled1 = fieldOptions[v.name]?.disabled;
             const control = form.control;
             const registerOptions = fieldOptions[v.name]?.registerOptions??{};
             // const setValueAs = v.type == ZodFirstPartyTypeKind.ZodBoolean?(i:any)=>{
@@ -275,7 +277,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             //    return false;
             // }:undefined;
             const type = getInputTypeFromZodType(v.type);
-            const disabled = isSubmitting;
+            const disabled = isSubmitting||disabled1;
             const path = getPath(v.name);
             const isArray = isZodFormFieldArray(v.name);
             const error = isArray?undefined:getValue(path, errors)?.message?.toString();
@@ -283,7 +285,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             
             
           
-            return { error,hideLabel,comboboxProps, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled, ...registration }, ...v }
+            return { error,hideLabel,comboboxProps,disabled, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled, ...registration }, ...v }
         }).sort((a, b) => a.ordering - b.ordering);
     }, [refinedSchema, fieldConfig, register, isSubmitting, errors, fieldOptions]);
 

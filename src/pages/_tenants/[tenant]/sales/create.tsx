@@ -27,6 +27,8 @@ import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 
 export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer?: Customer; }) {
     const { customer, warehouse } = opts ?? {};
+    const currencyFormat = new Intl.NumberFormat();
+
     return useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
@@ -73,7 +75,7 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
             label: "Status",
             ordering: 7,
             options: [
-                "Pending", "Ordered","Completed"
+                "Pending", "Ordered", "Completed"
             ]
         },
         paymentStatus: {
@@ -104,11 +106,8 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
             hidden: true,
             ordering: 11
         },
-        paidAmount:{
-            label:"Paying Amount",
-            registerOptions:{
-                value:0
-            }
+        paidAmount: {
+            label: "Paying Amount",
         },
         id: { hidden: true },
         userId: {
@@ -125,7 +124,7 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
         "saleDetails.0.price": {
             label: "Unit Price",
             hideLabel: true,
-            readonly: true,
+            readonly: {format:currencyFormat.format},
             ordering: 14,
             //hidden: true
         },
@@ -138,18 +137,18 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
             label: "Discount",
             ordering: 16,
             hideLabel: true,
-            readonly: true
+            readonly: {format:currencyFormat.format},
         },
         "saleDetails.0.taxNet": {
             label: "Tax",
             hideLabel: true,
-            readonly: true,
+            readonly: {format:currencyFormat.format},
             ordering: 17
         },
         "saleDetails.0.total": {
             label: "Subtotal",
             hideLabel: true,
-            readonly: true,
+            readonly: {format:currencyFormat.format},
             ordering: 18
         },
         "saleDetails.0.productVariantId": {
@@ -199,13 +198,12 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
                 "Mobile",
                 "Bank wire",
                 "Other"
-
             ]
         },
         "paymentSales.0.change": {
             label: "Change",
-             readonly: true,
-             ordering: 13,
+            readonly: {format:currencyFormat.format},
+            ordering: 13,
         },
     }), [customer, warehouse,]);
 }
@@ -244,7 +242,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         form.setValue(Prisma.SaleScalarFieldEnum.taxRate, 0)
         form.setValue(Prisma.SaleScalarFieldEnum.discount, 0)
         form.setValue(Prisma.SaleScalarFieldEnum.shipping, 0)
-
+        form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, 0)
     }, [])
 
     const detailsData = useRenderFieldArrayForm(saleDetailsFormName, saleDetailsForm, form, saleDetailsConfig)
@@ -272,16 +270,16 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         control: form.control, compute: (data) => {
             const partialData: TComputedFormFieldsResult = [];
             const detailsPath = 'saleDetails';
-            const paymentPath="paymentSales";
-            let subTotal = 0,grandTotal=0, taxNet = 0;
+            const paymentPath = "paymentSales";
+            let subTotal = 0, grandTotal = 0, taxNet = 0;
 
             if (data) {
-                const details = getValue([detailsPath],data);
-                const paymentSales = getValue([paymentPath],data)
-                let taxRate = getValue([Prisma.SaleScalarFieldEnum.taxRate],data);
-                let discount = getValue([Prisma.SaleScalarFieldEnum.discount],data);
-                let shipping = getValue([Prisma.SaleScalarFieldEnum.shipping],data);
-                let paidAmount = getValue([Prisma.SaleScalarFieldEnum.paidAmount],data);
+                const details = getValue([detailsPath], data);
+                const paymentSales = getValue([paymentPath], data)
+                let taxRate = getValue([Prisma.SaleScalarFieldEnum.taxRate], data);
+                let discount = getValue([Prisma.SaleScalarFieldEnum.discount], data);
+                let shipping = getValue([Prisma.SaleScalarFieldEnum.shipping], data);
+                let paidAmount = getValue([Prisma.SaleScalarFieldEnum.paidAmount], data);
 
                 if (details && details instanceof Array) {
                     for (let i = 0; i < details.length; i++) {
@@ -332,35 +330,35 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                     partialData.push(...[
                         { value: taxNet, default: 0, path: [Prisma.SaleScalarFieldEnum.taxNet] },
                         { value: grandTotal, default: 0, path: [Prisma.SaleScalarFieldEnum.grandTotal] },
-                       // { value: discount, default: 0, path: [Prisma.SaleScalarFieldEnum.discount] },
-                       // { value: taxRate, default: 0, path: [Prisma.SaleScalarFieldEnum.taxRate] },
-                       // { value: shipping, default: 0, path: [Prisma.SaleScalarFieldEnum.shipping] },
+                        // { value: discount, default: 0, path: [Prisma.SaleScalarFieldEnum.discount] },
+                        // { value: taxRate, default: 0, path: [Prisma.SaleScalarFieldEnum.taxRate] },
+                        // { value: shipping, default: 0, path: [Prisma.SaleScalarFieldEnum.shipping] },
 
                     ])
                 }
 
-                if(paymentSales && paymentSales instanceof Array){
+                if (paymentSales && paymentSales instanceof Array) {
                     for (let i = 0; i < paymentSales.length; i++) {
                         const item = paymentSales[i];
                         if (item) {
                             let payment = item as PaymentSale;
-                            const amount = getValue([Prisma.PaymentSaleScalarFieldEnum.amount],payment)
+                            const amount = getValue([Prisma.PaymentSaleScalarFieldEnum.amount], payment)
                             let change = amount;
-                              if(amount>paidAmount){
-                                 change = amount-paidAmount;
-                              }else{
-                                change=0;
-                              }
+                            if (amount > paidAmount) {
+                                change = amount - paidAmount;
+                            } else {
+                                change = 0;
+                            }
                             partialData.push(
                                 ...[
-                                    { value: change, default: 0, path: [paymentPath,i,Prisma.PaymentSaleScalarFieldEnum.change] },
+                                    { value: change, default: 0, path: [paymentPath, i, Prisma.PaymentSaleScalarFieldEnum.change] },
 
                                 ]
                             )
-                       
+
                         }
+                    }
                 }
-              }
             }
             return partialData;
         }
@@ -370,15 +368,9 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         // console.log(data);
         const values = form.getValues();
         for (let v of data) {
-            // Todo find better way to detect changes 
-            if (getValue(['value'],v) !== getValue(v.path, values)) {
-                 console.log("changed ",v.value,getValue(v.path,values))
-              //  if (!v.value) {
-                  //  form.setValue(v.path.join('.'), v.default);
-                //} else {
-                    form.setValue(v.path.join('.'), v.value);
-
-               // }
+            if (getValue(['value'], v) !== getValue(v.path, values)) {
+                console.log("changed ", v.value, getValue(v.path, values))
+                form.setValue(v.path.join('.'), v.value);
             }
         }
     }, [data]);
@@ -388,24 +380,40 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         Prisma.SaleScalarFieldEnum.taxNet,
         Prisma.SaleScalarFieldEnum.discount,
         Prisma.SaleScalarFieldEnum.shipping,
-        Prisma.SaleScalarFieldEnum.grandTotal])
+        Prisma.SaleScalarFieldEnum.grandTotal]);
+
     const paymentStatus = form.watch(Prisma.SaleScalarFieldEnum.paymentStatus);
     const paymentFields = useMemo(() => {
+
+        if(paymentStatus==="Paid"){
+            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal); 
+        }
+
         if (paymentStatus === "Pending") {
             if (paymentSalesForm.fields.length > 0) {
-                paymentSalesForm.remove([0])
+                paymentSalesForm.replace([])
             }
-        } else if (paymentStatus && paymentSalesForm.fields.length == 0) {
+        } else if (paymentStatus && paymentSalesForm.fields.length == 0 && paymentSaleData.length==0) {
             const date = new Date();
             const ref = Date.now();
-            paymentSalesForm.insert(0,{ date:date, ref: `${ref}`, amount: 0, change: 0, });
+            const amount = paymentStatus === "Partial"?0:grandTotal;
+            
+            paymentSalesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, }]);
+            
         }
-        if (paymentSaleData.length) {
-            const paidInput = <FormInputField key={paidAmountField!.name} {...paidAmountField!} />
-            return [paymentSaleData.at(0)!.fields.slice(0,2), paidInput, ...paymentSaleData.at(0)!.fields!.slice(2)]
+        else if (paymentSalesForm.fields.length>0&&paymentSaleData.length>0) {
+            const props = {...paidAmountField!,props:{...paidAmountField!.props,disabled:paymentStatus==="Paid"}}
+            const paidInput = <FormInputField key={paidAmountField!.name} {...props} />
+            return [paymentSaleData.at(0)!.fields.slice(0, 2), paidInput, ...paymentSaleData.at(0)!.fields!.slice(2)]
         }
         return [];
-    }, [paymentStatus,paymentSaleData])
+    }, [paymentStatus,paymentSalesForm.fields.length,paymentSaleData.length])
+   
+    useEffect(()=>{
+        if(paymentStatus==="Paid"){
+            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal); 
+        }
+    },[grandTotal,paymentStatus]);
 
     return (
         <FormContainer title={<h2>Create Sale</h2>}>
@@ -413,7 +421,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                 //submit here
                 console.log(data);
                 await result.mutateAsync(data as any);
-                form.reset();
+              //  form.reset();
 
             }, (e) => {
                 console.error(e);
@@ -479,6 +487,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                             Header: `Unit price (${symbol})`,
                             accessor: "fields.1",
                             disableSortBy: true,
+                          
 
                         },
                         {
@@ -500,12 +509,14 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                         {
                             Header: `Tax (${symbol})`,
                             accessor: "fields.4",
-                            disableSortBy: true
+                            disableSortBy: true,
+                         
                         },
                         {
                             Header: `Subtotal (${symbol})`,
                             accessor: "fields.5",
-                            disableSortBy: true
+                            disableSortBy: true,
+                            
                         },
                         {
                             Header: "",
@@ -531,7 +542,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                     {secondaryFields.map((i) => {
                         return (<FormInputField key={i.name} {...i} />);
                     })}
-                    {paymentSaleData.length>0 && paymentFields}
+                    {paymentSaleData.length > 0 && paymentFields}
                 </div>
                 <div className="w-full">
                     <FormInputField  {...notesField as any} />
