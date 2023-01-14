@@ -25,7 +25,7 @@ import { CustomTable } from "@/components/table";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToPurchaseDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { usePurchaseFormFieldOptions } from "../usePurchaseFormFieldOptions";
+import { usePurchaseFormFieldOptions } from "../../../../../lib/hooks/usePurchaseFormFieldOptions";
 
 interface PurchasePathProps extends ParsedUrlQuery {
     purchaseId: string;

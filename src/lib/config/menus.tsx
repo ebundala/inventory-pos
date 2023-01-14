@@ -1,6 +1,7 @@
 
 import {
     BsAlarm, BsArrowBarLeft, BsArrowBarRight, BsArrowLeftRight, BsAward, BsBarChart, BsCalculator,
+    BsCashCoin,
     BsCurrencyExchange, BsGear, BsGenderAmbiguous,
     BsGraphUp, BsPieChart, BsReceipt, BsShieldCheck, BsShop, BsThermometer, BsUnlock
 } from "react-icons/bs";
@@ -122,19 +123,19 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Sales",
-                link: '#',
+                link: '/sales/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Sales",
-                link: '#',
+                link: '/sales',
                 icon: <BsCalculator />,
                 subMenus: []
             },
             {
                 name: "Shipments",
-                link: '#',
+                link: '/sales/shipments',
                 icon: <BsGenderAmbiguous />,
                 subMenus: []
             },
@@ -147,13 +148,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Transfers",
-                link: '#',
+                link: '/transfers/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Transfers",
-                link: '#',
+                link: '/transfers',
                 icon: <BsCalculator />,
                 subMenus: []
             }
@@ -166,13 +167,13 @@ export const menus: LinkMenuData[] = [
         subMenus: [
             {
                 name: "Create Sale returns",
-                link: '#',
+                link: '/sale-returns/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
                 name: "All Purchases",
-                link: '#',
+                link: '/sale-returns',
                 icon: <BsCalculator />,
                 subMenus: []
             }
@@ -184,14 +185,14 @@ export const menus: LinkMenuData[] = [
         icon: <BsArrowBarLeft size={32} />,
         subMenus: [
             {
-                name: "Create Sale returns",
-                link: '#',
+                name: "Create Purchase returns",
+                link: '/purchase-returns/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
-                name: "All Purchases",
-                link: '#',
+                name: "All Purchases returns",
+                link: '/purchase-returns',
                 icon: <BsCalculator />,
                 subMenus: []
             }
@@ -227,6 +228,12 @@ export const menus: LinkMenuData[] = [
         link: '#',
         icon: <BsGear size={32} />,
         subMenus: [
+            {
+                name: "Account",
+                link: '/account',
+                icon: <BsCashCoin />,
+                subMenus: []
+            },
             {
                 name: "System settings",
                 link: '/settings/system',

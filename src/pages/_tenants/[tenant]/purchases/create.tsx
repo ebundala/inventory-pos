@@ -3,7 +3,7 @@ import { FormInputField } from "@/components/FormInputField";
 import { createPurchaseInputSchema } from "@/core/purchase/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { getValue, useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
+import { getValue, useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
@@ -20,7 +20,8 @@ import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { OrderSummary } from "@/components/OrderSummary";
-import { usePurchaseFormFieldOptions } from "./usePurchaseFormFieldOptions";
+import { usePurchaseFormFieldOptions } from "@/lib/hooks/usePurchaseFormFieldOptions";
+import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 
 
 export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
@@ -33,17 +34,8 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
-    const groupedFieldArray = useMemo(()=>{
-        const fields = new Map<string,ZodFormFieldConfig[]>();
-        for(let v of fieldArrayConfig){
-           const fieldName = v.name.split('.')[0] as string;
-           const data = fields.get(fieldName) ?? [];
-           data.push(v);
-           fields.set(fieldName,data);
-        }
-        return fields;
-      
-    },[fieldArrayConfig]);
+    const groupedFieldArray = useGroupedFieldArray(fieldArrayConfig);
+
     const purchaseDetailFieldConfig = groupedFieldArray.get('purchaseDetails');
     const paymentPurchaseFieldConfig = groupedFieldArray.get('paymentPurchases')
     const purchaseDetailFormName = useFieldArrayName(purchaseDetailFieldConfig!);

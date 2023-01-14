@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { RegisterOptions, useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, ZodTypeAny, ZodIssueCode, } from "zod";
+import { ZodFirstPartyTypeKind, ZodFirstPartySchemaTypes, ZodTypeAny, ZodIssueCode, ZodNaN, } from "zod";
 import { ComboboxFieldOptions } from "@/types/ComboboxFieldOptions";
 
 
@@ -297,9 +297,21 @@ export type ZodFormRegisterCallbacksTypes =ReturnType<ReturnType<typeof useZodFo
 export function isZodFormFieldArray(name: string) {
     return /[0-9]/g.test(name);
 }
-export const getValue = (path: (number | string)[], data: any) => path.reduce((data, v, i, arr) => {
+export const getValue = (path: (number | string)[], data: any,defaultValue:any=0) =>{
+const value = path.reduce((data, v, i, arr) => {
     return (data ?? {})[v];
 }, data);
+if(value){  
+   // console.log("get value",value,path.join("."));
+    return value;
+}else if(isNaN(value)){
+   // console.log("get value nan",value,path.join("."));
+    return defaultValue;
+}
+else{
+    return value;
+}
+}
 
 export const getPath = (field: string) => field.split(".").map((v) => {
     if (/[0-9]/g.test(v)) {
