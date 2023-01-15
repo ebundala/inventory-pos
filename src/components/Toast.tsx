@@ -3,8 +3,8 @@ import { ToastMessage } from "@/types//ToastMessage";
 import { useToast } from "@/lib/hooks/useToast";
 
 export function Toast() {
-    const [add, remove, messages] = useToast();
-    const show = messages.size;
+    const {showToast, clearToast, messages} = useToast();
+    const showing = messages.size;
     const messagesArr = useMemo<ToastMessage[]>(() => {
         const arr: ToastMessage[] = [];
         messages.forEach((e) => {
@@ -15,7 +15,7 @@ export function Toast() {
     function getDismiss(m: ToastMessage) {
         if (messages.has(m)) {
             return () => {
-                remove(m);
+                clearToast(m);
             };
         };
         return () => { };
@@ -47,8 +47,8 @@ export function Toast() {
 
 
     return (
-        <div className={`toast toast-top toast-end z-40 ${!show ? 'hidden' : ''}`}>
-            {messagesArr.map((m) => <AlertBuilder key={m.id} m={m} dismiss={getDismiss(m)} send={add} />)}
+        <div className={`toast toast-top toast-end z-40 ${!showing ? 'hidden' : ''}`}>
+            {messagesArr.map((m) => <AlertBuilder key={m.id} m={m} dismiss={getDismiss(m)} send={showToast} />)}
         </div>);
 
 

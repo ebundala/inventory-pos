@@ -27,6 +27,8 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToSaleDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
+import { useToast } from "@/lib/hooks/useToast";
+import { ToastMessageType } from "@/types/ToastMessageType";
 
 interface SalePathProps extends ParsedUrlQuery {
     saleId: string;
@@ -58,16 +60,17 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.sale.update.useMutation({
         onSuccess:(data, variables, context) =>{
-            form.reset();
-            refetch();
+           // form.reset();
+          //  refetch();
+          // router.push("/sales") 
+          
         },
     });
-
-
 
     useEffect(() => {
         if(sale){
          form.reset(sale);
+         
         }
     }, [sale])
 
@@ -190,7 +193,7 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
         }
     })
 
-   useMemo(() => {
+   useEffect(() => {
         // console.log(data);
         const values = form.getValues();
         for (let v of data) {
@@ -353,7 +356,10 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
                         accessor: "action",
                         disableSortBy: true,
                         Cell: ({ row }: { row: any }) => {
-                            return <button onClick={() => saleDetailsForm.remove(row.index)} className="btn btn-warning btn-outline btn-xs">remove</button>
+                            return <button onClick={(e) => {
+                                e.preventDefault();
+                                saleDetailsForm.remove(row.index)}
+                            } className="btn btn-warning btn-outline btn-xs">remove</button>
                         }
                     }
                 ]} search={false} pagenation={false} />
