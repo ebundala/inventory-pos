@@ -24,7 +24,7 @@ export function EndDrawer({ children }: WithChildren) {
                     e.target.checked ? open() : close();
                 }
             }} className="drawer-toggle" />
-            <div className="drawer-content">
+            <div className="drawer-content overflow-y-visible pb-10">
                 {children}
             </div>
             <div className="drawer-side  ">

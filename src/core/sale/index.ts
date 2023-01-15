@@ -5,7 +5,12 @@ const include = {
     user: true,
     warehouse: true,
     customer: true,
-    saleDetails: true,
+    saleDetails:{
+        include:{
+            product: true,
+            productVariant:true
+        },
+    },
     paymentSales: true,
     shipments: true
 };

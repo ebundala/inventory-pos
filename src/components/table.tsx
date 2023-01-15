@@ -163,7 +163,7 @@ function TableSelectMenu({ value,
               <Listbox.Option
                 key={option.value}
                 className={({ active }) =>
-                  `relative cursor-default select-none py-3 pl-10 pr-4 ${active ? "bg-red-100" : ""
+                  `relative cursor-default select-none py-3 pl-10 pr-4 ${active ? "bg-yellow-100" : ""
                   }`
                 }
                 value={option.value}
@@ -177,7 +177,7 @@ function TableSelectMenu({ value,
                       {option.label}
                     </span>
                     {selected ? (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-red-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-yellow-400">
                         <FaCheck size="0.5rem" aria-hidden="true" />
                       </span>
                     ) : null}
@@ -201,10 +201,10 @@ function TableNavButton({ content, onClick, active, disabled }: {
   return (
     <button
       className={`flex flex-col cursor-pointer items-center justify-center w-9 h-9 shadow-[0_4px_10px_rgba(0,0,0,0.03)] text-sm font-normal transition-colors rounded-lg
-      ${active ? "bg-red-500 text-white" : "text-red-500"}
+      ${active ? "bg-yellow-500 text-white" : "text-yellow-500"}
       ${!disabled
-          ? "bg-white hover:bg-red-500 hover:text-white"
-          : "text-red-300 bg-white cursor-not-allowed"
+          ? "bg-white hover:bg-yellow-500 hover:text-white"
+          : "text-yellow-300 bg-white cursor-not-allowed"
         }
       `}
       onClick={onClick}
@@ -302,7 +302,7 @@ function TableComponent({
   prepareRow: (v: any) => void,
 }) {
   return (
-    <div className="w-full min-w-[30rem] p-4 bg-white rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.03)]">
+    <div className="w-full min-w-[30rem] bg-white rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.03)] overflow-x-auto">
       <table {...getTableProps()} className="table w-full">
         <thead>
           {headerGroups.map((headerGroup) => (
@@ -321,12 +321,12 @@ function TableComponent({
                       <div className="flex flex-col">
                         <FaSortUp
                           className={`text-sm translate-y-1/2 ${column.isSorted && !column.isSortedDesc
-                            ? "text-red-400"
+                            ? "text-yellow-400"
                             : "text-gray-300"
                             }`}
                         />
                         <FaSortDown
-                          className={`text-sm -translate-y-1/2 ${column.isSortedDesc ? "text-red-400" : "text-gray-300"
+                          className={`text-sm -translate-y-1/2 ${column.isSortedDesc ? "text-yellow-400" : "text-gray-300"
                             }`}
                         />
                       </div>
@@ -346,7 +346,7 @@ function TableComponent({
                   return (
                     <td
                       {...cell.getCellProps()}
-                      className="p-3 text-sm font-normal text-gray-700 first:rounded-l-lg last:rounded-r-lg"
+                      className="p-2 text-sm font-normal text-gray-700 first:rounded-l-lg last:rounded-r-lg"
                     >
                       {cell.render("Cell")}
                     </td>

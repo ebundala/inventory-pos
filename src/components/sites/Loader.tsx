@@ -1,4 +1,11 @@
+import { RadialProgress } from "../RadialProgress";
+
 export default function Loader() {
+  return <div className="w-full min-h-screen flex flex-col items-center justify-center">
+    <div className="w-8 h-8 ">
+    <RadialProgress animated={true} ></RadialProgress>
+    </div>
+  </div>
   return (
     <div className="w-full my-10">
       <div className="h-10 w-60 mx-auto bg-gray-200 animate-pulse md:rounded-md" />

@@ -24,12 +24,12 @@ export function Layout({ children, ...props }: WithChildren) {
                 <input id="my-drawer" type="checkbox" checked={show} className="drawer-toggle" readOnly />
 
 
-                <div className="drawer-content flex flex-col items-stretch">
+                <div className="drawer-content">
                     {/* <!-- Page content here --> */}
                     <EndDrawer>
                         <Breadcrumb />
 
-                        <div className="flex flex-1 flex-col mx-4 mb-4 mt-2 ">
+                        <div className="flex flex-col flex-1 mx-4 mb-4 mt-2">
                             {children}
 
                         </div>
@@ -43,7 +43,7 @@ export function Layout({ children, ...props }: WithChildren) {
                     </EndDrawer>
 
                 </div>
-                <div className="drawer-side ">
+                <div className="drawer-side pb-16">
                     <label htmlFor="my-drawer" className="drawer-overlay" onClick={() => {
                         toggle(true);
                     }}></label>

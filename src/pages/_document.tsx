@@ -4,10 +4,10 @@ export default function Document() {
     return (
         <Html data-theme="">
             <Head>
-                <body>
+                <body className='overflow-hidden'>
                     <Main />
-                    <NextScript></NextScript>
-
+                   
+                  <NextScript></NextScript>
                 </body>
             </Head>
         </Html>
