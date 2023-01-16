@@ -23,5 +23,5 @@ export function usePosSetting() {
     }
     return rResult;
   }, [result.refetch])
-  return [posSetting, result.isLoading, result.isSuccess,refetch] as [typeof posSetting, boolean, boolean,typeof refetch];
+  return {posSetting, result,refetch};
 }

@@ -16,7 +16,7 @@ import { CustomTable } from "@/components/table";
 import { useWarehouses } from "@/lib/hooks/useWarehouses";
 
 export default function CurrencyIndex() {
-    const [warehouses, loading, success,refetch] = useWarehouses();
+    const {warehouses, result:{isLoading:loading, isSuccess:success},refetch} = useWarehouses();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -184,7 +184,7 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 }
 
 const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (

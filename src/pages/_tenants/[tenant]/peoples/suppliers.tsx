@@ -17,7 +17,7 @@ import { useSuppliers } from "@/lib/hooks/useSuppliers";
 
 
 export default function SupplierIndex() {
-    const [suppliers, loading, success,refetch] = useSuppliers();
+    const {suppliers, result:{isLoading:loading,isSuccess:success},refetch } = useSuppliers();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -192,7 +192,7 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 }
 
 const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (

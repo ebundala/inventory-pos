@@ -16,7 +16,7 @@ import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 
 export default function CurrencyIndex() {
-    const [currencies, loading, success,refetch] = useCurrencies();
+    const {currencies, result:{isLoading:loading, isSuccess:success},refetch} = useCurrencies();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -164,7 +164,7 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 }
 
 const CurrencyForm:FC<ZodFormSchema<Currency>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (

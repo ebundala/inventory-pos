@@ -23,5 +23,5 @@ export function useCustomers() {
     return rResult;
   }, [result.refetch])
 
-  return [customers, result.isLoading, result.isSuccess,refetch] as [typeof customers, boolean, boolean,typeof refetch];
+  return {customers, result,refetch};
 }

@@ -16,7 +16,7 @@ import { CustomTable } from "@/components/table";
 import { useCustomers } from "@/lib/hooks/useCustomers";
 
 export default function CustomerIndex() {
-    const [customers, loading, success,refetch] = useCustomers();
+    const {customers, result:{isLoading:loading, isSuccess:success},refetch} = useCustomers();
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -192,7 +192,7 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 }
 
 const CustomerForm:FC<ZodFormSchema<Customer>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const [tenant] = useTenant();
+    const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (

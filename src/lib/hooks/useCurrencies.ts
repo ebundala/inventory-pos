@@ -20,5 +20,5 @@ export function useCurrencies() {
     }
     return rResult;
   }, [result.refetch])
-  return [currencies, result.isLoading, result.isSuccess, refetch] as [typeof currencies, boolean, boolean, typeof refetch];
+  return {currencies, result, refetch};
 }

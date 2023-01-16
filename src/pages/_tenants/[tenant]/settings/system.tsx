@@ -12,11 +12,16 @@ import { useCustomers } from "@/lib/hooks/useCustomers";
 import { useCurrencies } from "@/lib/hooks/useCurrencies";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { FormContainer } from "@/components/FormContainer";
-import { FormInputField } from "../../../../components/FormInputField";
+import { FormInputField } from "@/components/FormInputField";
 import { createPosSettingInputSchema, updatePosSettingInputSchema } from "@/core/pos_setting/index.zod";
 import { useEffect, useMemo } from "react";
-import { PosSetting, Setting } from "@prisma/client";
-import { CollectHooksReturnType, CollectRequiredDataWrapper } from "../../../../components/CollectRequiredDataWrapper";
+import { Currency, Customer, PosSetting, Setting, Warehouse } from "@prisma/client";
+import { CollectHooksReturnType, CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { Combobox } from "@headlessui/react";
+import { useCurrencySearch } from "@/lib/hooks/useCurrencySearch";
+import { useCustomerSearch } from "@/lib/hooks/useCustomerSearch";
+import customers from "../peoples/customers";
+import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
 
 
 function SettingsIndex() {
@@ -89,16 +94,16 @@ SettingsIndex.getLayout = getLayout
 export default SettingsIndex;
 
 function useSettingRequiredData(){
-  const [tenant,t,_t,tr] = useTenant();
-  const [setting,s,_s,refetchSetting] = useSetting();
-  const [customers, loading, c,cur] = useCustomers();
-  const [warehouses, loading1, w, wr] = useWarehouses();
-  const [currencies, loading2, cu,c3] = useCurrencies();
-return {data:{tenant,setting,customers,warehouses,currencies,refetchSetting},isLoading:t||s||loading||loading1||loading2}
+  const {tenant,result:{isLoading:tenantLoading},refetch:refetchTenant} = useTenant();
+  const {setting,result:{isLoading:settingLoading},refetch:refetchSetting} = useSetting();
+  // const [customers, loading, c,cur] = useCustomers();
+  // const [warehouses, loading1, w, wr] = useWarehouses();
+  // const [currencies, loading2, cu,c3] = useCurrencies();
+return {data:{tenant,setting,refetchSetting,refetchTenant},isLoading:tenantLoading||settingLoading}
 }
 
 type SystemSettingsProps = ReturnType<typeof useSettingRequiredData>['data']
-function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchSetting}:SystemSettingsProps) {
+function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSettingsProps) {
   // const [tenant,t,_t,tr] = useTenant();
   // const [setting,s,_s,refetchSetting] = useSetting();
   // const [customers, loading, c,cur] = useCustomers();
@@ -116,8 +121,11 @@ function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchS
     return {
       currencyId: {
         label: "Default Currency",
-        ordering: 1,
-        options: currencies?.map((v) => ({ label: v.name, value: v.id })),
+        ordering: 1,       
+        combobox:{
+          value:setting?.currency as Currency | undefined,
+          useGetDataHook:useCurrencySearch
+        },
       },
       email: {
         label: "Default email",
@@ -130,13 +138,19 @@ function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchS
       customerId: {
         label: "Default customer",
         ordering: 6,
-        options: customers?.map((v) => ({ label: v.name, value: v.id }))
+        combobox:{
+          value:setting?.customer as Customer | undefined,
+          useGetDataHook:useCustomerSearch
+        },
 
       },
       warehouseId: {
         label: "Default warehouse",
         ordering: 7,
-        options: warehouses?.map((v) => ({ label: v.name, value: v.id }))
+        combobox:{
+          value:setting?.warehouse as Warehouse | undefined,
+          useGetDataHook:useWarehouseSearch
+        },
       },
       logo: { label: "Change logo", ordering: 8, upload: true },
       footer: { label: "footer", ordering: 9 },
@@ -144,7 +158,7 @@ function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchS
       tenantId: { label: "tenantId", hidden: true, ordering: 11 },
       id: { label: "id", hidden: true, ordering: 12 }
     }
-  }, [warehouses, currencies, customers]);
+  }, [setting]);
 
   const [config, form] = useZodForm(setting?.id ? updateSettingInputSchema : createSettingInputSchema,
     fieldOptions, { defaultValues: { tenantId: tenant?.tenantId, ...(setting ?? {}) } })
@@ -178,9 +192,9 @@ function SystemSettings({tenant,setting,customers,warehouses,currencies,refetchS
 }
 
 function usePosRequiredData(){
-  const [tenant,tenantLoading] = useTenant();
-  const [posSetting, loading, p,refetchPosSettings] = usePosSetting();
-return {data:{posSetting,refetchPosSettings,tenant},isLoading:loading || tenantLoading}
+  const {tenant,result:{isLoading:tenantLoading}} = useTenant();
+  const {posSetting, result:{isLoading:posLoading},refetch:refetchPosSettings} = usePosSetting();
+return {data:{posSetting,refetchPosSettings,tenant},isLoading:posLoading || tenantLoading}
 }
 
 type PosSettingProps = ReturnType<typeof usePosRequiredData>['data']

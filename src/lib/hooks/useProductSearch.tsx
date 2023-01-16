@@ -1,10 +1,54 @@
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useState } from "react";
-import { PaymentPurchase, Prisma, Product, ProductVariant, PurchaseDetail, QuotationDetail, SaleDetail } from '@prisma/client';
+import { PaymentPurchase, Prisma, Product, ProductVariant, PurchaseDetail, QuotationDetail, SaleDetail, TransferDetail } from '@prisma/client';
 import { useSearch, TSearchArgs } from "@/lib/hooks/useSearch";
 import { ProductFindManySchema } from "prisma/generated/schemas/findManyProduct.schema";
 import { AdjustmentDetailFormat } from "@/lib/util/getProductFormatedName";
 import { z } from "zod";
+
+
+export type TransferDetailFormat = Partial<Omit<TransferDetail, 'tenantId' | "createdAt" | "updatedAt" | 'transferId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
+
+export const productToTransferDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
+    let list: TransferDetailFormat[] = []
+    if (data)
+        for (let product of data) {
+            if (product.isVariant) {
+                for (let variant of product.productVariants) {
+                    list.push({
+                        product: product,
+                        productVariant: variant,
+                        productId: product.id,
+                        productVariantId: variant.id,
+                        quantity: 1,
+                        cost:product.price,
+                        purchaseUnitId: product.unitPurchaseId,
+                        taxMethod: product.taxMethod,
+                        // taxNet:0,
+                        discount: 0,
+                        discountMethod: "default",
+                        //   total:product.price,
+                    })
+                }
+            } else {
+                list.push({
+                    product: product,
+                    productId: product.id,
+                    productVariantId: -1,
+                    quantity: 1,
+                    cost:product.price,
+                    purchaseUnitId: product.unitPurchaseId,
+                    taxMethod: product.taxMethod,
+                    // taxNet:0,
+                    discount: 0,
+                    discountMethod: "default",
+                    //   total:product.price,
+                })
+            }
+        }
+    return list;
+}
+
 
 export type QuotationDetailFormat = Partial<Omit<QuotationDetail, 'tenantId' | "createdAt" | "updatedAt" | 'quotationId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
 
