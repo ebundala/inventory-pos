@@ -26,7 +26,7 @@ export type CreateSaleReturnDetailInput = {
 
 export type CreatePaymentSaleReturnInput = {
 
-    userId: string
+   // userId: string
     date: Date
     ref: string
 
@@ -56,7 +56,9 @@ export type CreateSaleReturnInput = {
     tenantId: string
 }
 export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantContext) => {
-    const { tenantId, paymentSaleReturns, saleReturnDetails, ...data } = input;
+    const {tenantId, paymentSaleReturns,userId, saleReturnDetails, ...data } = input;
+   // const {tenantId,session} = ctx;
+    
     let details = {};
     if (saleReturnDetails && saleReturnDetails.length) {
         details = {
@@ -79,7 +81,7 @@ export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantCo
                 createMany: {
                     skipDuplicates: true,
                     data: paymentSaleReturns.map((v) => ({
-                        ...v, tenantId
+                        ...v, tenantId,userId
                     }))
                 }
             }
@@ -88,7 +90,7 @@ export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantCo
     }
     return ctx.tx!.saleReturn.create({
         include,
-        data: { tenantId: tenantId, ...data, ...details, ...paymentData }
+        data: { tenantId: tenantId,userId, ...data, ...details, ...paymentData }
     })
 }
 export type UpdateSaleReturnDetailInput = {

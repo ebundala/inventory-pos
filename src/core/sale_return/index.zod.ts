@@ -16,7 +16,6 @@ export const createSaleReturnDetailInputSchema = z.object({
 });
 
 export const createPaymentSaleReturnInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   amount: z.number(),

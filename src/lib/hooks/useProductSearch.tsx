@@ -1,6 +1,6 @@
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useState } from "react";
-import { PaymentPurchase, Prisma, Product, ProductVariant, PurchaseDetail, QuotationDetail, SaleDetail, TransferDetail } from '@prisma/client';
+import { Prisma, Product, ProductVariant, PurchaseDetail, PurchaseReturnDetail, QuotationDetail, SaleDetail, SaleReturnDetail, TransferDetail } from '@prisma/client';
 import { useSearch, TSearchArgs } from "@/lib/hooks/useSearch";
 import { ProductFindManySchema } from "prisma/generated/schemas/findManyProduct.schema";
 import { AdjustmentDetailFormat } from "@/lib/util/getProductFormatedName";
@@ -145,7 +145,7 @@ export const productToPurchaseDetailFormater = <T extends Product & { productVar
 }
 
 
-export type SaleDetailFormat = Partial<Omit<SaleDetail, 'tenantId' | "createdAt" | "updatedAt" | 'purchaseId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
+export type SaleDetailFormat = Partial<Omit<SaleDetail, 'tenantId' | "createdAt" | "updatedAt" | 'saleId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
 
 export const productToSaleDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
     let list: SaleDetailFormat[] = []
@@ -194,6 +194,106 @@ export const productToSaleDetailFormater = <T extends Product & { productVariant
         }
     return list;
 }
+
+
+export type PurchaseReturnDetailFormat = Partial<Omit<PurchaseReturnDetail, 'tenantId' | "createdAt" | "updatedAt" | 'purchaseReturnId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
+
+export const productToPurchaseReturnDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
+    let list: PurchaseReturnDetailFormat[] = []
+    if (data)
+        for (let product of data) {
+            if (product.isVariant) {
+                for (let variant of product.productVariants) {
+                    list.push({
+                        product: product,
+                        productVariant: variant,
+                        productId: product.id,
+                        productVariantId: variant.id,
+                        quantity: 1,
+                        //  price:product.price,
+                        purchaseUnitId: product.unitPurchaseId as number | undefined,
+                        taxMethod: product.taxMethod,
+                        // taxNet:0,
+                        discount: 0,
+                        discountMethod: "default",
+                        //   total:product.price,
+                        imeiNumber: "",
+
+                    })
+                }
+            } else {
+                list.push({
+                    product: product,
+                    //productVariant: variant,
+                    productId: product.id,
+                    productVariantId: -1,
+                    quantity: 1,
+                    //  price:product.price,
+                    purchaseUnitId: product.unitPurchaseId as number | undefined,
+                    taxMethod: product.taxMethod,
+                    // taxNet:0,
+                    discount: 0,
+                    discountMethod: "default",
+                    //   total:product.price,
+                    imeiNumber: "",
+
+                })
+            }
+        }
+    return list;
+}
+
+
+export type SaleReturnDetailFormat = Partial<Omit<SaleReturnDetail, 'tenantId' | "createdAt" | "updatedAt" | 'saleReturnId'>> & { product: Partial<Product>, productVariant?: Partial<ProductVariant> }
+
+export const productToSaleReturnDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
+    let list: SaleReturnDetailFormat[] = []
+    if (data)
+        for (let product of data) {
+            if (product.isVariant) {
+                for (let variant of product.productVariants) {
+                    list.push({
+                        product: product,
+                        productVariant: variant,
+                        productId: product.id,
+                        productVariantId: variant.id,
+                        quantity: 1,
+                       // date: new Date(),
+                        //  price:product.price,
+                        saleUnitId: product.unitSaleId,
+                        taxMethod: product.taxMethod,
+                        // taxNet:0,
+                        discount: 0,
+                        discountMethod: "default",
+                        //   total:product.price,
+                        imeiNumber: "",
+
+                    })
+                }
+            } else {
+                list.push({
+                    product: product,
+                    //productVariant: variant,
+                    productId: product.id,
+                    productVariantId: -1,
+                    quantity: 1,
+                  //  date: new Date(),
+                    
+                    //  price:product.price,
+                    saleUnitId: product.unitSaleId,
+                    taxMethod: product.taxMethod,
+                    // taxNet:0,
+                    discount: 0,
+                    discountMethod: "default",
+                    //   total:product.price,
+                    imeiNumber: "",
+
+                })
+            }
+        }
+    return list;
+}
+
 
 export const productToAdjustmentDetailFormater = <T extends Product & { productVariants: ProductVariant[] } = Product & { productVariants: ProductVariant[] }>(data: T[]) => {
     let list: AdjustmentDetailFormat[] = []
