@@ -3,10 +3,10 @@ import { useMemo } from "react";
 import { Warehouse } from '@prisma/client';
 import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
 
-export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse; toWarehouse?: Warehouse; }) {
-    const { toWarehouse, fromWarehouse } = opts ?? {};
+export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse, toWarehouse?: Warehouse }) {
+   // const { toWarehouse, fromWarehouse } = opts ?? {};
     const currencyFormat = new Intl.NumberFormat();
-
+  
     return useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
@@ -17,9 +17,9 @@ export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse; 
             ordering: 2,
             combobox: {
                 elevation: 30,
-                value: fromWarehouse ?? undefined,
+                value: opts?.fromWarehouse,
                 valuePath: "id",
-                displayValuePath: "name",
+              // displayValuePath: "name",
                 useGetDataHook: useWarehouseSearch
             }
         },
@@ -28,25 +28,28 @@ export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse; 
             ordering: 2,
             combobox: {
                 elevation: 30,
-                value: toWarehouse ?? undefined,
+                value: opts?.toWarehouse,
                 valuePath: "id",
-                displayValuePath: "name",
+               // displayValuePath: "name",
                 useGetDataHook: useWarehouseSearch
             }
         },
 
         taxRate: {
             label: "Tax (%)",
-            ordering: 4
+            ordering: 4,
+            min:0,           
         },
 
         discount: {
             label: "Discount",
-            ordering: 5
+            ordering: 5,
+            min:0
         },
         shipping: {
             label: "Shipping",
-            ordering: 6
+            ordering: 6,
+            min:0
         },
 
         status: {
@@ -101,6 +104,7 @@ export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse; 
             label: "Quantity",
             ordering: 15,
             hideLabel: true,
+            min:1
         },
         "transferDetails.0.discount": {
             label: "Discount",
@@ -140,5 +144,5 @@ export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse; 
             label: "Discount method",
             ordering: 27
         },
-    }), [toWarehouse, fromWarehouse]);
+    }), [opts]);
 }

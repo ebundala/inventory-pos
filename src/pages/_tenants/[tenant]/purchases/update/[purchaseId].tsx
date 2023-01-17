@@ -357,9 +357,9 @@ Index.getLayout = getLayout;
 function usePurchaseRequiredData() {
     const router = useRouter();
     const purchaseId = parseInt((router.query as PurchasePathProps).purchaseId ?? "");
+    const {purchase, result:{isLoading:loading,}, refetch} = usePurchase(purchaseId);
     const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     const {setting, result:{isLoading:settingLoading}} = useSetting(); 
-    const {purchase, result:{isLoading:loading,}, refetch} = usePurchase(purchaseId);
     return {data:{ tenant,setting,defaultCurrency:setting?.currency ,purchase,refetch },isLoading: tenantLoading || loading || settingLoading};
 }
 type PurchaseRequiredDataReturnType = ReturnType<typeof usePurchaseRequiredData>

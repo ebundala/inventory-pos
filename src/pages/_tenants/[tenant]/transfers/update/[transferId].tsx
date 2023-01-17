@@ -29,17 +29,17 @@ import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOpt
 interface TransferPathProps extends ParsedUrlQuery {
     transferId: string;
 }
-export function UpdateTransfer({tenant,transfer,defaultCurrency,refetch}:TransferRequiredDataReturnType['data']) {
-    
+export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferRequiredDataReturnType['data']) {
+
     const symbol = defaultCurrency?.symbol ?? "";
-    
+
     const options = useTransferFormFieldOptions(transfer as any);
 
     const [config, form] = useZodForm(updateTransferInputSchema, options, {
-        defaultValues:{ ...(transfer??{})}
+        defaultValues: { ...(transfer ?? {}) }
     });
 
-    
+
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
 
 
@@ -49,18 +49,18 @@ export function UpdateTransfer({tenant,transfer,defaultCurrency,refetch}:Transfe
 
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.transfer.update.useMutation({
-        onSuccess:(data, variables, context) =>{
-           // form.reset();
-          //  refetch();
-          // router.push("/transfers") 
-          
+        onSuccess: (data, variables, context) => {
+            // form.reset();
+            //  refetch();
+            // router.push("/transfers") 
+
         },
     });
 
     useEffect(() => {
-        if(transfer){
-         form.reset(transfer);
-         
+        if (transfer) {
+            form.reset(transfer);
+
         }
     }, [transfer])
 
@@ -178,7 +178,7 @@ export function UpdateTransfer({tenant,transfer,defaultCurrency,refetch}:Transfe
 
 
     return (
-        <FormContainer title={<h2>Create Transfer</h2>}>
+        <FormContainer title={<h2>Update Transfer</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
                 console.log(data);
@@ -292,7 +292,7 @@ export function UpdateTransfer({tenant,transfer,defaultCurrency,refetch}:Transfe
                 </div>
                 <div className="w-full mt-10 flex justify-end">
                     <OrderSummary
-                        currency={defaultCurrency?.symbol ?? ""}
+                        currency={symbol}
                         taxRate={taxRate}
                         tax={taxNet}
                         discount={discount}
@@ -330,8 +330,8 @@ export function UpdateTransfer({tenant,transfer,defaultCurrency,refetch}:Transfe
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={useTransferRequiredData}>
-            {(props)=>{
-                return <UpdateTransfer {...props}/>
+            {(props) => {
+                return <UpdateTransfer {...props} />
             }}
         </CollectRequiredDataWrapper>
     )
@@ -344,9 +344,20 @@ Index.getLayout = getLayout;
 function useTransferRequiredData() {
     const router = useRouter();
     const transferId = parseInt((router.query as TransferPathProps).transferId ?? "");
-    const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
-    const {setting, result:{isLoading:settingLoading}} = useSetting(); 
-    const {transfer, result:{isLoading:loading,}, refetch} = useTransfer(transferId);
-    return {data:{ tenant,setting,defaultCurrency:setting?.currency ,transfer,refetch },isLoading: tenantLoading || loading || settingLoading};
+    const { transfer, result: { isLoading: loading, }, refetch } = useTransfer(transferId);
+
+    const { tenant, result: { isLoading: tenantLoading } } = useTenant();
+    const { setting, result: { isLoading: settingLoading } } = useSetting();
+
+        return {
+        data: {
+            tenant,
+            setting,
+            defaultCurrency: setting?.currency,
+            transfer,
+            refetch
+        },
+        isLoading: tenantLoading || loading || settingLoading
+    };
 }
 type TransferRequiredDataReturnType = ReturnType<typeof useTransferRequiredData>

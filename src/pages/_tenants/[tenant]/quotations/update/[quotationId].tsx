@@ -352,9 +352,9 @@ Index.getLayout = getLayout;
 function useQuotationRequiredData() {
     const router = useRouter();
     const quotationId = parseInt((router.query as QuotationPathProps).quotationId ?? "");
+    const {quotation, result:{isLoading:loading,}, refetch} = useQuotation(quotationId);
     const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     const {setting, result:{isLoading:settingLoading}} = useSetting(); 
-    const {quotation, result:{isLoading:loading,}, refetch} = useQuotation(quotationId);
     return {data:{ tenant,setting,defaultCurrency:setting?.currency ,quotation,refetch },isLoading: tenantLoading || loading || settingLoading};
 }
 type QuotationRequiredDataReturnType = ReturnType<typeof useQuotationRequiredData>

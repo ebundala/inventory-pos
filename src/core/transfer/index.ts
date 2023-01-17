@@ -5,7 +5,13 @@ const include={
     fromWarehouse:true,
     toWarehouse:true,
     user:true,
-    transferDetails:true,    
+    transferDetails:{
+        include:{
+            product:true,
+            productVariant:true,
+            unit:true
+        }
+    },    
 };
 export type CreateTransferDetailInput = {
   productId        :number

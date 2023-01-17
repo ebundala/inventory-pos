@@ -188,9 +188,7 @@ const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,useMutationResul
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (
-
         <ModalContainer>
-
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
                   await useMutationResult.mutateAsync(data as any);

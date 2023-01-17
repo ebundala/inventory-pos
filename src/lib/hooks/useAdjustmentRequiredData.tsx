@@ -1,8 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useAdjustment } from "@/lib/hooks/useAdjustment";
-import { PathProps } from "./[adjustmentId]";
+import { ParsedUrlQuery } from 'querystring';
 
+export interface PathProps extends ParsedUrlQuery {
+    adjustmentId: string;
+}
 export function useAdjustmentRequiredData() {
     const { data, isLoading } = useAppConfig();
     const idString = (data.router.query as PathProps).adjustmentId;

@@ -10,8 +10,8 @@ export function useProgressIndicator() {
         setIndicatorData({ progressIndicator: { ...data, children: null, show: false, } });
     }, [data, setIndicatorData]);
 
-    const show = useCallback((config: ProgressIndicatorData) => {
-        setIndicatorData({ progressIndicator: { ...config, show: true } });
+    const show = useCallback((config?: ProgressIndicatorData) => {
+        setIndicatorData({ progressIndicator: { ...(config??{}), show: true } });
     }, [setIndicatorData]);
 
     // useEffect(() => {

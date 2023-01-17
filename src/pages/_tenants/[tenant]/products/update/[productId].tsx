@@ -120,8 +120,8 @@ Index.getLayout = getLayout;
 function useProductRequiredData() {
     const router = useRouter();
     const productId = parseInt((router.query as ProductPathProps).productId ?? "");
-    const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     const {product, result:{isLoading:loading,}, refetch} = useProduct(productId);
+    const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
     return {data:{ tenant, product,refetch },isLoading: tenantLoading || loading};
 }
 type ProductRequiredDataReturnType = ReturnType<typeof useProductRequiredData>

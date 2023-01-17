@@ -20,9 +20,7 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 
-export interface PathProps extends ParsedUrlQuery {
-    adjustmentId: string;
-}
+
 export function UpdateAdjustment({ defaultWarehouse, adjustment, loading, refetch }: UpdateAdjustmentProps) {
 
     const options = useAdjustmentFormFieldOptions(adjustment as any)

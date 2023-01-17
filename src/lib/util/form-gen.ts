@@ -186,6 +186,7 @@ export function getFieldsConfigFromSchemaAst(data: TraverseReturnType, parentFie
 export const getInputTypeFromZodType = (i: ZodFirstPartyTypeKind) => {
     if (i == ZodFirstPartyTypeKind.ZodBoolean) return "checkbox";
     if (i == ZodFirstPartyTypeKind.ZodEnum) return "select";
+    if (i == ZodFirstPartyTypeKind.ZodString) return "text";
     return i.replace('Zod', '').toLowerCase()
 }
 type InputOptionValues = Array<{ label: string, value: any }> | string[] | number[];
@@ -198,6 +199,8 @@ type FormFieldOption = {
     ordering?: number,
     hidden?: boolean,
     disabled?:boolean,
+    min?:number,
+    max?:number,
     options?: InputOptionValues,
     readonly?:boolean | {format:(v:any)=>string},
     hideLabel?:boolean,
@@ -270,6 +273,8 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const hideLabel = fieldOptions[v.name]?.hideLabel ?? false;
             const comboboxProps = fieldOptions[v.name]?.combobox;
             const disabled1 = fieldOptions[v.name]?.disabled;
+            const max = fieldOptions[v.name]?.max;
+            const min = fieldOptions[v.name]?.min;
             const control = form.control;
             const registerOptions = fieldOptions[v.name]?.registerOptions??{};
             // const setValueAs = v.type == ZodFirstPartyTypeKind.ZodBoolean?(i:any)=>{
@@ -281,11 +286,11 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const path = getPath(v.name);
             const isArray = isZodFormFieldArray(v.name);
             const error = isArray?undefined:getValue(path, errors)?.message?.toString();
-            const registration = isArray?{}:register(v.name, { valueAsDate, valueAsNumber,...registerOptions })
+            const registration = isArray||type == 'date'?{}:register(v.name, { valueAsDate, valueAsNumber,...registerOptions })
             
             
           
-            return { error,hideLabel,comboboxProps,disabled, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled, ...registration }, ...v }
+            return { error,hideLabel,comboboxProps,disabled, label,control, ordering, options, upload, textArea,readonly, props: { type, hidden, disabled,min,max, ...registration }, ...v }
         }).sort((a, b) => a.ordering - b.ordering);
     }, [refinedSchema, fieldConfig, register, isSubmitting, errors, fieldOptions]);
 

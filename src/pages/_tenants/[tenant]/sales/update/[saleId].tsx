@@ -33,14 +33,14 @@ import { ToastMessageType } from "@/types/ToastMessageType";
 interface SalePathProps extends ParsedUrlQuery {
     saleId: string;
 }
-export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDataReturnType['data']) {
-    
+export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequiredDataReturnType['data']) {
+
     const symbol = defaultCurrency?.symbol ?? "";
-    
+
     const options = useSaleFormFieldOptions(sale as any);
 
     const [config, form] = useZodForm(updateSaleInputSchema, options, {
-        defaultValues:{ ...(sale??{})}
+        defaultValues: { ...(sale ?? {}) }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
@@ -59,18 +59,18 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
 
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.sale.update.useMutation({
-        onSuccess:(data, variables, context) =>{
-           // form.reset();
-          //  refetch();
-          // router.push("/sales") 
-          
+        onSuccess: (data, variables, context) => {
+            // form.reset();
+            //  refetch();
+            // router.push("/sales") 
+
         },
     });
 
     useEffect(() => {
-        if(sale){
-         form.reset(sale);
-         
+        if (sale) {
+            form.reset(sale);
+
         }
     }, [sale])
 
@@ -193,7 +193,7 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
         }
     })
 
-   useEffect(() => {
+    useEffect(() => {
         // console.log(data);
         const values = form.getValues();
         for (let v of data) {
@@ -214,188 +214,189 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
 
     const paymentStatus = form.watch(Prisma.SaleScalarFieldEnum.paymentStatus);
     const paymentFields = useMemo(() => {
-        if(paymentStatus==="Paid"){
-            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal); 
+        if (paymentStatus === "Paid") {
+            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
         }
 
         if (paymentStatus === "Pending") {
             if (paymentSalesForm.fields.length > 0) {
                 paymentSalesForm.replace([])
             }
-        } else if (paymentStatus && paymentSalesForm.fields.length == 0 && paymentSaleData.length==0) {
+        } else if (paymentStatus && paymentSalesForm.fields.length == 0 && paymentSaleData.length == 0) {
             const date = new Date();
             const ref = Date.now();
-            const amount = paymentStatus === "Partial"?0:grandTotal;
-            
+            const amount = paymentStatus === "Partial" ? 0 : grandTotal;
+
             paymentSalesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, }]);
-            
+
         }
-        else if (paymentSalesForm.fields.length>0&&paymentSaleData.length>0) {
-            const props = {...paidAmountField!,props:{...paidAmountField!.props,disabled:paymentStatus==="Paid"}}
+        else if (paymentSalesForm.fields.length > 0 && paymentSaleData.length > 0) {
+            const props = { ...paidAmountField!, props: { ...paidAmountField!.props, disabled: paymentStatus === "Paid" } }
             const paidInput = <FormInputField key={paidAmountField!.name} {...props} />
             return [paymentSaleData.at(0)!.fields.slice(0, 2), paidInput, ...paymentSaleData.at(0)!.fields!.slice(2)]
         }
         return [];
-    }, [paymentStatus,paymentSalesForm.fields.length,paymentSaleData.length])
-   
-    useEffect(()=>{
-        if(paymentStatus==="Paid"){
-            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal); 
-        }
-    },[grandTotal,paymentStatus]);
+    }, [paymentStatus, paymentSalesForm.fields.length, paymentSaleData.length])
 
-        if (!sale || !sale?.id) return (
-            <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-                <span className="m-auto">Invalid sale</span>
-            </div>)
+    useEffect(() => {
+        if (paymentStatus === "Paid") {
+            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+        }
+    }, [grandTotal, paymentStatus]);
+
+    if (!sale || !sale?.id) return (
+        <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
+            <span className="m-auto">Invalid sale</span>
+        </div>)
     return (
         <FormContainer title={<h2>Update Sale</h2>}>
-        <form onSubmit={form.handleSubmit(async (data) => {
-            //submit here
-            console.log(data);
-            await result.mutateAsync(data as any);
-          //  form.reset();
+            <form onSubmit={form.handleSubmit(async (data) => {
+                //submit here
+                console.log(data);
+                await result.mutateAsync(data as any);
+                //  form.reset();
 
-        }, (e) => {
-            console.error(e);
-        })}>
-            <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {mainFields.map((i) => {
+            }, (e) => {
+                console.error(e);
+            })}>
+                <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {mainFields.map((i) => {
 
 
-                    return (<FormInputField key={i.name} {...i} />);
-                })}
+                        return (<FormInputField key={i.name} {...i} />);
+                    })}
 
-            </div>
-            <div className="w-full">
-                <FormComboBox
-                    label="Search products by name/Scan barcode"
-                    hideValue={true}
-                    control={form.control}
-                    keyPath={(v) => getProductFormatedName(v as any)}
-                    displayValuePath={(v) => getProductFormatedName(v as any)}
-                    onChange={(e, reset) => {
-                        const v = e.target.value;
-                        //console.log(v)
-                        saleDetailsForm.append(v);
-                        if (reset) {
-                            reset();
+                </div>
+                <div className="w-full">
+                    <FormComboBox
+                        label="Search products by name/Scan barcode"
+                        hideValue={true}
+                        control={form.control}
+                        keyPath={(v) => getProductFormatedName(v as any)}
+                        displayValuePath={(v) => getProductFormatedName(v as any)}
+                        onChange={(e, reset) => {
+                            const v = e.target.value;
+                            //console.log(v)
+                            saleDetailsForm.append(v);
+                            if (reset) {
+                                reset();
+                            }
+
+                        }}
+                        useGetDataHook={() => {
+                            const { labels, data, ...rest } = useProductSearch(
+                                {
+                                    format: productToSaleDetailFormater,
+                                    queryBuilder: productDefaultQueryBuilder,
+                                } as any
+                            );
+
+                            return { data: labels, ...rest }
+                        }}
+
+                    // props={{ type: "text", hidden: false, disabled: false, }}
+                    />
+                </div>
+
+                <div className="w-full  ">
+                    <CustomTable rowsData={detailsData} collumsData={() => [
+                        {
+                            Header: "code",
+                            accessor: "product.code",
+                            disableSortBy: true
+                        },
+                        {
+                            Header: "Product",
+                            accessor: "productId",
+                            disableSortBy: true,
+                            Cell: ({ row }: { row: any }) => {
+                                return (
+                                    <span className="text text-elipsis w-[80px]">
+                                        {getProductFormatedName(row.original)}
+                                    </span>);
+                            }
+                        },
+                        {
+                            Header: `Unit price (${symbol})`,
+                            accessor: "fields.1",
+                            disableSortBy: true,
+
+
+                        },
+                        {
+                            Header: "Stock",
+                            accessor: "stock",
+                            disableSortBy: true
+                        },
+                        {
+                            Header: "Quantity",
+                            accessor: "fields.2",
+                            disableSortBy: true,
+
+                        },
+                        // {
+                        //     Header: `Discount (${symbol})`,
+                        //     accessor: "fields.3",
+                        //     disableSortBy: true
+                        // },
+                        {
+                            Header: `Tax (${symbol})`,
+                            accessor: "fields.4",
+                            disableSortBy: true,
+
+                        },
+                        {
+                            Header: `Subtotal (${symbol})`,
+                            accessor: "fields.5",
+                            disableSortBy: true,
+
+                        },
+                        {
+                            Header: "",
+                            accessor: "action",
+                            disableSortBy: true,
+                            Cell: ({ row }: { row: any }) => {
+                                return <button onClick={(e) => {
+                                    e.preventDefault();
+                                    saleDetailsForm.remove(row.index)
+                                }
+                                } className="btn btn-warning btn-outline btn-xs">remove</button>
+                            }
                         }
+                    ]} search={false} pagenation={false} />
+                </div>
+                <div className="w-full mt-10 flex justify-end">
+                    <OrderSummary
+                        currency={defaultCurrency?.symbol ?? ""}
+                        taxRate={taxRate}
+                        tax={taxNet}
+                        discount={discount}
+                        shipping={shipping}
+                        grandTotal={grandTotal}
+                    />
+                </div>
+                <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {secondaryFields.map((i) => {
+                        return (<FormInputField key={i.name} {...i} />);
+                    })}
+                    {paymentSaleData.length > 0 && paymentFields}
+                </div>
+                <div className="w-full">
+                    <FormInputField  {...notesField as any} />
+                </div>
 
-                    }}
-                    useGetDataHook={() => {
-                        const { labels, data, ...rest } = useProductSearch(
-                            {
-                                format: productToSaleDetailFormater,
-                                queryBuilder: productDefaultQueryBuilder,
-                            } as any
-                        );
+                <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {hiddenFields.map((i) => {
+                        return (<FormInputField key={i.name} {...i} />);
+                    })}
+                </div>
 
-                        return { data: labels, ...rest }
-                    }}
+                <div className="flex flex-row py-3 justify-start">
 
-                // props={{ type: "text", hidden: false, disabled: false, }}
-                />
-            </div>
-
-            <div className="w-full  ">
-                <CustomTable rowsData={detailsData} collumsData={() => [
-                    {
-                        Header: "code",
-                        accessor: "product.code",
-                        disableSortBy: true
-                    },
-                    {
-                        Header: "Product",
-                        accessor: "productId",
-                        disableSortBy: true,
-                        Cell: ({ row }: { row: any }) => {
-                            return (
-                                <span className="text text-elipsis w-[80px]">
-                                    {getProductFormatedName(row.original)}
-                                </span>);
-                        }
-                    },
-                    {
-                        Header: `Unit price (${symbol})`,
-                        accessor: "fields.1",
-                        disableSortBy: true,
-                      
-
-                    },
-                    {
-                        Header: "Stock",
-                        accessor: "stock",
-                        disableSortBy: true
-                    },
-                    {
-                        Header: "Quantity",
-                        accessor: "fields.2",
-                        disableSortBy: true,
-
-                    },
-                    // {
-                    //     Header: `Discount (${symbol})`,
-                    //     accessor: "fields.3",
-                    //     disableSortBy: true
-                    // },
-                    {
-                        Header: `Tax (${symbol})`,
-                        accessor: "fields.4",
-                        disableSortBy: true,
-                     
-                    },
-                    {
-                        Header: `Subtotal (${symbol})`,
-                        accessor: "fields.5",
-                        disableSortBy: true,
-                        
-                    },
-                    {
-                        Header: "",
-                        accessor: "action",
-                        disableSortBy: true,
-                        Cell: ({ row }: { row: any }) => {
-                            return <button onClick={(e) => {
-                                e.preventDefault();
-                                saleDetailsForm.remove(row.index)}
-                            } className="btn btn-warning btn-outline btn-xs">remove</button>
-                        }
-                    }
-                ]} search={false} pagenation={false} />
-            </div>
-            <div className="w-full mt-10 flex justify-end">
-                <OrderSummary
-                    currency={defaultCurrency?.symbol ?? ""}
-                    taxRate={taxRate}
-                    tax={taxNet}
-                    discount={discount}
-                    shipping={shipping}
-                    grandTotal={grandTotal}
-                />
-            </div>
-            <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {secondaryFields.map((i) => {
-                    return (<FormInputField key={i.name} {...i} />);
-                })}
-                {paymentSaleData.length > 0 && paymentFields}
-            </div>
-            <div className="w-full">
-                <FormInputField  {...notesField as any} />
-            </div>
-
-            <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {hiddenFields.map((i) => {
-                    return (<FormInputField key={i.name} {...i} />);
-                })}
-            </div>
-
-            <div className="flex flex-row py-3 justify-start">
-
-                <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
-            </div>
-        </form>
-    </FormContainer>
+                    <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+                </div>
+            </form>
+        </FormContainer>
     )
 }
 
@@ -404,8 +405,8 @@ export function UpdateSale({tenant,sale,defaultCurrency,refetch}:SaleRequiredDat
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={useSaleRequiredData}>
-            {(props)=>{
-                return <UpdateSale {...props}/>
+            {(props) => {
+                return <UpdateSale {...props} />
             }}
         </CollectRequiredDataWrapper>
     )
@@ -418,9 +419,19 @@ Index.getLayout = getLayout;
 function useSaleRequiredData() {
     const router = useRouter();
     const saleId = parseInt((router.query as SalePathProps).saleId ?? "");
-    const {tenant, result:{isLoading:tenantLoading}} = useTenant();    
-    const {setting, result:{isLoading:settingLoading}} = useSetting(); 
-    const {sale, result:{isLoading:loading,}, refetch} = useSale(saleId);
-    return {data:{ tenant,setting,defaultCurrency:setting?.currency ,sale,refetch },isLoading: tenantLoading || loading || settingLoading};
+    const { sale, result: { isLoading: loading, }, refetch } = useSale(saleId);
+    const { tenant, result: { isLoading: tenantLoading } } = useTenant();
+    const { setting, result: { isLoading: settingLoading } } = useSetting();
+    return useMemo(() => ({
+        data: {
+            tenant,
+            setting,
+            defaultCurrency: setting?.currency,
+            sale,
+            refetch
+        },
+        isLoading: tenantLoading || loading || settingLoading
+    }),
+        [tenantLoading, loading, settingLoading]);
 }
 type SaleRequiredDataReturnType = ReturnType<typeof useSaleRequiredData>

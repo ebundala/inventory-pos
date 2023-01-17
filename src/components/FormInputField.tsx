@@ -1,12 +1,12 @@
 import { getPath, getValue, ZodFormFieldConfig } from "@/lib/util/form-gen";
 import { ReactNode } from "react";
-import { useWatch } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { FormComboBox } from "./combobox";
 
-export function FormInputField({ label, hideLabel, disabled,comboboxProps, name, control, required, readonly, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ZodFormFieldConfig) {
+export function FormInputField({ label, hideLabel, disabled, comboboxProps, name, control, required, readonly, props, options, error, type, upload, textArea, allowedValues: allowedvalues, ...rest }: ZodFormFieldConfig) {
   const hidden = props.hidden ? 'hidden' : '';
   let el: ReactNode
-  
+
   if (comboboxProps) {
     return <FormComboBox
       control={control}
@@ -15,8 +15,8 @@ export function FormInputField({ label, hideLabel, disabled,comboboxProps, name,
       required={required}
       error={error}
       hideLabel={hideLabel}
-      
-      props={{...props,type:'search'}}      
+
+      props={{ ...props, type: 'search' }}
       {...comboboxProps}
     />
   }
@@ -62,7 +62,7 @@ export function FormInputField({ label, hideLabel, disabled,comboboxProps, name,
   }
   else if (readonly) {
     let format;
-    if(readonly instanceof Object){
+    if (readonly instanceof Object) {
       format = readonly.format;
     }
     return (<ReadonlyFormField
@@ -75,7 +75,53 @@ export function FormInputField({ label, hideLabel, disabled,comboboxProps, name,
       control={control}
       props={props} />);
   }
+  else if (props.type === 'date') {
+
+    el = <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        //console.log((field.value as Date)?.toLocaleDateString() );
+        // const { type,
+        //   hidden,
+        //   disabled,
+        //   min,
+        //   max, } = props;
+         const   value= field.value instanceof Date?field.value.toISOString().substring(0,10):undefined//"2023-01-18";
+
+        return (
+          <>
+            {!hideLabel && <label className={`label ${hidden}`}>
+              <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
+            </label>}
+            <input
+              {...{
+                ...props,
+                ...field,
+                value,
+                onChange: (e:any) => {
+                  console.log(e.target.value)
+                  field.onChange(e);
+                }
+              } as any} 
+              
+              className={`input input-bordered rounded-md ${hidden}`} />
+          </>);
+      }}
+    />
+  }
+  else if (props.type === 'number') {
+
+    el = (
+      <>
+        {!hideLabel && <label className={`label ${hidden}`}>
+          <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
+        </label>}
+        <input  {...props} className={`input input-bordered rounded-md ${hidden}`} />
+      </>);
+  }
   else {
+    console.log("type", props.type);
     el = (
       <>
         {!hideLabel && <label className={`label ${hidden}`}>
@@ -96,7 +142,7 @@ export function FormInputField({ label, hideLabel, disabled,comboboxProps, name,
 
 
 
-function ReadonlyFormField({ control, hideLabel,format, error, name, props, label, required, ...rest }: Pick<ZodFormFieldConfig, 'control' | 'required' | 'props' | 'name' | 'error' | 'label' | 'hideLabel'>&{format?:(v:any)=>string}) {
+function ReadonlyFormField({ control, hideLabel, format, error, name, props, label, required, ...rest }: Pick<ZodFormFieldConfig, 'control' | 'required' | 'props' | 'name' | 'error' | 'label' | 'hideLabel'> & { format?: (v: any) => string }) {
   const hidden = props.hidden ? 'hidden' : '';
 
   const data = useWatch({ control });
@@ -106,7 +152,7 @@ function ReadonlyFormField({ control, hideLabel,format, error, name, props, labe
     {!hideLabel && <label className={`label ${hidden}`}>
       <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
     </label>}
-    <span className="p-2">{format?format(value):value}</span>
+    <span className="p-2">{format ? format(value) : value}</span>
     {error &&
       <span className={`pt-2 text text-error text-xs font-semibold ${hidden ? 'hidden' : ''}`}>{error}</span>}
 

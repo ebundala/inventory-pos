@@ -20,7 +20,6 @@ import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { OrderSummary } from "@/components/OrderSummary";
-import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
 
 export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
