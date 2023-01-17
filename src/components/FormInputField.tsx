@@ -34,7 +34,7 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
         {!hideLabel && <label className={`label ${hidden}`}>
           <span className={`label-text ${hidden}`}>{`${label ?? name}${required && (label ?? name) ? '*' : ''}`}</span>
         </label>}
-        <select {...props} className={`select select-bordered rounded-md ${props.hidden ? 'hidden' : ''}`}>
+        <select {...props} className={`select select-bordered rounded-md ${hidden ? 'hidden' : ''}`}>
           {options?.map((v) => <option key={(v as any)?.value ?? v} value={(v as any)?.value ?? v}>{(v as any)?.label ?? v} </option>)}
         </select>
       </>

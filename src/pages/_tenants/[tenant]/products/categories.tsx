@@ -14,28 +14,11 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useCategories } from "@/lib/hooks/useCategories";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
-export default function CategoryIndex() {
-    const [categories, loading, success,refetch] = useCategories();
+export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     const [showModal, hide, data] = useModal();
-    const options = useMemo(()=>({
-        tenantId:{
-            hidden:true
-        },
-        id:{
-            hidden:true
-        },
-        name:{
-            label:"Category name",
-            ordering:1
-        },
-        description:{
-            label:"code",
-            ordering:2,
-        },
-        
-       
-    }),[]);
+    
     
    const trpcWithHost = useTrpcTenant();
    const result1 = trpcWithHost.product.category.create.useMutation({
@@ -50,7 +33,6 @@ export default function CategoryIndex() {
         refetch()
     }
    });
-    if (loading) return <Loader />
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -63,8 +45,8 @@ export default function CategoryIndex() {
                        return <CategoryForm 
                        {...props} 
                        useMutationResult={result1}
-                       schema={createCategoryInputSchema} 
-                       fieldOptions={options} title={
+                       schema={createCategoryInputSchema}                        
+                       title={
                         "Create category"
                        }/>
                             }
@@ -125,8 +107,7 @@ export default function CategoryIndex() {
                                    return <CategoryForm 
                                    {...props} 
                                    useMutationResult={result2}
-                                   schema={updateCategoryInputSchema} 
-                                   fieldOptions={options} 
+                                   schema={updateCategoryInputSchema}                                    
                                    defaultValues={row.original}
                                    title="Update category"/>
                                    
@@ -143,7 +124,23 @@ export default function CategoryIndex() {
 
 }
 
-CategoryIndex.getLayout = getLayout
+function useRequiredCategoryData(){
+    const data = useCategories();
+    return { data, isLoading: data.result.isLoading }
+}
+
+type CategoryIndexProps = ReturnType<typeof useRequiredCategoryData>["data"]
+
+export default function Index() {
+    return (
+        <CollectRequiredDataWrapper useHooks={useRequiredCategoryData}>
+            {(props) =>
+                <CategoryIndex {...props} />
+            }
+        </CollectRequiredDataWrapper>
+    );
+}
+Index.getLayout = getLayout;
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;
@@ -158,9 +155,27 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
 }
 
-const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues})=>{
     const {tenant} = useTenant();
-    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+    const options = useMemo(()=>({
+        tenantId:{
+            hidden:true
+        },
+        id:{
+            hidden:true
+        },
+        name:{
+            label:"Category name",
+            ordering:1
+        },
+        description:{
+            label:"code",
+            ordering:2,
+        },
+        
+       
+    }),[]);
+    const [config, form] = useZodForm(schema,options,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
     return (
 

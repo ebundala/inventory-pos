@@ -122,20 +122,20 @@ export type UpdatePaymentPurchaseReturnInput = {
 
 export type UpdatePurchaseReturnInput = {
     id: number
-    userId?: string
-    date?: Date
-    ref?: string
-    clientId?: number
-    warehouseId?: number
-    taxRate?: number
-    taxNet?: number
-    discount?: number
-    shipping?: number
-    grandTotal?: number
-    paidAmount?: number
-    paymentStatus?: string
-    status?: string
-    notes?: string
+    userId                 ?:string
+    date                   ?:Date              
+    ref                    ?:string                  
+    supplierId             ?:number
+    warehouseId            ?:number
+    taxRate                ?:number                 
+    taxNet                 ?:number                 
+    discount               ?:number                 
+    shipping               ?:number                 
+    grandTotal             ?:number
+    paidAmount             ?:number                  
+    paymentStatus          ?:string                  
+    status                 ?:string                 
+    notes                  ?:string 
     paymentPurchaseReturns: Array<UpdatePaymentPurchaseReturnInput>
     purchaseReturnDetails: Array<UpdatePurchaseReturnDetailInput>
     tenantId: string

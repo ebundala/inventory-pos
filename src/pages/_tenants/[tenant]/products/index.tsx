@@ -8,11 +8,7 @@ import { useRouter } from "next/router";
 
 
 export function Products({products,refetch}:ProductListProps) {
-    const router = useRouter();
-   // const {products, result} = useProducts();
-   // const [categories, catLoading] = useCategories();
-   // const [brands, brandsLoading] = useBrands();
-   // const [units, unitsLoading] = useUnits();
+    const router = useRouter();   
 
 
     return <div className="flex flex-col justify-start">

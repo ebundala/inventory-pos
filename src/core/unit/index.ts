@@ -1,7 +1,9 @@
 import {prisma,unimplimented} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
-
+const include={
+    unit:true
+}
 export type CreateUnitInput={
   name:                  string
   shortName:             string 
@@ -13,9 +15,7 @@ export type CreateUnitInput={
 export const createUnit = async (input:CreateUnitInput,ctx:TenantContext)=>{
    const {tenantId,...data}=input;
    return ctx.tx!.unit.create({
-    include:{
-        unit:true
-    },
+    include,
     data:{...data,tenantId:tenantId}
    })
 }
@@ -33,9 +33,7 @@ export const updateUnit = async (input:UpdateUnitInput,ctx:TenantContext)=>{
         where:{
             id:id
         },
-     include:{
-         unit:true
-     },
+     include,
      data:{...data}
     })
  };
@@ -47,9 +45,7 @@ export const getUniqueUnit = async (id:UnitId,ctx:TenantContext)=>{
         where:{
             id:id
         },
-     include:{
-         unit:true
-     },    
+     include  
     })
  };
 export const deleteUnit = async (id:UnitId,ctx:TenantContext)=>{
@@ -58,9 +54,7 @@ export const deleteUnit = async (id:UnitId,ctx:TenantContext)=>{
         where:{
             id:id
         },
-     include:{
-         unit:true
-     },   
+     include,
      data:{
         recordStatus: RecordStatus.DELETED
      } 
@@ -79,6 +73,6 @@ export const deleteManyUnit = async (ids:UnitIds,ctx:TenantContext)=>{
  
 export const findManyUnit =async(input: Omit<Prisma.UnitFindManyArgs,"select"|"include">,ctx:TenantContext) => {
     return ctx.tx!.unit.findMany(
-        input
+        {...input,include}
     );
 }

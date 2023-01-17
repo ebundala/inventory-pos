@@ -5,7 +5,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { useModal } from "@/lib/hooks/useModel";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { useZodForm } from "@/lib/util/form-gen";
+import { useZodForm, ZodFormFieldOptions } from "@/lib/util/form-gen";
 import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 import { Unit } from "@prisma/client";
@@ -14,11 +14,12 @@ import { FC, ReactNode, useEffect, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useUnits } from "@/lib/hooks/useUnits";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { useUnitSearch } from "@/lib/hooks/useUnitSearch";
 
-export default function UnitIndex() {
-    const {units,result:{isLoading:loading},refetch} = useUnits();
-    const [showModal, hide, data] = useModal();
-    const options = useMemo(()=>({
+function useUnitFormOptions(opts?:Unit & {unit?:Unit}){
+    const {unit,operator}=opts??{};   
+    return useMemo(():ZodFormFieldOptions=>({
         tenantId:{
             hidden:true
         },
@@ -36,11 +37,19 @@ export default function UnitIndex() {
         baseUnitId:{
             label:"Base unit",
             ordering:3,
-            options:[{label:"primary unit",value:-1},...(units?.map((v)=>({label:v.name,value:v.id}))??[])]
+            combobox:{
+                elevation:48,
+                value:unit,
+                valuePath:"id",
+                useGetDataHook:useUnitSearch
+            }
         },
         operator:{
             label:"Operator",
             ordering:4,
+            registerOptions:{
+                value: operator
+            },
             options:[{
                 label:"Multiply",
                 value:"x"
@@ -55,7 +64,11 @@ export default function UnitIndex() {
             label:"Operator value",
             ordering:5,
         },
-    }),[units]);
+    }),[opts]);
+}
+export function UnitIndex({units,refetch}:UnitIndexProps) {
+    const [showModal, hide, data] = useModal();
+   
     
    const trpcWithHost = useTrpcTenant();
    const result1 = trpcWithHost.product.unit.create.useMutation({
@@ -70,7 +83,7 @@ export default function UnitIndex() {
         refetch()
     }
    });
-    if (loading) return <Loader />
+   
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -83,8 +96,8 @@ export default function UnitIndex() {
                        return <UnitForm 
                        {...props} 
                        useMutationResult={result1}
-                       schema={createUnitInputSchema} 
-                       fieldOptions={options} title={
+                       schema={createUnitInputSchema}                        
+                        title={
                         "Create Unit"
                        }/>
                             }
@@ -133,13 +146,7 @@ export default function UnitIndex() {
                     },
                     {
                         Header: "Base unit",
-                        accessor: "baseUnitId",
-                        Cell:({row,value}:{row:any,value:any})=>{
-                         const select:{label:string,value:number}[] =   options.baseUnitId.options;
-                          const v = row.original as Unit;
-                          const text = select.find((e)=>e.value===v.baseUnitId)
-                         return text?.label??"";
-                        }
+                        accessor: "unit.name",                       
                     },
                     {
                         Header: "Operator",
@@ -163,7 +170,7 @@ export default function UnitIndex() {
                                    {...props} 
                                    useMutationResult={result2}
                                    schema={updateUnitInputSchema} 
-                                   fieldOptions={options} 
+                                  
                                    defaultValues={row.original}
                                    title="Update Unit"/>
                                    
@@ -180,7 +187,23 @@ export default function UnitIndex() {
 
 }
 
-UnitIndex.getLayout = getLayout
+function useRequiredUnitData(){
+    const data = useUnits();
+    return { data, isLoading: data.result.isLoading }
+}
+
+type UnitIndexProps = ReturnType<typeof useRequiredUnitData>["data"]
+
+export default function Index() {
+    return (
+        <CollectRequiredDataWrapper useHooks={useRequiredUnitData}>
+            {(props) =>
+                <UnitIndex {...props} />
+            }
+        </CollectRequiredDataWrapper>
+    );
+}
+Index.getLayout = getLayout;
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;
@@ -195,12 +218,16 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
 }
 
-const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues })=>{
     const {tenant} = useTenant();
-    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
-    //  useEffect(()=>{
-    //     form.reset({tenantId:tenant?.tenantId,...defaultValues})
-    //  },[])
+    const options = useUnitFormOptions(defaultValues as any)
+    const [config, form] = useZodForm(schema,options,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+     useEffect(()=>{
+        if(defaultValues) {
+        form.reset(defaultValues)
+        }
+     },[defaultValues])
+    
     return (
 
         <ModalContainer>

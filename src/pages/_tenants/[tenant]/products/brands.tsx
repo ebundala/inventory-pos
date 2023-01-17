@@ -14,9 +14,10 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useBrands } from "@/lib/hooks/useBrands";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
-export default function BrandIndex() {
-    const [brands, loading, success,refetch] = useBrands();
+export function BrandIndex({brands,refetch}:BrandsIndexProps) {
+   
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -55,7 +56,7 @@ export default function BrandIndex() {
         refetch()
     }
    });
-    if (loading) return <Loader />
+   
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -151,8 +152,22 @@ export default function BrandIndex() {
     </div>
 
 }
+function useRequiredBrandsData(){
+    const data = useBrands();
+    return { data, isLoading: data.result.isLoading };
+}
+type BrandsIndexProps = ReturnType<typeof useRequiredBrandsData>["data"]
 
-BrandIndex.getLayout = getLayout
+export default function Index() {
+    return (
+        <CollectRequiredDataWrapper useHooks={useRequiredBrandsData}>
+            {(props) =>
+                <BrandIndex {...props} />
+            }
+        </CollectRequiredDataWrapper>
+    );
+}
+Index.getLayout = getLayout;
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;

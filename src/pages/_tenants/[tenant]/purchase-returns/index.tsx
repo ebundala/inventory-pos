@@ -1,12 +1,12 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
-import { usePurchases } from "@/lib/hooks/usePurchases";
-import { Purchase } from "@prisma/client";
+import { usePurchaseReturns } from "@/lib/hooks/usePurchaseReturns";
+import { PurchaseReturn } from "@prisma/client";
 import { useRouter } from "next/router";
 
 
-export function Purchases({purchases,refetch}:QuitationListProps) {
+export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
     const router = useRouter();
     const dateFm = new Intl.DateTimeFormat()
     
@@ -17,7 +17,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
-                        router.push("/purchases/create");
+                        router.push("/purchase-returns/create");
 
 
                     }
@@ -40,7 +40,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     value: 10000
                 }
             ]}
-            rowsData={purchases ?? []}
+            rowsData={purchaseReturns ?? []}
             collumsData={() => {
 
                 return [
@@ -91,7 +91,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                         Header: "Due",
                         accessor: "due",
                         Cell:({row}:{row:any})=>{
-                            const v= row.original as Purchase;
+                            const v= row.original as PurchaseReturn;
                             const due = v.grandTotal-v.paidAmount;
                             return due;
                         }
@@ -114,7 +114,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                                 <button onClick={(e) => {
                                     const id = row.original.id;
                                     //console.log(row);
-                                     router.push(`/purchases/update/${id}`);
+                                     router.push(`/purchase-returns/update/${id}`);
                                 }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
                                 <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                             </div>
@@ -126,16 +126,16 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
     </div>
 }
 
-type QuitationListProps = ReturnType<typeof usePurchases>
+type QuitationListProps = ReturnType<typeof usePurchaseReturns>
 
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
-            const data = usePurchases();
+            const data = usePurchaseReturns();
             return { data, isLoading: data.result.isLoading }
         }}>
             {(props) =>
-                <Purchases {...props} />
+                <PurchaseReturns {...props} />
             }
         </CollectRequiredDataWrapper>
     );

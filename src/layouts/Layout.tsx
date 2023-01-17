@@ -29,7 +29,7 @@ export function Layout({ children, ...props }: WithChildren) {
                     <EndDrawer>
                         <Breadcrumb />
 
-                        <div className="flex flex-col flex-1 mx-4 mb-4 mt-2">
+                        <div className="flex flex-col flex-1 mx-4 mb-4 mt-2 min-h-[80vh]">
                             {children}
 
                         </div>

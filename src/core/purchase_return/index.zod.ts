@@ -75,7 +75,7 @@ export const updatePurchaseReturnInputSchema = z.object({
   userId: z.string().optional(),
   date: z.date().optional(),
   ref: z.string().optional(),
-  clientId: z.number().optional(),
+  supplierId: z.number().optional(),
   warehouseId: z.number().optional(),
   taxRate: z.number().optional(),
   taxNet: z.number().optional(),

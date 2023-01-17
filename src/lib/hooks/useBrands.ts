@@ -23,5 +23,5 @@ export function useBrands() {
     return rResult;
   }, [result.refetch])
 
-  return [brands, result.isLoading, result.isSuccess, refetch] as [typeof brands, boolean, boolean, typeof refetch];
+  return {brands, result, refetch};
 }

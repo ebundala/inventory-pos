@@ -1,4 +1,3 @@
-
 import {
   useTable,
   useGlobalFilter,
@@ -16,9 +15,6 @@ import {
   FaSortDown,
 } from "react-icons/fa";
 import { Listbox, Transition } from "@headlessui/react";
-
-
-
 
 // const getColumns = () => [
 //   {
@@ -60,16 +56,16 @@ function TableInputGroup({
   decorationClassName = "",
   disabled = false,
 }: {
-  label?: string,
-  name?: string,
-  value?: any,
-  onChange?: (e: any) => void,
-  type?: string,
-  decoration?: any,
-  className?: string,
-  inputClassName?: string,
-  decorationClassName?: string,
-  disabled?: boolean
+  label?: string;
+  name?: string;
+  value?: any;
+  onChange?: (e: any) => void;
+  type?: string;
+  decoration?: any;
+  className?: string;
+  inputClassName?: string;
+  decorationClassName?: string;
+  disabled?: boolean;
 }) {
   return (
     <div
@@ -83,13 +79,15 @@ function TableInputGroup({
         placeholder={label}
         aria-label={label}
         onChange={onChange}
-        className={`input input-bordered rounded-md peer block w-full m-3 text-gray-600 focus:outline-none focus:ring-0 appearance-none ${disabled ? "bg-gray-200" : ""
-          } ${inputClassName}`}
+        className={`input input-bordered rounded-md peer block w-full m-3 text-gray-600 focus:outline-none focus:ring-0 appearance-none ${
+          disabled ? "bg-gray-200" : ""
+        } ${inputClassName}`}
         disabled={disabled}
       />
       <div
-        className={`flex items-center pl-3 pr-3 py-3 text-gray-600 ${disabled ? "bg-gray-200" : ""
-          } ${decorationClassName}`}
+        className={`flex items-center pl-3 pr-3 py-3 text-gray-600 ${
+          disabled ? "bg-gray-200" : ""
+        } ${decorationClassName}`}
       >
         {decoration}
       </div>
@@ -102,7 +100,9 @@ function TableGlobalSearchFilter({
   setGlobalFilter,
   className = "",
 }: {
-  globalFilter?: string, setGlobalFilter: (v: string) => void, className?: string
+  globalFilter?: string;
+  setGlobalFilter: (v: string) => void;
+  className?: string;
 }) {
   return (
     <TableInputGroup
@@ -116,17 +116,19 @@ function TableGlobalSearchFilter({
   );
 }
 
-function TableSelectMenu({ value,
+function TableSelectMenu({
+  value,
   setValue,
   options,
   className = "",
-  disabled }: {
-    value: any,
-    setValue?: (e: any) => void,
-    options: { label: string, value: any }[],
-    className?: string,
-    disabled?: boolean
-  }) {
+  disabled,
+}: {
+  value: any;
+  setValue?: (e: any) => void;
+  options: { label: string; value: any }[];
+  className?: string;
+  disabled?: boolean;
+}) {
   const selectedOption = useMemo(
     () => options.find((o) => o.value === value),
     [options, value]
@@ -136,10 +138,11 @@ function TableSelectMenu({ value,
       <div className={`relative input input-bordered w-full ${className}`}>
         <Listbox.Button
           className={`relative w-full  rounded-xl py-3 pl-3 pr-10 text-base text-gray-700 text-left shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none
-          ${disabled
+          ${
+            disabled
               ? "bg-gray-200 cursor-not-allowed"
               : "bg-white cursor-default"
-            }
+          }
         
         `}
         >
@@ -163,7 +166,8 @@ function TableSelectMenu({ value,
               <Listbox.Option
                 key={option.value}
                 className={({ active }) =>
-                  `relative cursor-default select-none py-3 pl-10 pr-4 ${active ? "bg-yellow-100" : ""
+                  `relative cursor-default select-none py-3 pl-10 pr-4 ${
+                    active ? "bg-yellow-100" : ""
                   }`
                 }
                 value={option.value}
@@ -171,8 +175,9 @@ function TableSelectMenu({ value,
                 {({ selected }) => (
                   <>
                     <span
-                      className={`block truncate ${selected ? "font-medium" : "font-normal"
-                        }`}
+                      className={`block truncate ${
+                        selected ? "font-medium" : "font-normal"
+                      }`}
                     >
                       {option.label}
                     </span>
@@ -192,20 +197,26 @@ function TableSelectMenu({ value,
   );
 }
 
-function TableNavButton({ content, onClick, active, disabled }: {
-  content?: ReactNode,
-  onClick: (e: any) => void,
-  active?: boolean,
-  disabled?: boolean
+function TableNavButton({
+  content,
+  onClick,
+  active,
+  disabled,
+}: {
+  content?: ReactNode;
+  onClick: (e: any) => void;
+  active?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       className={`flex flex-col cursor-pointer items-center justify-center w-9 h-9 shadow-[0_4px_10px_rgba(0,0,0,0.03)] text-sm font-normal transition-colors rounded-lg
       ${active ? "bg-yellow-500 text-white" : "text-yellow-500"}
-      ${!disabled
+      ${
+        !disabled
           ? "bg-white hover:bg-yellow-500 hover:text-white"
           : "text-yellow-300 bg-white cursor-not-allowed"
-        }
+      }
       `}
       onClick={onClick}
       disabled={disabled}
@@ -222,11 +233,11 @@ function TablePaginationNav({
   pageCount,
   pageIndex,
 }: {
-  gotoPage: (i: number) => void,
-  canPreviousPage: boolean,
-  canNextPage: boolean,
-  pageCount: number,
-  pageIndex: number,
+  gotoPage: (i: number) => void;
+  canPreviousPage: boolean;
+  canNextPage: boolean;
+  pageCount: number;
+  pageIndex: number;
 }) {
   const renderPageLinks = useCallback(() => {
     if (pageCount === 0) return null;
@@ -295,11 +306,11 @@ function TableComponent({
   rows,
   prepareRow,
 }: {
-  getTableProps: () => any,
-  headerGroups: any[],
-  getTableBodyProps: () => any,
-  rows: any[],
-  prepareRow: (v: any) => void,
+  getTableProps: () => any;
+  headerGroups: any[];
+  getTableBodyProps: () => any;
+  rows: any[];
+  prepareRow: (v: any) => void;
 }) {
   return (
     <div className="w-full min-w-[30rem] bg-white rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.03)] overflow-x-auto">
@@ -317,20 +328,24 @@ function TableComponent({
                     <div className="text-gray-600">
                       {column.render("Header")}
                     </div>
-                    {!column.disableSortBy &&
+                    {!column.disableSortBy && (
                       <div className="flex flex-col">
                         <FaSortUp
-                          className={`text-sm translate-y-1/2 ${column.isSorted && !column.isSortedDesc
-                            ? "text-yellow-400"
-                            : "text-gray-300"
-                            }`}
+                          className={`text-sm translate-y-1/2 ${
+                            column.isSorted && !column.isSortedDesc
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }`}
                         />
                         <FaSortDown
-                          className={`text-sm -translate-y-1/2 ${column.isSortedDesc ? "text-yellow-400" : "text-gray-300"
-                            }`}
+                          className={`text-sm -translate-y-1/2 ${
+                            column.isSortedDesc
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }`}
                         />
                       </div>
-                    }
+                    )}
                   </div>
                 </th>
               ))}
@@ -368,18 +383,24 @@ type TPageOptions = {
 type THeaders = () => {
   Header: any;
   accessor?: string;
-  disableSortBy?:boolean;
+  disableSortBy?: boolean;
   Cell?: any;
 }[];
 
 type TableProps<T extends any = any> = {
-  rowsData: T[],
-  collumsData: THeaders
-  , pageOptions?: TPageOptions,
-  search?: boolean,
-  pagenation?: boolean
-}
-export function CustomTable({ rowsData, collumsData, pageOptions, search = true, pagenation = true, }: TableProps) {
+  rowsData: T[];
+  collumsData: THeaders;
+  pageOptions?: TPageOptions;
+  search?: boolean;
+  pagenation?: boolean;
+};
+export function CustomTable({
+  rowsData,
+  collumsData,
+  pageOptions,
+  search = true,
+  pagenation = true,
+}: TableProps) {
   const data = useMemo(() => rowsData, [rowsData]);
   const columns = useMemo(collumsData, []);
   const {
@@ -409,17 +430,21 @@ export function CustomTable({ rowsData, collumsData, pageOptions, search = true,
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between gap-2 items-center">
-        {search && <TableGlobalSearchFilter
-          className="sm:w-64"
-          globalFilter={state.globalFilter}
-          setGlobalFilter={setGlobalFilter}
-        />}
-        {pageOptions && <TableSelectMenu
-          className="sm:w-44"
-          value={pageSize}
-          setValue={setPageSize}
-          options={pageOptions}
-        />}
+        {search && (
+          <TableGlobalSearchFilter
+            className="sm:w-64"
+            globalFilter={state.globalFilter}
+            setGlobalFilter={setGlobalFilter}
+          />
+        )}
+        {pageOptions && (
+          <TableSelectMenu
+            className="sm:w-44"
+            value={pageSize}
+            setValue={setPageSize}
+            options={pageOptions}
+          />
+        )}
       </div>
       <TableComponent
         getTableProps={getTableProps}
@@ -428,18 +453,17 @@ export function CustomTable({ rowsData, collumsData, pageOptions, search = true,
         rows={rows}
         prepareRow={prepareRow}
       />
-      {pagenation && <div className="flex justify-center">
-        <TablePaginationNav
-          gotoPage={gotoPage}
-          canPreviousPage={canPreviousPage}
-          canNextPage={canNextPage}
-          pageCount={pageCount}
-          pageIndex={pageIndex}
-        />
-      </div>}
+      {pagenation && (
+        <div className="flex justify-center">
+          <TablePaginationNav
+            gotoPage={gotoPage}
+            canPreviousPage={canPreviousPage}
+            canNextPage={canNextPage}
+            pageCount={pageCount}
+            pageIndex={pageIndex}
+          />
+        </div>
+      )}
     </div>
   );
 }
-
-
-
