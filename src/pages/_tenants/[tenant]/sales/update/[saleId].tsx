@@ -37,7 +37,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
 
     const symbol = defaultCurrency?.symbol ?? "";
 
-    const options = useSaleFormFieldOptions(sale as any);
+    const options = useSaleFormFieldOptions(sale as any,true);
 
     const [config, form] = useZodForm(updateSaleInputSchema, options, {
         defaultValues: { ...(sale ?? {}) }
@@ -55,7 +55,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
 
     const saleDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: saleDetailsFormName });
     const paymentSalesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentSalesFormName });
-    const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
+   // const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
 
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.sale.update.useMutation({
@@ -227,7 +227,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
             const ref = Date.now();
             const amount = paymentStatus === "Partial" ? 0 : grandTotal;
 
-            paymentSalesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, }]);
+            paymentSalesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, id:-1}]);
 
         }
         else if (paymentSalesForm.fields.length > 0 && paymentSaleData.length > 0) {

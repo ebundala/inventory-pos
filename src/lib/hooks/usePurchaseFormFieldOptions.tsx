@@ -6,8 +6,10 @@ import { useSupplierSearch } from "@/lib/hooks/useSupplierSearch";
 
 
 
-export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supplier?: Supplier; paidAmount?: number; paymentStatus?: string; }) {
-    const { supplier, warehouse, paidAmount, paymentStatus } = opts ?? {};
+export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supplier?: Supplier}) {
+    const { supplier, warehouse } = opts ?? {};
+    const currencyFormat = new Intl.NumberFormat();
+
     return useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
@@ -16,10 +18,9 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supp
         warehouseId: {
             label: "Warehouse",
             ordering: 2,
-            // options:(warehouses??[]).map((v)=>({label:v.name,value:v.id})),
             combobox: {
                 elevation: 30,
-                value: warehouse ?? undefined,
+                value: warehouse,
                 valuePath: "id",
                 displayValuePath: "name",
                 useGetDataHook: useWarehouseSearch
@@ -30,7 +31,7 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supp
             ordering: 3,
             combobox: {
                 elevation: 30,
-                value: supplier ?? undefined,
+                value: supplier,
                 valuePath: "id",
                 displayValuePath: "name",
                 useGetDataHook: useSupplierSearch
@@ -72,6 +73,9 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supp
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            registerOptions:{
+                value:0
+            }
         },
         grandTotal: {
             label: "Grand total",
@@ -79,16 +83,14 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supp
             ordering: 11
         },
         paidAmount: {
-            hidden: true,
-            registerOptions: {
-                value: paidAmount ?? 0
-            }
+            label: "Paying Amount",
         },
         paymentStatus: {
-            hidden: true,
-            registerOptions: {
-                value: paymentStatus ?? "Pending"
-            }
+            label: "Payment Status",
+            ordering: 8,
+            options: [
+                "Pending", "Partial", "Paid"
+            ]
         },
         id: { hidden: true },
         userId: {
@@ -161,6 +163,42 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse; supp
         "purchaseDetails.0.discountMethod": {
             label: "Discount method",
             ordering: 27
+        },
+        "paymentPurchases.0.date": {
+            hidden: true
+        },
+        "paymentPurchases.0.ref": {
+            hidden: true
+        },
+        "paymentPurchases.0.id":{
+            hidden:true
+        },
+        "paymentPurchases.0.userId":{
+            hidden:true
+        },
+        "paymentPurchases.0.notes": {
+            hidden: true
+        },
+        "paymentPurchases.0.amount": {
+            label: "Received Amount",
+            ordering: 11
+        },
+        "paymentPurchases.0.reglement": {
+            label: "Payment method",
+            ordering: 10,
+            options: [
+                "Cash",
+                "Credit Card",
+                "Cheque",
+                "Mobile",
+                "Bank wire",
+                "Other"
+            ]
+        },
+        "paymentPurchases.0.change": {
+            label: "Change",
+            readonly: { format: currencyFormat.format },
+            ordering: 13,
         },
     }), [supplier, warehouse]);
 }

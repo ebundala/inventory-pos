@@ -9,7 +9,7 @@ import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { Prisma, Product, ProductVariant, PurchaseDetail, Unit } from '@prisma/client'
+import { PaymentPurchase, Prisma, Product, ProductVariant, PurchaseDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
@@ -38,11 +38,12 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
 
     const purchaseDetailFieldConfig = groupedFieldArray.get('purchaseDetails');
     const paymentPurchaseFieldConfig = groupedFieldArray.get('paymentPurchases')
+   
     const purchaseDetailFormName = useFieldArrayName(purchaseDetailFieldConfig!);
-    const paymentPurchaseFormName = useFieldArrayName(paymentPurchaseFieldConfig!);
+    const paymentPurchasesFormName = useFieldArrayName(paymentPurchaseFieldConfig!);
 
     const purchaseDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: purchaseDetailFormName });
-    const paymentPurchasesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchaseFormName });
+    const paymentPurchasesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchasesFormName });
 
     const trpcWithHost = useTrpcTenant();
     const result = trpcWithHost.purchase.create.useMutation({
@@ -63,7 +64,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
     }, [])
 
     const detailsData = useRenderFieldArrayForm(purchaseDetailFormName, purchaseDetailsForm, form, purchaseDetailFieldConfig!)
-    const purchasesData = useRenderFieldArrayForm(paymentPurchaseFormName, paymentPurchasesForm, form, paymentPurchaseFieldConfig!)
+    const paymentPurchaseData = useRenderFieldArrayForm(paymentPurchasesFormName, paymentPurchasesForm, form, paymentPurchaseFieldConfig!)
 
 
     const [notesField, fields] = useGetZodFormField(Prisma.PurchaseScalarFieldEnum.notes, regularConfig)
@@ -72,27 +73,34 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         Prisma.PurchaseScalarFieldEnum.date,
         Prisma.PurchaseScalarFieldEnum.warehouseId,
         Prisma.PurchaseScalarFieldEnum.supplierId], fields)
+        const [paidAmountField, fields3] = useGetZodFormField(Prisma.PurchaseScalarFieldEnum.paidAmount, fields2);
 
     const [secondaryFields, hiddenFields] = useGetZodFormFields([
         Prisma.PurchaseScalarFieldEnum.taxRate,
         Prisma.PurchaseScalarFieldEnum.discount,
         Prisma.PurchaseScalarFieldEnum.shipping,
         Prisma.PurchaseScalarFieldEnum.status,
-    ], fields2)
+        Prisma.PurchaseScalarFieldEnum.paymentStatus,
+    ], fields3)
 
 
 
     const data = useComputedZodFormValues({
         control: form.control, compute: (data) => {
             const partialData: TComputedFormFieldsResult = [];
-            const rootPath = 'purchaseDetails';
-            let taxRate = 0, discount = 0, shipping = 0, grandTotal = 0, subTotal = 0, taxNet = 0;
+            const detailsPath = 'purchaseDetails';
+            const paymentPath = "paymentSales";
+
+            let grandTotal = 0, subTotal = 0, taxNet = 0;
 
             if (data) {
-                const details = data[rootPath];
-                taxRate = data[Prisma.PurchaseScalarFieldEnum.taxRate] ?? 0;
-                discount = data[Prisma.PurchaseScalarFieldEnum.discount] ?? 0;
-                shipping = data[Prisma.PurchaseScalarFieldEnum.shipping] ?? 0;
+                const details = getValue([detailsPath], data);
+                const paymentPurchases = getValue([paymentPath], data)
+              
+                let taxRate = getValue([Prisma.PurchaseScalarFieldEnum.taxRate], data);
+                let discount = getValue([Prisma.PurchaseScalarFieldEnum.discount], data);
+                let shipping = getValue([Prisma.PurchaseScalarFieldEnum.shipping], data);
+                let paidAmount = getValue([Prisma.PurchaseScalarFieldEnum.paidAmount], data);
 
                 if (details && details instanceof Array) {
                     for (let i = 0; i < details.length; i++) {
@@ -108,17 +116,17 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                             //Compute all computed fields and batch update the form 
 
                             // Todo add tax rate per product to calcurate taxNet per product
-                            const productTaxRate = (detail.product?.taxNet ?? 0);
+                            const productTaxRate = getValue([Prisma.ProductScalarFieldEnum.taxNet],detail.product);
+                            const productPrice = getValue([Prisma.ProductScalarFieldEnum.price],detail.product);
 
                             const productTaxMethod = detail.product?.taxMethod ?? "inclusive";
                             const productTaxMethodAction = (productTaxMethod === "inclusive" ? -1 : 0);
 
                             // Todo compute quantity based on units and its parent;
-                            const productQuantity = (detail.quantity ?? 0);
-                            const productDiscount = (detail.discount ?? 0);
+                            const productQuantity = getValue([Prisma.PurchaseDetailScalarFieldEnum.quantity],detail);
+                            const productDiscount = getValue([Prisma.PurchaseDetailScalarFieldEnum.discount],detail);
                             const saleUnitId = detail.product?.unitSaleId;
                             const stockUnitId = detail.product?.unitId;
-                            const productPrice = (detail.product?.price ?? 0);
                             const taxValue = (productTaxRate / 100 * productPrice);
                             const productPriceBeforeTax = productPrice + (taxValue * productTaxMethodAction)
                             const productTaxNet = taxValue * productQuantity
@@ -127,20 +135,21 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
 
                             const productSubTotal = productQuantity * productPriceBeforeTax + productTaxNet - productDiscount;
                             subTotal += productSubTotal;
-                            console.log(productPriceBeforeTax)
+                            
                             partialData.push(...[
-                                { value: productQuantity, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.quantity] },
-                                { value: productTaxMethod, default: "inclusive", path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxMethod] },
-                                { value: productPriceBeforeTax, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.cost] },
-                                { value: productTaxNet, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxNet] },
-                                { value: productSubTotal, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.total] },
-                                { value: productDiscount, default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.discount] },
-                                { value: "default", default: 0, path: [rootPath, i, Prisma.PurchaseDetailScalarFieldEnum.discountMethod] }
+                                { value: productQuantity, default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.quantity] },
+                                { value: productTaxMethod, default: "inclusive", path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxMethod] },
+                                { value: productPriceBeforeTax, default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.cost] },
+                                { value: productTaxNet, default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.taxNet] },
+                                { value: productSubTotal, default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.total] },
+                                { value: productDiscount, default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.discount] },
+                                { value: "default", default: 0, path: [detailsPath, i, Prisma.PurchaseDetailScalarFieldEnum.discountMethod] }
                             ])
                         }
                     }
                     taxNet = (subTotal - discount) * (taxRate / 100);
                     grandTotal = (subTotal + taxNet) + shipping;
+                    
                     partialData.push(...[
                         { value: taxNet, default: 0, path: [Prisma.PurchaseScalarFieldEnum.taxNet] },
                         { value: grandTotal, default: 0, path: [Prisma.PurchaseScalarFieldEnum.grandTotal] },
@@ -150,24 +159,41 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
 
                     ])
                 }
+
+                if (paymentPurchases && paymentPurchases instanceof Array) {
+                    for (let i = 0; i < paymentPurchases.length; i++) {
+                        const item = paymentPurchases[i];
+                        if (item) {
+                            let payment = item as PaymentPurchase;
+                            const amount = getValue([Prisma.PaymentPurchaseScalarFieldEnum.amount], payment)
+                            let change = amount;
+                            if (amount > paidAmount) {
+                                change = amount - paidAmount;
+                            } else {
+                                change = 0;
+                            }
+                            partialData.push(
+                                ...[
+                                    { value: change, default: 0, path: [paymentPath, i, Prisma.PaymentSaleScalarFieldEnum.change] },
+
+                                ]
+                            )
+
+                        }
+                    }
+                }
             }
             return partialData;
         }
     })
 
-    useMemo(() => {
+    useEffect(() => {
         // console.log(data);
         const values = form.getValues();
         for (let v of data) {
-            // Todo find better way to detect changes 
-            if (v.value !== getValue(v.path, values)) {
-                // console.log("changed ",v.value,getValue(v.path,values))
-                if (!v.value) {
-                    form.setValue(v.path.join('.'), v.default);
-                } else {
-                    form.setValue(v.path.join('.'), v.value);
-
-                }
+            if (getValue(['value'], v) !== getValue(v.path, values)) {
+                console.log("changed ", v.value, getValue(v.path, values))
+                form.setValue(v.path.join('.'), v.value);
             }
         }
     }, [data]);
@@ -178,6 +204,37 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         Prisma.PurchaseScalarFieldEnum.discount,
         Prisma.PurchaseScalarFieldEnum.shipping,
         Prisma.PurchaseScalarFieldEnum.grandTotal])
+        const paymentStatus = form.watch(Prisma.SaleScalarFieldEnum.paymentStatus);
+        const paymentFields = useMemo(() => {
+            if (paymentStatus === "Paid") {
+                form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+            }
+    
+            if (paymentStatus === "Pending") {
+                if (paymentPurchasesForm.fields.length > 0) {
+                    paymentPurchasesForm.replace([])
+                }
+            } else if (paymentStatus && paymentPurchasesForm.fields.length == 0 && paymentPurchaseData.length == 0) {
+                const date = new Date();
+                const ref = Date.now();
+                const amount = paymentStatus === "Partial" ? 0 : grandTotal;
+    
+                paymentPurchasesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, id:-1}]);
+    
+            }
+            else if (paymentPurchasesForm.fields.length > 0 && paymentPurchaseData.length > 0) {
+                const props = { ...paidAmountField!, props: { ...paidAmountField!.props, disabled: paymentStatus === "Paid" } }
+                const paidInput = <FormInputField key={paidAmountField!.name} {...props} />
+                return [paymentPurchaseData.at(0)!.fields.slice(0, 2), paidInput, ...paymentPurchaseData.at(0)!.fields!.slice(2)]
+            }
+            return [];
+        }, [paymentStatus, paymentPurchasesForm.fields.length, paymentPurchaseData.length])
+    
+        useEffect(() => {
+            if (paymentStatus === "Paid") {
+                form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+            }
+        }, [grandTotal, paymentStatus]);
 
     return (
         <FormContainer title={<h2>Create Purchase</h2>}>
@@ -303,6 +360,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                     {secondaryFields.map((i) => {
                         return (<FormInputField key={i.name} {...i} />);
                     })}
+                    {paymentPurchaseData.length > 0 && paymentFields}
 
                 </div>
                 <div className="w-full">

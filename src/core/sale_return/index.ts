@@ -1,8 +1,11 @@
-import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
 const include = {
-    saleReturnDetails: true,
+    saleReturnDetails: {
+        include:{
+            product:true,productVariant:true
+        }
+    },
     paymentSaleReturns: true,
     warehouse: true,
     user: true,

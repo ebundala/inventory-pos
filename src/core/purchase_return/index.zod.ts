@@ -12,11 +12,10 @@ export const createPurchaseReturnDetailInputSchema = z.object({
   quantity: z.number(),
   productId: z.number(),
   productVariantId: z.number().optional(),
-  imeiNumber: z.string(),
+  imeiNumber: z.string().optional(),
 });
 
 export const createPaymentPurchaseReturnInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   amount: z.number(),

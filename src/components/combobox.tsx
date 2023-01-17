@@ -16,6 +16,7 @@ type ComboBoxProps<TData = { [k: string]: any }, TOptions = any> = ComboboxField
 
 export function FormComboBox({ useGetDataHook, value, defaultOption, elevation = 20, onChange, valuePath, displayValuePath = 'name', keyPath = "id", hideValue, name, required, label, error, control, props, hideLabel }: ComboBoxProps) {
   const hidden = props?.hidden ? 'hidden' : '';
+  const disabled = props?.disabled;
   const { onBlur, onChange: formOnChange, ref, name: formFieldName, ...inputProps } = props ?? {};
   const controller = useController({ name: formFieldName ?? "", control: control })
 
@@ -61,6 +62,7 @@ export function FormComboBox({ useGetDataHook, value, defaultOption, elevation =
   return (
     <Combobox
       value={selected}
+      disabled={disabled}
       onChange={(v) => {
         setSelected(v)
         if (onChange) {

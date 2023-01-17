@@ -172,7 +172,7 @@ export const menus: LinkMenuData[] = [
                 subMenus: []
             },
             {
-                name: "All Purchases",
+                name: "All sale returns",
                 link: '/sale-returns',
                 icon: <BsCalculator />,
                 subMenus: []

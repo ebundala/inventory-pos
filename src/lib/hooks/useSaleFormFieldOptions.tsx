@@ -6,18 +6,20 @@ import { useWarehouseSearch } from "@/lib/hooks/useWarehouseSearch";
 
 
 
-export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer?: Customer; }) {
+export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer?: Customer; },isUpdate=false) {
     const { customer, warehouse } = opts ?? {};
     const currencyFormat = new Intl.NumberFormat();
 
     return useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
-            ordering: 1
+            ordering: 1,
+                 
         },
         warehouseId: {
             label: "Warehouse",
             ordering: 2,
+            disabled: isUpdate,
             combobox: {
                 elevation: 30,
                 value: warehouse ?? undefined,
@@ -29,6 +31,7 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
         customerId: {
             label: "Customer",
             ordering: 3,
+           
             combobox: {
                 elevation: 30,
                 value: customer ?? undefined,
@@ -81,6 +84,9 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            registerOptions:{
+                value:0
+            }
         },
         grandTotal: {
             label: "Grand total",

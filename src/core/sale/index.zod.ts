@@ -101,6 +101,8 @@ export const updateSaleInputSchema = z.object({
   date: z.date().optional(),
   ref: z.string().optional(),
   isPos: z.boolean().optional(),
+  customerId: z.number().optional(),
+  warehouseId: z.number().optional(),
   taxRate: z.number().optional(),
   taxNet: z.number().optional(),
   discount: z.number().optional(),

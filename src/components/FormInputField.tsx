@@ -8,6 +8,7 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
   let el: ReactNode
 
   if (comboboxProps) {
+    ;
     return <FormComboBox
       control={control}
       label={label}
@@ -16,7 +17,7 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
       error={error}
       hideLabel={hideLabel}
 
-      props={{ ...props, type: 'search' }}
+      props={{...props,type:"text"}}
       {...comboboxProps}
     />
   }

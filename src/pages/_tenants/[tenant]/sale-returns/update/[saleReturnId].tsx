@@ -1,96 +1,90 @@
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
-import { updateSaleInputSchema } from "@/core/sale/index.zod";
+import { updateSaleReturnInputSchema } from "@/core/sale_return/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTenant } from "@/lib/hooks/useTenant";
 import { getValue, useZodForm } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
-import { useSale } from "@/lib/hooks/useSale";
-import { useSaleFormFieldOptions } from "@/lib/hooks/useSaleFormFieldOptions";
+import { useSaleReturn } from "@/lib/hooks/useSaleReturn";
+import { useSaleReturnFormFieldOptions } from "@/lib/hooks/useSaleReturnFormFieldOptions";
 import { useEffect, useMemo } from 'react';
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useSetting } from "@/lib/hooks/useSetting";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
-import { PaymentSale, Prisma, Product, ProductVariant, SaleDetail, Unit } from "@prisma/client";
+import { PaymentSaleReturn, Prisma, Product, ProductVariant, SaleReturnDetail, Unit } from "@prisma/client";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { FormComboBox } from "@/components/combobox";
 import { OrderSummary } from "@/components/OrderSummary";
 import { CustomTable } from "@/components/table";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
-import { useProductSearch, productToSaleDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
+import { useProductSearch, productToSaleReturnDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
-import { useToast } from "@/lib/hooks/useToast";
-import { ToastMessageType } from "@/types/ToastMessageType";
 
-interface SalePathProps extends ParsedUrlQuery {
-    saleId: string;
+interface SaleReturnPathProps extends ParsedUrlQuery {
+    saleReturnId: string;
 }
-export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequiredDataReturnType['data']) {
+export function UpdateSaleReturn({ tenant, saleReturn, defaultCurrency, refetch }: SaleReturnRequiredDataReturnType['data']) {
 
     const symbol = defaultCurrency?.symbol ?? "";
 
-    const options = useSaleFormFieldOptions(sale as any);
+    const options = useSaleReturnFormFieldOptions(saleReturn as any);
 
-    const [config, form] = useZodForm(updateSaleInputSchema, options, {
-        defaultValues: { ...(sale ?? {}) }
+    const [config, form] = useZodForm(updateSaleReturnInputSchema, options, {
+        defaultValues: { ...(saleReturn ?? {}) }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
     const groupedFieldArray = useGroupedFieldArray(fieldArrayConfig);
-    const saleDetailsConfig = groupedFieldArray.get("saleDetails")!
-    const paymentSalesConfig = groupedFieldArray.get("paymentSales")!
-    const shipmentsConfig = groupedFieldArray.get("shipments")!
+    const saleReturnDetailsConfig = groupedFieldArray.get("saleReturnDetails")!
+    const paymentSaleReturnsConfig = groupedFieldArray.get("paymentSaleReturns")!
 
-    const saleDetailsFormName = useFieldArrayName(saleDetailsConfig);
-    const paymentSalesFormName = useFieldArrayName(paymentSalesConfig);
-    const shipmentsFormName = useFieldArrayName(shipmentsConfig);
+    const saleReturnDetailsFormName = useFieldArrayName(saleReturnDetailsConfig);
+    const paymentSaleReturnsFormName = useFieldArrayName(paymentSaleReturnsConfig);
 
-    const saleDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: saleDetailsFormName });
-    const paymentSalesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentSalesFormName });
-    const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
+    const saleReturnDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: saleReturnDetailsFormName });
+    const paymentSaleReturnsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentSaleReturnsFormName });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.sale.update.useMutation({
+    const result = trpcWithHost.sale_return.update.useMutation({
         onSuccess: (data, variables, context) => {
             // form.reset();
             //  refetch();
-            // router.push("/sales") 
+            // router.push("/saleReturns") 
 
         },
     });
 
     useEffect(() => {
-        if (sale) {
-            form.reset(sale);
+        if (saleReturn) {
+            form.reset(saleReturn);
 
         }
-    }, [sale])
+    }, [saleReturn])
 
-    const detailsData = useRenderFieldArrayForm(saleDetailsFormName, saleDetailsForm, form, saleDetailsConfig)
+    const detailsData = useRenderFieldArrayForm(saleReturnDetailsFormName, saleReturnDetailsForm, form, saleReturnDetailsConfig)
 
-    const paymentSaleData = useRenderFieldArrayForm(paymentSalesFormName, paymentSalesForm, form, paymentSalesConfig)
+    const paymentSaleReturnData = useRenderFieldArrayForm(paymentSaleReturnsFormName, paymentSaleReturnsForm, form, paymentSaleReturnsConfig)
 
-    const [notesField, fields] = useGetZodFormField(Prisma.SaleScalarFieldEnum.notes, regularConfig)
+    const [notesField, fields] = useGetZodFormField(Prisma.SaleReturnScalarFieldEnum.notes, regularConfig)
 
     const [mainFields, fields2] = useGetZodFormFields([
-        Prisma.SaleScalarFieldEnum.date,
-        Prisma.SaleScalarFieldEnum.warehouseId,
-        Prisma.SaleScalarFieldEnum.customerId], fields)
-    const [paidAmountField, fields3] = useGetZodFormField(Prisma.SaleScalarFieldEnum.paidAmount, fields2);
+        Prisma.SaleReturnScalarFieldEnum.date,
+        Prisma.SaleReturnScalarFieldEnum.warehouseId,
+        Prisma.SaleReturnScalarFieldEnum.clientId], fields)
+    const [paidAmountField, fields3] = useGetZodFormField(Prisma.SaleReturnScalarFieldEnum.paidAmount, fields2);
     const [secondaryFields, hiddenFields] = useGetZodFormFields([
-        Prisma.SaleScalarFieldEnum.taxRate,
-        Prisma.SaleScalarFieldEnum.discount,
-        Prisma.SaleScalarFieldEnum.shipping,
-        Prisma.SaleScalarFieldEnum.status,
-        Prisma.SaleScalarFieldEnum.paymentStatus,
+        Prisma.SaleReturnScalarFieldEnum.taxRate,
+        Prisma.SaleReturnScalarFieldEnum.discount,
+        Prisma.SaleReturnScalarFieldEnum.shipping,
+        Prisma.SaleReturnScalarFieldEnum.status,
+        Prisma.SaleReturnScalarFieldEnum.paymentStatus,
     ], fields3)
 
 
@@ -98,27 +92,27 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
     const data = useComputedZodFormValues({
         control: form.control, compute: (data) => {
             const partialData: TComputedFormFieldsResult = [];
-            const detailsPath = 'saleDetails';
-            const paymentPath = "paymentSales";
+            const detailsPath = 'saleReturnDetails';
+            const paymentPath = "paymentSaleReturns";
             let subTotal = 0, grandTotal = 0, taxNet = 0;
 
             if (data) {
                 const details = getValue([detailsPath], data);
-                const paymentSales = getValue([paymentPath], data)
-                let taxRate = getValue([Prisma.SaleScalarFieldEnum.taxRate], data);
-                let discount = getValue([Prisma.SaleScalarFieldEnum.discount], data);
-                let shipping = getValue([Prisma.SaleScalarFieldEnum.shipping], data);
-                let paidAmount = getValue([Prisma.SaleScalarFieldEnum.paidAmount], data);
+                const paymentSaleReturns = getValue([paymentPath], data)
+                let taxRate = getValue([Prisma.SaleReturnScalarFieldEnum.taxRate], data);
+                let discount = getValue([Prisma.SaleReturnScalarFieldEnum.discount], data);
+                let shipping = getValue([Prisma.SaleReturnScalarFieldEnum.shipping], data);
+                let paidAmount = getValue([Prisma.SaleReturnScalarFieldEnum.paidAmount], data);
 
                 if (details && details instanceof Array) {
                     for (let i = 0; i < details.length; i++) {
                         const item = details[i];
                         if (item) {
-                            let detail = item as Partial<SaleDetail & {
+                            let detail = item as Partial<SaleReturnDetail & {
                                 product: Product & {
                                     productUnit?: Unit,
                                     productPurchaseUnit?: Unit,
-                                    productsSaleUnit?: Unit
+                                    productsSaleReturnUnit?: Unit
                                 }, productVariant?: ProductVariant
                             }>;
                             //Compute all computed fields and batch update the form 
@@ -132,7 +126,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                             // Todo compute quantity based on units and its parent;
                             const productQuantity = (detail.quantity ?? 0);
                             const productDiscount = (detail.discount ?? 0);
-                            const saleUnitId = detail.product?.unitSaleId;
+                            const saleReturnUnitId = detail.product?.unitSaleId;
                             const stockUnitId = detail.product?.unitId;
                             const productPrice = (detail.product?.price ?? 0);
                             const taxValue = (productTaxRate / 100 * productPrice);
@@ -144,34 +138,34 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                             const productSubTotal = productQuantity * productPriceBeforeTax + productTaxNet - productDiscount;
                             subTotal += productSubTotal;
                             partialData.push(...[
-                                { value: productQuantity, default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.quantity] },
-                                { value: productTaxMethod, default: "inclusive", path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.taxMethod] },
-                                { value: productPriceBeforeTax, default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.price] },
-                                { value: productTaxNet, default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.taxNet] },
-                                { value: productSubTotal, default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.total] },
-                                { value: productDiscount, default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.discount] },
-                                { value: "default", default: 0, path: [detailsPath, i, Prisma.SaleDetailScalarFieldEnum.discountMethod] }
+                                { value: productQuantity, default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.quantity] },
+                                { value: productTaxMethod, default: "inclusive", path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.taxMethod] },
+                                { value: productPriceBeforeTax, default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.price] },
+                                { value: productTaxNet, default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.taxNet] },
+                                { value: productSubTotal, default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.total] },
+                                { value: productDiscount, default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.discount] },
+                                { value: "default", default: 0, path: [detailsPath, i, Prisma.SaleReturnDetailScalarFieldEnum.discountMethod] }
                             ])
                         }
                     }
                     taxNet = (subTotal - discount) * (taxRate / 100);
                     grandTotal = (subTotal + taxNet) + shipping;
                     partialData.push(...[
-                        { value: taxNet, default: 0, path: [Prisma.SaleScalarFieldEnum.taxNet] },
-                        { value: grandTotal, default: 0, path: [Prisma.SaleScalarFieldEnum.grandTotal] },
-                        // { value: discount, default: 0, path: [Prisma.SaleScalarFieldEnum.discount] },
-                        // { value: taxRate, default: 0, path: [Prisma.SaleScalarFieldEnum.taxRate] },
-                        // { value: shipping, default: 0, path: [Prisma.SaleScalarFieldEnum.shipping] },
+                        { value: taxNet, default: 0, path: [Prisma.SaleReturnScalarFieldEnum.taxNet] },
+                        { value: grandTotal, default: 0, path: [Prisma.SaleReturnScalarFieldEnum.grandTotal] },
+                        // { value: discount, default: 0, path: [Prisma.SaleReturnScalarFieldEnum.discount] },
+                        // { value: taxRate, default: 0, path: [Prisma.SaleReturnScalarFieldEnum.taxRate] },
+                        // { value: shipping, default: 0, path: [Prisma.SaleReturnScalarFieldEnum.shipping] },
 
                     ])
                 }
 
-                if (paymentSales && paymentSales instanceof Array) {
-                    for (let i = 0; i < paymentSales.length; i++) {
-                        const item = paymentSales[i];
+                if (paymentSaleReturns && paymentSaleReturns instanceof Array) {
+                    for (let i = 0; i < paymentSaleReturns.length; i++) {
+                        const item = paymentSaleReturns[i];
                         if (item) {
-                            let payment = item as PaymentSale;
-                            const amount = getValue([Prisma.PaymentSaleScalarFieldEnum.amount], payment)
+                            let payment = item as PaymentSaleReturn;
+                            const amount = getValue([Prisma.PaymentSaleReturnScalarFieldEnum.amount], payment)
                             let change = amount;
                             if (amount > paidAmount) {
                                 change = amount - paidAmount;
@@ -180,7 +174,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                             }
                             partialData.push(
                                 ...[
-                                    { value: change, default: 0, path: [paymentPath, i, Prisma.PaymentSaleScalarFieldEnum.change] },
+                                    { value: change, default: 0, path: [paymentPath, i, Prisma.PaymentSaleReturnScalarFieldEnum.change] },
 
                                 ]
                             )
@@ -206,50 +200,50 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
 
 
     const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
-        Prisma.SaleScalarFieldEnum.taxRate,
-        Prisma.SaleScalarFieldEnum.taxNet,
-        Prisma.SaleScalarFieldEnum.discount,
-        Prisma.SaleScalarFieldEnum.shipping,
-        Prisma.SaleScalarFieldEnum.grandTotal]);
+        Prisma.SaleReturnScalarFieldEnum.taxRate,
+        Prisma.SaleReturnScalarFieldEnum.taxNet,
+        Prisma.SaleReturnScalarFieldEnum.discount,
+        Prisma.SaleReturnScalarFieldEnum.shipping,
+        Prisma.SaleReturnScalarFieldEnum.grandTotal]);
 
-    const paymentStatus = form.watch(Prisma.SaleScalarFieldEnum.paymentStatus);
+    const paymentStatus = form.watch(Prisma.SaleReturnScalarFieldEnum.paymentStatus);
     const paymentFields = useMemo(() => {
         if (paymentStatus === "Paid") {
-            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+            form.setValue(Prisma.SaleReturnScalarFieldEnum.paidAmount, grandTotal);
         }
 
         if (paymentStatus === "Pending") {
-            if (paymentSalesForm.fields.length > 0) {
-                paymentSalesForm.replace([])
+            if (paymentSaleReturnsForm.fields.length > 0) {
+                paymentSaleReturnsForm.replace([])
             }
-        } else if (paymentStatus && paymentSalesForm.fields.length == 0 && paymentSaleData.length == 0) {
+        } else if (paymentStatus && paymentSaleReturnsForm.fields.length == 0 && paymentSaleReturnData.length == 0) {
             const date = new Date();
             const ref = Date.now();
             const amount = paymentStatus === "Partial" ? 0 : grandTotal;
 
-            paymentSalesForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, }]);
+            paymentSaleReturnsForm.replace([{ date: date, ref: `${ref}`, amount: amount, change: 0, }]);
 
         }
-        else if (paymentSalesForm.fields.length > 0 && paymentSaleData.length > 0) {
+        else if (paymentSaleReturnsForm.fields.length > 0 && paymentSaleReturnData.length > 0) {
             const props = { ...paidAmountField!, props: { ...paidAmountField!.props, disabled: paymentStatus === "Paid" } }
             const paidInput = <FormInputField key={paidAmountField!.name} {...props} />
-            return [paymentSaleData.at(0)!.fields.slice(0, 2), paidInput, ...paymentSaleData.at(0)!.fields!.slice(2)]
+            return [paymentSaleReturnData.at(0)!.fields.slice(0, 2), paidInput, ...paymentSaleReturnData.at(0)!.fields!.slice(2)]
         }
         return [];
-    }, [paymentStatus, paymentSalesForm.fields.length, paymentSaleData.length])
+    }, [paymentStatus, paymentSaleReturnsForm.fields.length, paymentSaleReturnData.length])
 
     useEffect(() => {
         if (paymentStatus === "Paid") {
-            form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+            form.setValue(Prisma.SaleReturnScalarFieldEnum.paidAmount, grandTotal);
         }
     }, [grandTotal, paymentStatus]);
 
-    if (!sale || !sale?.id) return (
+    if (!saleReturn || !saleReturn?.id) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-            <span className="m-auto">Invalid sale</span>
+            <span className="m-auto">Invalid saleReturn</span>
         </div>)
     return (
-        <FormContainer title={<h2>Update Sale</h2>}>
+        <FormContainer title={<h2>Update Sale return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
                 console.log(data);
@@ -277,7 +271,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            saleDetailsForm.append(v);
+                            saleReturnDetailsForm.append(v);
                             if (reset) {
                                 reset();
                             }
@@ -286,7 +280,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                         useGetDataHook={() => {
                             const { labels, data, ...rest } = useProductSearch(
                                 {
-                                    format: productToSaleDetailFormater,
+                                    format: productToSaleReturnDetailFormater,
                                     queryBuilder: productDefaultQueryBuilder,
                                 } as any
                             );
@@ -358,7 +352,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                             Cell: ({ row }: { row: any }) => {
                                 return <button onClick={(e) => {
                                     e.preventDefault();
-                                    saleDetailsForm.remove(row.index)
+                                    saleReturnDetailsForm.remove(row.index)
                                 }
                                 } className="btn btn-warning btn-outline btn-xs">remove</button>
                             }
@@ -379,7 +373,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                     {secondaryFields.map((i) => {
                         return (<FormInputField key={i.name} {...i} />);
                     })}
-                    {paymentSaleData.length > 0 && paymentFields}
+                    {paymentSaleReturnData.length > 0 && paymentFields}
                 </div>
                 <div className="w-full">
                     <FormInputField  {...notesField as any} />
@@ -404,9 +398,9 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={useSaleRequiredData}>
+        <CollectRequiredDataWrapper useHooks={useSaleReturnRequiredData}>
             {(props) => {
-                return <UpdateSale {...props} />
+                return <UpdateSaleReturn {...props} />
             }}
         </CollectRequiredDataWrapper>
     )
@@ -416,10 +410,10 @@ Index.getLayout = getLayout;
 
 
 
-function useSaleRequiredData() {
+function useSaleReturnRequiredData() {
     const router = useRouter();
-    const saleId = parseInt((router.query as SalePathProps).saleId ?? "");
-    const { sale, result: { isLoading: loading, }, refetch } = useSale(saleId);
+    const saleReturnId = parseInt((router.query as SaleReturnPathProps).saleReturnId ?? "");
+    const { saleReturn, result: { isLoading: loading, }, refetch } = useSaleReturn(saleReturnId);
     const { tenant, result: { isLoading: tenantLoading } } = useTenant();
     const { setting, result: { isLoading: settingLoading } } = useSetting();
     return useMemo(() => ({
@@ -427,11 +421,11 @@ function useSaleRequiredData() {
             tenant,
             setting,
             defaultCurrency: setting?.currency,
-            sale,
+            saleReturn,
             refetch
         },
         isLoading: tenantLoading || loading || settingLoading
     }),
         [tenantLoading, loading, settingLoading]);
 }
-type SaleRequiredDataReturnType = ReturnType<typeof useSaleRequiredData>
+type SaleReturnRequiredDataReturnType = ReturnType<typeof useSaleReturnRequiredData>

@@ -6,7 +6,11 @@ const include = {
     user: true,
     warehouse: true,
     paymentPurchaseReturns: true,
-    purchaseReturnDetails: true
+    purchaseReturnDetails: {
+        include:{
+            product:true,productVariant:true,
+        }
+    }
 };
 
 export type CreatePurchaseReturnDetailInput = {
@@ -20,12 +24,12 @@ export type CreatePurchaseReturnDetailInput = {
     quantity         :number
     productId        :number
     productVariantId ?:number
-    imeiNumber       :string
+    imeiNumber       ?:string
 }
 
 export type CreatePaymentPurchaseReturnInput = {
 
-  userId           :string
+ // userId           :string
   date             :Date      
   ref              :string        
   amount           :number
@@ -54,15 +58,15 @@ export type CreatePurchaseReturnInput = {
     tenantId: string
 }
 export const createPurchaseReturn = async (input: CreatePurchaseReturnInput,ctx:TenantContext) => {
-    const { tenantId, paymentPurchaseReturns, purchaseReturnDetails, ...data } = input;
+    const { tenantId,userId, paymentPurchaseReturns, purchaseReturnDetails, ...data } = input;
     let details = {};
     if (purchaseReturnDetails && purchaseReturnDetails.length) {
         details = {
-            PurchaseReturnDetails: {
+            purchaseReturnDetails: {
                 createMany: {
                     skipDuplicates: true,
                     data: purchaseReturnDetails.map((v) => ({
-                        ...v, tenantId
+                        ...v, tenantId,
                     }))
                 }
             }
@@ -77,7 +81,7 @@ export const createPurchaseReturn = async (input: CreatePurchaseReturnInput,ctx:
                 createMany: {
                     skipDuplicates: true,
                     data: paymentPurchaseReturns.map((v) => ({
-                        ...v, tenantId
+                        ...v, tenantId,userId
                     }))
                 }
             }
@@ -86,7 +90,7 @@ export const createPurchaseReturn = async (input: CreatePurchaseReturnInput,ctx:
     }
     return ctx.tx!.purchaseReturn.create({
         include,
-        data: { tenantId: tenantId, ...data, ...details, ...paymentData }
+        data: { tenantId: tenantId,userId, ...data, ...details, ...paymentData }
     })
 }
 

@@ -175,8 +175,8 @@ export type UpdateSaleInput = {
     date?: Date
     ref?: string
     isPos?: boolean
-    //  customerId?: number
-    // warehouseId?: number
+    customerId?: number
+    warehouseId?: number
     taxRate?: number
     taxNet?: number
     discount?: number
