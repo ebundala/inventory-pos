@@ -3,7 +3,7 @@ import Loader from "@/components/sites/Loader";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
 import { useProducts } from "@/lib/hooks/useProducts";
-import { Product, ProductVariant } from "@prisma/client";
+import { Product, ProductVariant, ProductWarehouse } from "@prisma/client";
 import { useRouter } from "next/router";
 
 
@@ -83,19 +83,9 @@ export function Products({products,refetch}:ProductListProps) {
                     },
                     {
                         Header: "Quantity",
-                        accessor: "isVariant",
-                        Cell: ({ row, value }: { row: any, value: any }) => {
-                           const isVariant = (row.original as Product).isVariant;
-                           if(isVariant){
-                            const variants = ((row.original?.productVariants??[]) as ProductVariant[])
-                            let stock=0;
-                            for(let i of variants){
-                              stock=+(i?.qty??0)
-                            }
-                            return stock;
-                           }else{
-                           // TODO calculate stock level for non variant products
-                           }
+                        accessor: "productWarehouse",
+                        Cell: ({ row, value }: { row: any, value: ProductWarehouse[] }) => {
+                           return value.reduce((p,c,i,arr)=>p+c.qty,0)
                         }
                     },
                     {

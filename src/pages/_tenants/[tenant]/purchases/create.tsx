@@ -9,7 +9,7 @@ import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { PaymentPurchase, Prisma, Product, ProductVariant, PurchaseDetail, Unit } from '@prisma/client'
+import { PaymentPurchase, Prisma, Product, ProductVariant, ProductWarehouse, PurchaseDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
@@ -204,7 +204,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         Prisma.PurchaseScalarFieldEnum.discount,
         Prisma.PurchaseScalarFieldEnum.shipping,
         Prisma.PurchaseScalarFieldEnum.grandTotal])
-        const paymentStatus = form.watch(Prisma.SaleScalarFieldEnum.paymentStatus);
+        const [paymentStatus,warehouseId] = form.watch([Prisma.SaleScalarFieldEnum.paymentStatus,Prisma.SaleScalarFieldEnum.warehouseId]);
         const paymentFields = useMemo(() => {
             if (paymentStatus === "Paid") {
                 form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
@@ -249,7 +249,6 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
             })}>
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
-
 
                         return (<FormInputField key={i.name} {...i} />);
                     })}
@@ -312,8 +311,13 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                         },
                         {
                             Header: "Stock",
-                            accessor: "stock",
-                            disableSortBy: true
+                            accessor: "product.productWarehouse",
+                            disableSortBy: true,
+                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                              return value
+                                ?.filter((v) => v.warehouseId === warehouseId)
+                                ?.reduce((p, c) => p + c.qty, 0);
+                            },
                         },
                         {
                             Header: "Quantity",

@@ -9,7 +9,7 @@ import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { PaymentSaleReturn, Prisma, Product, ProductVariant, SaleReturnDetail, Unit } from '@prisma/client'
+import { PaymentSaleReturn, Prisma, Product, ProductVariant, ProductWarehouse, SaleReturnDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
@@ -187,12 +187,13 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
         }
     }, [data]);
 
-    const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
+    const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.SaleReturnScalarFieldEnum.taxRate,
         Prisma.SaleReturnScalarFieldEnum.taxNet,
         Prisma.SaleReturnScalarFieldEnum.discount,
         Prisma.SaleReturnScalarFieldEnum.shipping,
-        Prisma.SaleReturnScalarFieldEnum.grandTotal]);
+        Prisma.SaleReturnScalarFieldEnum.grandTotal,
+        Prisma.SaleReturnScalarFieldEnum.warehouseId]);
 
     const paymentStatus = form.watch(Prisma.SaleReturnScalarFieldEnum.paymentStatus);
     const paymentFields = useMemo(() => {
@@ -304,8 +305,13 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                         },
                         {
                             Header: "Stock",
-                            accessor: "stock",
-                            disableSortBy: true
+                            accessor: "product.productWarehouse",
+                            disableSortBy: true,
+                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                              return value
+                                ?.filter((v) => v.warehouseId === warehouseId)
+                                ?.reduce((p, c) => p + c.qty, 0);
+                            },
                         },
                         {
                             Header: "Quantity",

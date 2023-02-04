@@ -16,7 +16,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useSetting } from "@/lib/hooks/useSetting";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
-import { Prisma, Product, ProductVariant, TransferDetail, Unit } from "@prisma/client";
+import { Prisma, Product, ProductVariant, ProductWarehouse, TransferDetail, Unit } from "@prisma/client";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { FormComboBox } from "@/components/combobox";
 import { OrderSummary } from "@/components/OrderSummary";
@@ -169,12 +169,13 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
         }
     }, [data]);
 
-    const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
+    const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.TransferScalarFieldEnum.taxRate,
         Prisma.TransferScalarFieldEnum.taxNet,
         Prisma.TransferScalarFieldEnum.discount,
         Prisma.TransferScalarFieldEnum.shipping,
-        Prisma.TransferScalarFieldEnum.grandTotal]);
+        Prisma.TransferScalarFieldEnum.grandTotal,
+        Prisma.TransferScalarFieldEnum.fromWarehouseId]);
 
 
     return (
@@ -254,8 +255,13 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
                         },
                         {
                             Header: "Stock",
-                            accessor: "stock",
-                            disableSortBy: true
+                            accessor: "product.productWarehouse",
+                            disableSortBy: true,
+                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                              return value
+                                ?.filter((v) => v.warehouseId === warehouseId)
+                                ?.reduce((p, c) => p + c.qty, 0);
+                            },
                         },
                         {
                             Header: "Quantity",

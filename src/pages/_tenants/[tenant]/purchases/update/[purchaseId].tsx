@@ -17,7 +17,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useSetting } from "@/lib/hooks/useSetting";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
-import { Prisma, Product, ProductVariant, PurchaseDetail, Unit } from "@prisma/client";
+import { Prisma, Product, ProductVariant, ProductWarehouse, PurchaseDetail, Unit } from "@prisma/client";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { FormComboBox } from "@/components/combobox";
 import { OrderSummary } from "@/components/OrderSummary";
@@ -186,12 +186,12 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
         }
     }, [data]);
 
-    const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
+    const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.PurchaseScalarFieldEnum.taxRate,
         Prisma.PurchaseScalarFieldEnum.taxNet,
         Prisma.PurchaseScalarFieldEnum.discount,
         Prisma.PurchaseScalarFieldEnum.shipping,
-        Prisma.PurchaseScalarFieldEnum.grandTotal])
+        Prisma.PurchaseScalarFieldEnum.grandTotal,Prisma.PurchaseScalarFieldEnum.warehouseId])
 
     return (
         <FormContainer title={<h2>Update Purchase</h2>}>
@@ -269,8 +269,13 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
                         },
                         {
                             Header: "Stock",
-                            accessor: "stock",
-                            disableSortBy: true
+                            accessor: "product.productWarehouse",
+                            disableSortBy: true,
+                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                              return value
+                                ?.filter((v) => v.warehouseId === warehouseId)
+                                ?.reduce((p, c) => p + c.qty, 0);
+                            },
                         },
                         {
                             Header: "Quantity",

@@ -11,7 +11,7 @@ import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigTo
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProductWarehouse } from "@prisma/client";
 import { CustomTable } from "@/components/table";
 import { FormComboBox } from "@/components/combobox";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
@@ -59,7 +59,7 @@ export function UpdateAdjustment({ defaultWarehouse, adjustment, loading, refetc
     const detailsData = useRenderFieldArrayForm(fname, adjustmentDetailsForm, form, fieldArrayConfig);
 
     const [notesField, otherFields] = useGetZodFormField(Prisma.AdjustmentScalarFieldEnum.notes, regularConfig)
-
+    const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId)
 
     if ((!adjustment || !adjustment?.id) && !loading) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
@@ -129,8 +129,13 @@ export function UpdateAdjustment({ defaultWarehouse, adjustment, loading, refetc
                         },
                         {
                             Header: "Stock",
-                            accessor: "stock",
-                            disableSortBy: true
+                            accessor: "product.productWarehouse",
+                            disableSortBy: true,
+                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                              return value
+                                ?.filter((v) => v.warehouseId === warehouseId)
+                                ?.reduce((p, c) => p + c.qty, 0);
+                            },
                         },
                         {
                             Header: "Quantity",
