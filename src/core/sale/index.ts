@@ -7,7 +7,11 @@ const include = {
     customer: true,
     saleDetails:{
         include:{
-            product: true,
+            product: {
+                include: {
+                  productWarehouse: true,
+                },
+              },
             productVariant:true
         },
     },

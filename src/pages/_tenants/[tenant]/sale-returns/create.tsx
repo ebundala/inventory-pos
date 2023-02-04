@@ -9,7 +9,7 @@ import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { PaymentSaleReturn, Prisma, Product, ProductVariant, ProductWarehouse, SaleReturnDetail, Unit } from '@prisma/client'
+import { PaymentSaleReturn, Prisma, Product, ProductVariant, ProductWarehouse, SaleDetail, SaleReturnDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
@@ -279,7 +279,10 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                 </div>
 
                 <div className="w-full  ">
-                    <CustomTable rowsData={detailsData} collumsData={() => [
+                    <CustomTable 
+                    colDeps={[warehouseId]}
+                    rowsData={detailsData}
+                     collumsData={() => [
                         {
                             Header: "code",
                             accessor: "product.code",
@@ -291,9 +294,9 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                             disableSortBy: true,
                             Cell: ({ row }: { row: any }) => {
                                 return (
-                                    <span className="text text-elipsis w-[80px]">
+                                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
                                         {getProductFormatedName(row.original)}
-                                    </span>);
+                                    </div>);
                             }
                         },
                         {
@@ -307,8 +310,28 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                             Header: "Stock",
                             accessor: "product.productWarehouse",
                             disableSortBy: true,
-                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
-                              return value
+                            Cell: ({
+                                row,
+                                value,
+                              }: {
+                                value: ProductWarehouse[];
+                                row: any;
+                              }) => {
+                                const detail = row.original as SaleReturnDetail & {
+                                  product: Product;
+                                  productVariant?: ProductVariant;
+                                };
+              
+                                if (detail.product?.isVariant === true) {                    
+                                  return value
+                                    ?.filter(
+                                      (v) =>
+                                        v.warehouseId === warehouseId &&
+                                        v.productVariantId === detail.productVariantId
+                                    )
+                                    ?.reduce((p, c) => p + c.qty, 0);
+                                }
+                                return value
                                 ?.filter((v) => v.warehouseId === warehouseId)
                                 ?.reduce((p, c) => p + c.qty, 0);
                             },

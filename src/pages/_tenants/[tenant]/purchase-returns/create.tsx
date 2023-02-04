@@ -489,6 +489,7 @@ export function CreatePurchaseReturn({
 
         <div className="w-full  ">
           <CustomTable
+          colDeps={[warehouseId]}
             rowsData={detailsData}
             collumsData={() => [
               {
@@ -502,10 +503,9 @@ export function CreatePurchaseReturn({
                 disableSortBy: true,
                 Cell: ({ row }: { row: any }) => {
                   return (
-                    <span className="text text-elipsis w-[150px]">
-                      {getProductFormatedName(row.original)}
-                    </span>
-                  );
+                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
+                        {getProductFormatedName(row.original)}
+                    </div>);
                 },
               },
               {
@@ -517,7 +517,27 @@ export function CreatePurchaseReturn({
                 Header: "Stock",
                 accessor: "product.productWarehouse",
                 disableSortBy: true,
-                Cell: ({ value }: { value: ProductWarehouse[] }) => {
+                Cell: ({
+                  row,
+                  value,
+                }: {
+                  value: ProductWarehouse[];
+                  row: any;
+                }) => {
+                  const detail = row.original as PurchaseReturnDetail & {
+                    product: Product;
+                    productVariant?: ProductVariant;
+                  };
+
+                  if (detail.product?.isVariant === true) {                    
+                    return value
+                      ?.filter(
+                        (v) =>
+                          v.warehouseId === warehouseId &&
+                          v.productVariantId === detail.productVariantId
+                      )
+                      ?.reduce((p, c) => p + c.qty, 0);
+                  }
                   return value
                     ?.filter((v) => v.warehouseId === warehouseId)
                     ?.reduce((p, c) => p + c.qty, 0);

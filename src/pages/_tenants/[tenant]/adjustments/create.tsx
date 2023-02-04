@@ -9,7 +9,7 @@ import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { Prisma, ProductWarehouse } from "@prisma/client";
+import { AdjustmentDetail, Prisma, Product, ProductVariant, ProductWarehouse } from "@prisma/client";
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
@@ -122,6 +122,7 @@ export function CreateAdjustment({
         <div className="w-full  ">
           <CustomTable
             rowsData={detailsData}
+            colDeps={[warehouseId]}
             collumsData={() => [
               {
                 Header: "Product code",
@@ -133,15 +134,37 @@ export function CreateAdjustment({
                 accessor: "productId",
                 disableSortBy: true,
                 Cell: ({ row }: { row: any }) => {
-                  return getProductFormatedName(row.original);
+                  return (
+                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
+                        {getProductFormatedName(row.original)}
+                    </div>);
                 },
               },
               {
                 Header: "Stock",
                 accessor: "product.productWarehouse",
                 disableSortBy: true,
-                Cell: ({ value }: { value: ProductWarehouse[] }) => {
-                 
+                Cell: ({
+                  row,
+                  value,
+                }: {
+                  value: ProductWarehouse[];
+                  row: any;
+                }) => {
+                  const detail = row.original as AdjustmentDetail & {
+                    product: Product;
+                    productVariant?: ProductVariant;
+                  };
+
+                  if (detail.product?.isVariant === true) {                    
+                    return value
+                      ?.filter(
+                        (v) =>
+                          v.warehouseId === warehouseId &&
+                          v.productVariantId === detail.productVariantId
+                      )
+                      ?.reduce((p, c) => p + c.qty, 0);
+                  }
                     return value
                     ?.filter((v) => v.warehouseId === warehouseId)
                     ?.reduce((p, c) => p + c.qty, 0);

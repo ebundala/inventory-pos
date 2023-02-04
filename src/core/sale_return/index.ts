@@ -3,7 +3,12 @@ import { TenantContext } from "../trpc";
 const include = {
     saleReturnDetails: {
         include:{
-            product:true,productVariant:true
+            product:{
+                include: {
+                  productWarehouse: true,
+                },
+              },
+            productVariant:true
         }
     },
     paymentSaleReturns: true,

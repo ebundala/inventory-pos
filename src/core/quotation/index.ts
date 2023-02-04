@@ -6,7 +6,12 @@ const include = {
     warehouse: true,
     quotationDetails: {
         include: {
-            product: true, productVariant: true, unit: true,
+            product: {
+                include: {
+                  productWarehouse: true,
+                },
+              },
+             productVariant: true, unit: true,
         },
     },
     customer: true

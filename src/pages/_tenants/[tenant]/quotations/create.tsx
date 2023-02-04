@@ -221,7 +221,10 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                 </div>
 
                 <div className="w-full  ">
-                    <CustomTable rowsData={detailsData} collumsData={() => [
+                    <CustomTable 
+                    colDeps={[warehouseId]}
+                    rowsData={detailsData} 
+                    collumsData={() => [
                         {
                             Header: "code",
                             accessor: "product.code",
@@ -233,9 +236,9 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                             disableSortBy: true,
                             Cell: ({ row }: { row: any }) => {
                                 return (
-                                    <span className="text text-elipsis w-[150px]">
+                                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
                                         {getProductFormatedName(row.original)}
-                                    </span>);
+                                    </div>);
                             }
                         },
                         {
@@ -248,8 +251,28 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                             Header: "Stock",
                             accessor: "product.productWarehouse",
                             disableSortBy: true,
-                            Cell: ({ value }: { value: ProductWarehouse[] }) => {
-                              return value
+                            Cell: ({
+                                row,
+                                value,
+                              }: {
+                                value: ProductWarehouse[];
+                                row: any;
+                              }) => {
+                                const detail = row.original as QuotationDetail & {
+                                  product: Product;
+                                  productVariant?: ProductVariant;
+                                };
+              
+                                if (detail.product?.isVariant === true) {                    
+                                  return value
+                                    ?.filter(
+                                      (v) =>
+                                        v.warehouseId === warehouseId &&
+                                        v.productVariantId === detail.productVariantId
+                                    )
+                                    ?.reduce((p, c) => p + c.qty, 0);
+                                }
+                                return value
                                 ?.filter((v) => v.warehouseId === warehouseId)
                                 ?.reduce((p, c) => p + c.qty, 0);
                             },

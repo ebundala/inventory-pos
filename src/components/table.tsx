@@ -393,6 +393,7 @@ type TableProps<T extends any = any> = {
   pageOptions?: TPageOptions;
   search?: boolean;
   pagenation?: boolean;
+ colDeps?:any[]
 };
 export function CustomTable({
   rowsData,
@@ -400,9 +401,10 @@ export function CustomTable({
   pageOptions,
   search = true,
   pagenation = true,
+  colDeps=[]
 }: TableProps) {
   const data = useMemo(() => rowsData, [rowsData]);
-  const columns = useMemo(collumsData, []);
+  const columns = useMemo(collumsData, colDeps);
   const {
     getTableProps,
     getTableBodyProps,

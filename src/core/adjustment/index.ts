@@ -6,7 +6,11 @@ const include = {
   warehouse: true,
   adjustmentDetails: {
     include: {
-      product: true,
+      product: {
+        include:{
+          productWarehouse:true
+        }
+      },
       productVariant: true,
     },
   },

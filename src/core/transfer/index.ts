@@ -7,7 +7,11 @@ const include={
     user:true,
     transferDetails:{
         include:{
-            product:true,
+            product:{
+                include: {
+                  productWarehouse: true,
+                },
+              },
             productVariant:true,
             unit:true
         }
