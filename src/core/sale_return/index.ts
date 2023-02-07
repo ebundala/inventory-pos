@@ -1,5 +1,6 @@
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { getOneProductWarehouse, getProductWarehouse } from "../util/getProductWarehouse";
 const include = {
     saleReturnDetails: {
         include:{
@@ -69,6 +70,28 @@ export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantCo
     
     let details = {};
     if (saleReturnDetails && saleReturnDetails.length) {
+        const productWarehouse = await getProductWarehouse(ctx,saleReturnDetails,data.warehouseId);
+
+
+        if(data.status === "Received"){
+            const updatePw = saleReturnDetails.map((v)=>{
+                const pw = getOneProductWarehouse(productWarehouse,{
+                  productId:v.productId,
+                  productVariantId:v.productVariantId,
+                  warehouseId:data.warehouseId!});
+                 
+                if(!pw) return null;
+                
+                return ctx.tx!.productWarehouse.update({
+                  where:{id:pw!.id},data:{
+                    qty:pw!.qty + v.quantity
+                  }
+                });
+              }).filter((v)=>v)
+              await Promise.allSettled(updatePw);
+           
+          }
+
         details = {
             saleReturnDetails: {
                 createMany: {
@@ -158,10 +181,42 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantCo
     });
     let details = {};
     if (saleReturnDetails && saleReturn && saleReturnDetails.length) {
-        const savedDetails = saleReturn.saleReturnDetails.map((v) => v.id);
-        const detailsToDelete = saleReturn.saleReturnDetails.filter((v) => !saleReturnDetails.find((s)=>s.id===v.id))
+      
+        const productWarehouse = await getProductWarehouse(
+            ctx,
+            saleReturnDetails,
+            data.warehouseId!
+          );
+         //revert old details
+         const updateProductWarehouse = saleReturn.saleReturnDetails.map((v)=>{
+          const productId = v.productId;
+          const productVariantId = v.productVariantId;
+          const warehouseId = saleReturn.warehouseId;
+          const pw = getOneProductWarehouse(productWarehouse,{warehouseId:warehouseId,productId,productVariantId});
+              if (!pw || saleReturn.status !== "Received") return null;
+              
+                return ctx.tx!.productWarehouse.update({
+                  where:{id:pw!.id},data:{
+                    qty:pw.qty - v.quantity
+                  }
+                })
+              
+         }).filter(v=>v!==null);
+      await Promise.allSettled(updateProductWarehouse);
+      
+      
+      
+      
+      
+       // const savedDetails = saleReturn.saleReturnDetails.map((v) => v.id);
+        const detailsToDelete = saleReturn.saleReturnDetails //.filter((v) => !saleReturnDetails.find((s)=>s.id===v.id))
             .map((v) => ({ id: v.id }));
-        const detailsToCreate = paymentSaleReturns.filter((v) => !savedDetails.includes(v.id??-1)).map((v) => ({ ...v, tenantId }));
+        const detailsToCreate = saleReturnDetails //.filter((v) => !savedDetails.includes(v.id??-1))
+        .map((v) => {
+            const { id,...rest } = v;
+            return { ...rest, tenantId };
+        });
+
         details = {
             saleReturnDetails: {
                 createMany: { data: detailsToCreate },
@@ -169,6 +224,30 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantCo
 
             }
         }
+
+        const productWarehouse2 = await getProductWarehouse(
+            ctx,
+            saleReturnDetails,
+            data.warehouseId!
+          );
+      
+          //update prod warehouse with new details
+          const updateProductWarehouse2 = detailsToCreate
+          .map((v) => {
+            const productId = v.productId!;
+            const productVariantId = v.productVariantId;
+            const warehouseId = saleReturn.warehouseId!;
+            const pw = getOneProductWarehouse(productWarehouse2,{warehouseId,productId,productVariantId});
+            if (!pw || data.status !== "Received") return null;
+      
+            return ctx.tx!.productWarehouse.update({
+              where:{id:pw!.id},data:{
+                qty:pw!.qty + v!.quantity!
+              }
+            })
+          });
+          await Promise.allSettled(updateProductWarehouse2);
+
     }
     let paymentData = {};
     if (paymentSaleReturns && saleReturn && paymentSaleReturns.length) {

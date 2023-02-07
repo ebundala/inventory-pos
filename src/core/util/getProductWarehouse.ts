@@ -3,7 +3,7 @@ import { TenantContext } from "../trpc";
 
 export async function getProductWarehouse(
   ctx: TenantContext,
-  details: { productId?: number; productVariantId?: number; }[],
+  details: { productId?: number; productVariantId?: number | null; }[],
   warehouseId: number) {
   return (
     await ctx.tx!.productWarehouse.findMany({
