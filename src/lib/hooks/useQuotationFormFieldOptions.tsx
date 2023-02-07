@@ -14,7 +14,7 @@ export function useQuotationFormFieldOptions(opts?: { warehouse?: Warehouse; cus
         warehouseId: {
             label: "Warehouse",
             ordering: 2,
-            // options:(warehouses??[]).map((v)=>({label:v.name,value:v.id})),
+            disabled:!!warehouse?.id,
             combobox: {
                 elevation: 30,
                 value: warehouse ?? undefined,

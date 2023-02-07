@@ -45,14 +45,11 @@ export function UpdateAdjustment({
   const trpcWithHost = useTrpcTenant();
   const result = trpcWithHost.adjustment.update.useMutation({
     onSuccess: (data, variables, context) => {
-      console.log(data, variables);
-      //form.reset();
       refetch();
     },
   });
 
   useMemo(() => {
-    console.log("adjustment details changed");
     form.setValue(
       Prisma.AdjustmentScalarFieldEnum.items,
       adjustmentDetailsForm.fields.length
@@ -93,7 +90,6 @@ export function UpdateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            console.log(data);
             await result.mutateAsync(data as any);
           },
           (e) => {

@@ -1,15 +1,16 @@
 import { prisma } from "@/core";
 import { Prisma, ProductWarehouse, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { getProductWarehouse,getOneProductWarehouse } from "../util/getProductWarehouse";
 const include = {
   user: true,
   warehouse: true,
   adjustmentDetails: {
     include: {
       product: {
-        include:{
-          productWarehouse:true
-        }
+        include: {
+          productWarehouse: true,
+        },
       },
       productVariant: true,
     },
@@ -72,7 +73,12 @@ export const createAdjustment = async (
 
   const pwData = adjustmentDetails
     .map((d) => {
-      const pw = productWarehouse.get(`${d.productId}-${d.productVariantId}`);
+      const pw = getOneProductWarehouse(productWarehouse,{
+        warehouseId:data.warehouseId,
+        productId:d.productId,
+        productVariantId:d.productVariantId
+      })
+      //productWarehouse.get(`${d.productId}-${d.productVariantId}`);
       if (!pw) return null;
       if (d.type === "Addition") {
         return {
@@ -123,7 +129,12 @@ export const updateAdjustment = async (
   const adjustment = await ctx.tx!.adjustment.findUnique({
     where: { id },
     include: {
-      adjustmentDetails: true,
+      adjustmentDetails: {
+        include: {
+          product: true,
+          productVariant: true,
+        },
+      },
     },
   });
   let details = {};
@@ -133,26 +144,65 @@ export const updateAdjustment = async (
     adjustment.adjustmentDetails &&
     adjustment.adjustmentDetails.length
   ) {
-    const savedadjustments = adjustment.adjustmentDetails.map((v) => v.id);
+    const productWarehouse = await getProductWarehouse(
+      ctx,
+      adjustmentDetails,
+      data.warehouseId!
+    );
+
+    // const savedadjustments = adjustment.adjustmentDetails.map((v) => v.id);
+
+    //revert old details
+    const updateProductWarehouse = adjustment.adjustmentDetails
+      .map((v) => {
+        const productId = v.productId;
+        const productVariantId = v.productVariantId;
+        const warehouseId = adjustment.warehouseId;
+        const pw = getOneProductWarehouse(productWarehouse,{warehouseId:data!.warehouseId!,productId,productVariantId});
+        ;
+        if (!pw) return null;
+
+        if (v.type === "Addition") {
+          return ctx.tx!.productWarehouse.update({
+            where: { id: pw!.id },
+            data: {
+              qty: pw.qty - v.quantity,
+            },
+          });
+        } else {
+          return ctx.tx!.productWarehouse.update({
+            where: { id: pw!.id },
+            data: {
+              qty: pw.qty + v.quantity,
+            },
+          });
+        }
+      })
+      .filter((v) => v !== null);
+    await Promise.allSettled(updateProductWarehouse);
+    //
     const adjustmentToDelete = adjustment.adjustmentDetails
-      .filter((v) => !adjustmentDetails.find((s) => s.id === v.id))
+      //.filter((v) => !adjustmentDetails.find((s) => s.id === v.id))
       .map((v) => ({ id: v.id }));
 
-    const adjustmentToUpdate = adjustment.adjustmentDetails
-      .filter((v) => adjustmentDetails.find((s) => s.id === v.id))
-      .map((v) => {
-        const { id, adjustmentId, productVariantId, ...rest } = v;
+    // const adjustmentToUpdate = adjustment.adjustmentDetails
+    //   .filter((v) => adjustmentDetails.find((s) => s.id === v.id))
+    //   .map((v) => {
+    //     const { id, adjustmentId, productVariantId, ...rest } = v;
 
-        return { where: { id: id }, data: rest };
-      });
+    //     return {
+    //     where: { id: id },
+    //     data: rest };
+    //   });
 
     const adjustmentsToCreate = adjustmentDetails
-      .filter((v) => !savedadjustments.find((s) => s === v.id))
+      // .filter((v) => !savedadjustments.find((s) => s === v.id))
       .map((v) => {
         const { id, productVariantId: variantId, ...rest } = v;
         const productVariantId = variantId ? variantId : undefined;
         return { ...rest, productVariantId, tenantId };
       });
+
     details = {
       adjustmentDetails: {
         createMany: {
@@ -160,9 +210,41 @@ export const updateAdjustment = async (
           data: adjustmentsToCreate,
         },
         deleteMany: adjustmentToDelete,
-        updateMany: adjustmentToUpdate,
+        // updateMany: adjustmentToUpdate,
       },
     };
+    const productWarehouse2 = await getProductWarehouse(
+      ctx,
+      adjustmentDetails,
+      data.warehouseId!
+    );
+
+    //update prod warehouse with new details
+    const updateProductWarehouse2 = adjustmentsToCreate
+      .map((v) => {
+        const productId = v.productId!;
+        const productVariantId = v.productVariantId;
+        const warehouseId = adjustment.warehouseId!;
+        const pw = getOneProductWarehouse(productWarehouse2,{warehouseId,productId,productVariantId});
+        if (!pw) return null;
+        if (v.type === "Addition") {
+          return ctx.tx!.productWarehouse.update({
+            where: { id: pw!.id },
+            data: {
+              qty: pw.qty + v.quantity!,
+            },
+          });
+        } else {
+          return ctx.tx!.productWarehouse.update({
+            where: { id: pw!.id },
+            data: {
+              qty: pw.qty - v.quantity!,
+            },
+          });
+        }
+      })
+      .filter((v) => v !== null);
+    await Promise.allSettled(updateProductWarehouse2);
   }
   return ctx.tx!.adjustment.update({
     include,
@@ -226,3 +308,4 @@ export const findManyAdjustment = async (
     ...input,
   });
 };
+

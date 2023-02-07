@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { getOneProductWarehouse, getProductWarehouse } from "../util/getProductWarehouse";
 
 const include = {
   supplier: true,
@@ -69,6 +70,24 @@ export const createPurchase = async (
     input;
   let purchaseData = {};
   if (purchaseDetails && purchaseDetails.length) {
+    const productWarehouse = await getProductWarehouse(ctx,purchaseDetails,data.warehouseId);
+   if(data.status === "Received"){
+   const updatePw = purchaseDetails.map((v)=>{
+      const pw = getOneProductWarehouse(productWarehouse,{
+        productId:v.productId,
+        productVariantId:v.productVariantId,
+        warehouseId:data.warehouseId!});
+       
+      if(!pw) return null;
+      //console.log("quantity",pw!.qty);
+      return ctx.tx!.productWarehouse.update({
+        where:{id:pw!.id},data:{
+          qty:pw!.qty+v.quantity
+        }
+      });
+    }).filter((v)=>v)
+    await Promise.allSettled(updatePw);
+  }
     purchaseData = {
       purchaseDetails: {
         createMany: {
@@ -81,7 +100,9 @@ export const createPurchase = async (
       },
     };
   }
+
   let paymentData = {};
+
   if (paymentPurchases && paymentPurchases.length) {
     paymentData = {
       paymentPurchases: {
@@ -107,7 +128,9 @@ export const createPurchase = async (
       ...paymentData,
     },
   });
+
 };
+
 export type UpdatePurchaseDetailsInput = {
   id?: number;
   cost?: number;
@@ -168,32 +191,81 @@ export const updatePurchase = async (
   });
   let details = {};
   if (purchaseDetails && purchase && purchaseDetails.length) {
-    const savedDetails = purchase.purchaseDetails.map((v) => v.id);
+   
+   
+    const productWarehouse = await getProductWarehouse(
+      ctx,
+      purchaseDetails,
+      data.warehouseId!
+    );
+   //revert old details
+   const updateProductWarehouse = purchase.purchaseDetails.map((v)=>{
+    const productId = v.productId;
+    const productVariantId = v.productVariantId;
+    const warehouseId = purchase.warehouseId;
+    const pw = getOneProductWarehouse(productWarehouse,{warehouseId:warehouseId,productId,productVariantId});
+        if (!pw || purchase.status !== "Received") return null;
+        
+          return ctx.tx!.productWarehouse.update({
+            where:{id:pw!.id},data:{
+              qty:pw.qty - v.quantity
+            }
+          })
+        
+   }).filter(v=>v!==null);
+await Promise.allSettled(updateProductWarehouse);
+
+   // const savedDetails = purchase.purchaseDetails.map((v) => v.id);
     const detailsToDelete = purchase.purchaseDetails
-      .filter((v) => !purchaseDetails.find((s) => (s.id = v.id)))
+     // .filter((v) => !purchaseDetails.find((s) => (s.id = v.id)))
       .map((v) => ({ id: v.id }));
 
     const detailsToCreate = purchaseDetails
-      .filter((v) => !savedDetails.find((s) => v.id === s))
+     // .filter((v) => !savedDetails.find((s) => v.id === s))
       .map((v) => {
         const { id, ...rest } = v;
         return { ...rest, tenantId };
       });
-    const detailsToUpdate = purchaseDetails
-      .filter((v) => savedDetails.find((s) => v.id === s))
-      .map((v) => {
-        //TODO find why variant cant update
-        const { id, productVariantId, ...rest } = v;
-        return { where: { id: id }, data: rest };
-      });
+
+    // const detailsToUpdate = purchaseDetails
+    //   .filter((v) => savedDetails.find((s) => v.id === s))
+    //   .map((v) => {
+    //     //TODO find why variant cant update
+    //     const { id, productVariantId, ...rest } = v;
+    //     return { where: { id: id }, data: rest };
+    //   });
     details = {
       purchaseDetails: {
         createMany: { data: detailsToCreate },
         deleteMany: detailsToDelete,
-        updateMany: detailsToUpdate,
+       // updateMany: detailsToUpdate,
       },
     };
+
+    const productWarehouse2 = await getProductWarehouse(
+      ctx,
+      purchaseDetails,
+      data.warehouseId!
+    );
+
+    //update prod warehouse with new details
+    const updateProductWarehouse2 = detailsToCreate
+    .map((v) => {
+      const productId = v.productId!;
+      const productVariantId = v.productVariantId;
+      const warehouseId = purchase.warehouseId!;
+      const pw = getOneProductWarehouse(productWarehouse2,{warehouseId,productId,productVariantId});
+      if (!pw || data.status !== "Received") return null;
+
+      return ctx.tx!.productWarehouse.update({
+        where:{id:pw!.id},data:{
+          qty:pw!.qty+v!.quantity!
+        }
+      })
+    });
+    await Promise.allSettled(updateProductWarehouse2);
   }
+
   let paymentDetails = {};
   if (paymentPurchases && purchase && paymentPurchases.length) {
     const savedDetails = purchase.paymentPurchases.map((v) => v.id);

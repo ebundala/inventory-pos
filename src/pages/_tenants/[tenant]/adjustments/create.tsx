@@ -24,9 +24,7 @@ export function CreateAdjustment({
   user,
   defaultWarehouse,
 }: TAppConfig) {
-  const options = useAdjustmentFormFieldOptions({
-    warehouse: defaultWarehouse,
-  });
+  const options = useAdjustmentFormFieldOptions();
 
   const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
     defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, items: 0 },
@@ -46,7 +44,6 @@ export function CreateAdjustment({
   const result = trpcWithHost.adjustment.create.useMutation();
 
   useMemo(() => {
-    console.log("adjustment details changed");
     form.setValue(
       Prisma.AdjustmentScalarFieldEnum.items,
       adjustmentDetailsForm.fields.length

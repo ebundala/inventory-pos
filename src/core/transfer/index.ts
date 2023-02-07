@@ -1,6 +1,7 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { getOneProductWarehouse, getProductWarehouse } from "../util/getProductWarehouse";
 const include={
     fromWarehouse:true,
     toWarehouse:true,
@@ -51,6 +52,48 @@ export const createTransfer = async (input: CreateTransferInput,ctx:TenantContex
     const { tenantId, transferDetails, ...data } = input;
     let details={};
     if(transferDetails&&transferDetails.length){
+        if(data.status === "Completed"){
+        //remove from warehouse
+
+        const productWarehouse = await getProductWarehouse(ctx,transferDetails,data.fromWarehouseId);
+
+        const updatePw = transferDetails.map((v)=>{
+           const pw = getOneProductWarehouse(productWarehouse,{
+             productId:v.productId,
+             productVariantId:v.productVariantId,
+             warehouseId:data.fromWarehouseId!});
+            
+           if(!pw) return null;
+           //console.log("quantity",pw!.qty);
+           return ctx.tx!.productWarehouse.update({
+             where:{id:pw!.id},data:{
+               qty:pw!.qty-v.quantity
+             }
+           });
+         }).filter((v)=>v)
+         await Promise.allSettled(updatePw);
+        }
+
+        //Add to warehouse
+        const productWarehouse2 = await getProductWarehouse(ctx,transferDetails,data.toWarehouseId);
+
+        const updatePw2 = transferDetails.map((v)=>{
+           const pw = getOneProductWarehouse(productWarehouse2,{
+             productId:v.productId,
+             productVariantId:v.productVariantId,
+             warehouseId:data.toWarehouseId!});
+            
+           if(!pw) return null;
+           //console.log("quantity",pw!.qty);
+           return ctx.tx!.productWarehouse.update({
+             where:{id:pw!.id},data:{
+               qty:pw!.qty+v.quantity
+             }
+           });
+         }).filter((v)=>v)
+         await Promise.allSettled(updatePw2);
+        
+
         details={
             transferDetails:{
             createMany:{
@@ -106,32 +149,125 @@ export const updateTransfer = async (input: UpdateTransferInput,ctx:TenantContex
 
    let details = {};
     if(transferDetails&&transfer&&transferDetails.length){
-        const savedDetails=transfer.transferDetails.map((v)=>v.id);
+        //revert old details
+        if(transfer.status === "Completed"){
+            //add from warehouse
+    
+            const oldProductWarehouse = await getProductWarehouse(ctx,transferDetails,transfer.fromWarehouseId!);
+    
+            const updatePw = transferDetails.map((v)=>{
+               const pw = getOneProductWarehouse(oldProductWarehouse,{
+                 productId:v.productId!,
+                 productVariantId:v.productVariantId,
+                 warehouseId:transfer.fromWarehouseId!});
+                
+               if(!pw) return null;
+               //console.log("quantity",pw!.qty);
+               return ctx.tx!.productWarehouse.update({
+                 where:{id:pw!.id},data:{
+                   qty:pw!.qty + v.quantity!
+                 }
+               });
+             }).filter((v)=>v)
+             await Promise.allSettled(updatePw);
+            
+    
+            //remove to warehouse
+            const oldProductWarehouse2 = await getProductWarehouse(ctx,transferDetails,transfer.toWarehouseId!);
+    
+            const updatePw2 = transferDetails.map((v)=>{
+               const pw = getOneProductWarehouse(oldProductWarehouse2,{
+                 productId:v.productId!,
+                 productVariantId:v.productVariantId,
+                 warehouseId:transfer.toWarehouseId!});
+                
+               if(!pw) return null;
+               //console.log("quantity",pw!.qty);
+               return ctx.tx!.productWarehouse.update({
+                 where:{id:pw!.id},data:{
+                   qty:pw!.qty - v.quantity!
+                 }
+               });
+             }).filter((v)=>v)
+             await Promise.allSettled(updatePw2);
+
+
+            }
+
+        //const savedDetails=transfer.transferDetails.map((v)=>v.id);
         const detailsToDelete = transfer.transferDetails
-        .filter((v)=>!transferDetails.find((s)=>s.id===v.id))
+       /// .filter((v)=>!transferDetails.find((s)=>s.id===v.id))
         .map((v)=>({id:v.id}));
 
         const detailsToCreate = transferDetails
-        .filter((v)=>!savedDetails.find((s)=>s===v.id))
+       // .filter((v)=>!savedDetails.find((s)=>s===v.id))
         .map((v) => {
             const { id, ...rest } = v;
            return { ...rest, tenantId };
         });
 
-    const detailsToUpdate = transferDetails
-        .filter((v) => savedDetails.find((s) => v.id === s))
-        .map((v) => {
-            const { id, productVariantId,...rest } = v;
-            return { where: { id: id }, data: rest };
-        })
+    // const detailsToUpdate = transferDetails
+    //     .filter((v) => savedDetails.find((s) => v.id === s))
+    //     .map((v) => {
+    //         const { id, productVariantId,...rest } = v;
+    //         return { where: { id: id }, data: rest };
+    //     })
       
         details= { 
         transferDetails:{
             createMany:{data:detailsToCreate},
             deleteMany:detailsToDelete,
-            updateMany:detailsToUpdate
+          //  updateMany:detailsToUpdate
             
         } }
+
+
+        
+
+         //add new details 
+        if(data.status === "Completed"){
+            //remove from warehouse
+    
+            const productWarehouse = await getProductWarehouse(ctx,transferDetails,data.fromWarehouseId!);
+    
+            const updatePw = transferDetails.map((v)=>{
+               const pw = getOneProductWarehouse(productWarehouse,{
+                 productId:v.productId!,
+                 productVariantId:v.productVariantId,
+                 warehouseId:data.fromWarehouseId!});
+                
+               if(!pw) return null;
+               //console.log("quantity",pw!.qty);
+               return ctx.tx!.productWarehouse.update({
+                 where:{id:pw!.id},data:{
+                   qty:pw!.qty - v.quantity!
+                 }
+               });
+             }).filter((v)=>v)
+             await Promise.allSettled(updatePw);
+            
+    
+            //add to warehouse
+            const productWarehouse2 = await getProductWarehouse(ctx,transferDetails,data.toWarehouseId!);
+    
+            const updatePw2 = transferDetails.map((v)=>{
+               const pw = getOneProductWarehouse(productWarehouse2,{
+                 productId:v.productId!,
+                 productVariantId:v.productVariantId,
+                 warehouseId:data.toWarehouseId!});
+                
+               if(!pw) return null;
+               //console.log("quantity",pw!.qty);
+               return ctx.tx!.productWarehouse.update({
+                 where:{id:pw!.id},data:{
+                   qty:pw!.qty + v.quantity!
+                 }
+               });
+             }).filter((v)=>v)
+             await Promise.allSettled(updatePw2);
+
+            }
+
     }
     return ctx.tx!.transfer.update({
         include,

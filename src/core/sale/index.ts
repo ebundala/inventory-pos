@@ -1,6 +1,7 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { getProductWarehouse, getOneProductWarehouse } from "../util/getProductWarehouse";
 const include = {
     user: true,
     warehouse: true,
@@ -82,6 +83,27 @@ export const createSale = async (input: CreateSaleInput,ctx:TenantContext) => {
     const { tenantId, userId, saleDetails, paymentSales, shipments, ...data } = input;
     let saleData = {};
     if (saleDetails && saleDetails.length) {
+        const productWarehouse = await getProductWarehouse(ctx,saleDetails,data.warehouseId);
+
+      if(data.status === "Completed"){
+        const updatePw = saleDetails.map((v)=>{
+            const pw = getOneProductWarehouse(productWarehouse,{
+              productId:v.productId,
+              productVariantId:v.productVariantId,
+              warehouseId:data.warehouseId!});
+             
+            if(!pw) return null;
+            
+            return ctx.tx!.productWarehouse.update({
+              where:{id:pw!.id},data:{
+                qty:pw!.qty - v.quantity
+              }
+            });
+          }).filter((v)=>v)
+          await Promise.allSettled(updatePw);
+       
+      }
+
         saleData = {
             saleDetails: {
                 createMany: {
@@ -206,19 +228,47 @@ export const updateSale = async (input: UpdateSaleInput,ctx:TenantContext) => {
     });
     let details = {};
     if (saleDetails && sale && saleDetails.length) {
-        const savedDetails = sale.saleDetails.map((v) => v.id);
-        const detailsToDelete = sale.saleDetails.filter((v) => !saleDetails.find((s) => s.id = v.id))
+
+        const productWarehouse = await getProductWarehouse(
+            ctx,
+            saleDetails,
+            data.warehouseId!
+          );
+         //revert old details
+         const updateProductWarehouse = sale.saleDetails.map((v)=>{
+          const productId = v.productId;
+          const productVariantId = v.productVariantId;
+          const warehouseId = sale.warehouseId;
+          const pw = getOneProductWarehouse(productWarehouse,{warehouseId:warehouseId,productId,productVariantId});
+              if (!pw || sale.status !== "Completed") return null;
+              
+                return ctx.tx!.productWarehouse.update({
+                  where:{id:pw!.id},data:{
+                    qty:pw.qty + v.quantity
+                  }
+                })
+              
+         }).filter(v=>v!==null);
+      await Promise.allSettled(updateProductWarehouse);
+      
+
+
+      //  const savedDetails = sale.saleDetails.map((v) => v.id);
+        const detailsToDelete = sale.saleDetails
+        //.filter((v) => !saleDetails.find((s) => s.id = v.id))
             .map((v) => ({ id: v.id }));
-        const detailsToCreate = saleDetails.filter((v) => !savedDetails.find((s) => s === v.id))
+
+        const detailsToCreate = saleDetails
+        //.filter((v) => !savedDetails.find((s) => s === v.id))
             .map((v) => {
-                const { id, ...rest } = v;
+                const { id, saleId,...rest } = v;
                 return { ...rest, tenantId };
             });
-        const detailsToUpdate = saleDetails.filter((v) => !!savedDetails.find((s) => s === v.id))
-            .map((v) => {
-                const { id, productVariantId, ...rest } = v;
-                return { where: { id }, data: { ...rest, tenantId } };
-            });
+        // const detailsToUpdate = saleDetails.filter((v) => !!savedDetails.find((s) => s === v.id))
+        //     .map((v) => {
+        //         const { id, productVariantId, ...rest } = v;
+        //         return { where: { id }, data: { ...rest, tenantId } };
+        //     });
 
         details = {
             saleDetails: {
@@ -226,9 +276,34 @@ export const updateSale = async (input: UpdateSaleInput,ctx:TenantContext) => {
                     data: detailsToCreate
                 },
                 deleteMany: detailsToDelete,
-                updateMany: detailsToUpdate
+                // updateMany: detailsToUpdate
             }
         }
+
+
+        const productWarehouse2 = await getProductWarehouse(
+            ctx,
+            saleDetails,
+            data.warehouseId!
+          );
+      
+          //update prod warehouse with new details
+          const updateProductWarehouse2 = detailsToCreate
+          .map((v) => {
+            const productId = v.productId!;
+            const productVariantId = v.productVariantId;
+            const warehouseId = sale.warehouseId!;
+            const pw = getOneProductWarehouse(productWarehouse2,{warehouseId,productId,productVariantId});
+            if (!pw || data.status !== "Completed") return null;
+      
+            return ctx.tx!.productWarehouse.update({
+              where:{id:pw!.id},data:{
+                qty:pw!.qty - v!.quantity!
+              }
+            })
+          });
+          await Promise.allSettled(updateProductWarehouse2);
+
     }
 
 
