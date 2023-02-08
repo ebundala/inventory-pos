@@ -1,4 +1,5 @@
-export const getTenantUrl = (subdomain: string) => {
+export const getTenantUrl = (subdomain: string,protocal?:string) => {
     const url = new URL(process.env.NEXTAUTH_URL!);
-    return `${url.protocol}://${subdomain}.${url.hostname}${url.port ? `:${url.port}` : ""}`
+   const link = `${protocal?protocal:`${url.protocol.replaceAll(":","")}://`}${subdomain}.${url.hostname}${url.port ? `:${url.port}` : ""}`;
+   return link;
 }

@@ -14,7 +14,7 @@ import { tenantRouter } from "./tenants/tenant";
 import { transferRouter } from "./transfers/transfer";
 export {createContext} from '@/core/trpc';
 // register oidc actions handlers
-registerOidcActionHandler();
+//registerOidcActionHandler();
 
 export const appRouter = router({
     tenant:tenantRouter,

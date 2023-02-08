@@ -18,12 +18,17 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
+import { useToast } from "@/lib/hooks/useToast";
+import { ToastMessageType } from "@/types/ToastMessageType";
+import { Toast } from "@/components/Toast";
 
 export function CreateAdjustment({
   tenant,
   user,
   defaultWarehouse,
 }: TAppConfig) {
+  const {showToast,clearToast,messages} = useToast();
+
   const options = useAdjustmentFormFieldOptions();
 
   const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
@@ -39,9 +44,27 @@ export function CreateAdjustment({
     FieldArrayPath<FieldValues>,
     "key"
   >({ control: form.control, name: fname });
+  
 
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.adjustment.create.useMutation();
+  const result = trpcWithHost.adjustment.create.useMutation({
+    onError:(error, variables, context) =>{
+      showToast({
+        id: error.message,
+        type: ToastMessageType.error,      
+        timeout: 3000,
+        content: `Oops there is an error\n ${error.message} `
+      });
+    },
+    onSuccess:(data, variables, context) =>{
+      showToast({
+        id: data.ref,
+        type: ToastMessageType.success,      
+        timeout: 3000,
+        content: "Successfuly created"
+      });
+    },
+  });
 
   useMemo(() => {
     form.setValue(
@@ -53,9 +76,9 @@ export function CreateAdjustment({
   useEffect(() => {
     form.setValue(Prisma.AdjustmentScalarFieldEnum.date, new Date());
     form.setValue(Prisma.AdjustmentScalarFieldEnum.ref, Date.now().toString());
-    //   form.setValue(Prisma.AdjustmentScalarFieldEnum.userId,Date.now().toLocaleString())
   }, []);
-  const errors = form.formState.errors;
+
+ // const errors = form.formState.errors;
 
   const detailsData = useRenderFieldArrayForm(
     fname,
@@ -69,9 +92,8 @@ export function CreateAdjustment({
     regularConfig
   );
 
-  const warehouseId = form.watch("warehouseId");
+  const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
 
-  console.log("warehouseId",warehouseId);
 
   return (
     <FormContainer title={<h2>Create Adjustment</h2>}>
@@ -79,15 +101,16 @@ export function CreateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            console.log(data);
+           
             await result.mutateAsync(data as any);
-            form.reset();
+           
           },
           (e) => {
             console.error(e);
           }
         )}
       >
+        
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
           {otherFields.map((i) => {
             return <FormInputField key={i.name} {...i} />;

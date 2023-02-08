@@ -1,93 +1,159 @@
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import useRequireAuth from "@/lib/useRequireAuth";
-import Header from "@/components/app/header";
-import BlurImage from "@/components/BlurImage";
-import Loader from "@/components/app/Loader";
-import Modal from "@/components/Modal1";
-import { Tenant } from "@prisma/client";
-import ProjectForm from "@/components/app/ProjectForm";
 import ProjectsList from "@/components/app/ProjectsList";
-import BurgerMenu from "@/components/app/BurgerMenu";
-import SidebarMenu from "@/components/app/SidebarMenu";
-import SidebarChildMenuItem from "@/components/app/SidebarChildMenuItem";
-import SidebarMenuItem from "@/components/app/SidebarMenuItem";
+import { FormInputField } from "@/components/FormInputField";
+import Loader from "@/components/sites/Loader";
+import { tenantCreateInputSchema } from "@/core/tenant/index.zod";
+import { AppLayout } from "@/layouts/Layout";
+import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
+import { useModal } from "@/lib/hooks/useModel";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
+import useRequireAuth from "@/lib/useRequireAuth";
+import { useZodForm } from "@/lib/util/form-gen";
+import { Session } from "next-auth";
+import { FC, ReactNode, useState } from "react";
 
-export default function AppIndex() {
-    const session = useRequireAuth();
-    const [isMenuShowing, showMenu] = useState(false);
-    const [showModel, setShowModel] = useState(false);
+export default function Index() {
+  useChangeTheme();
+  const session = useRequireAuth();
+  const [show, hide, data] = useModal();
 
-    if (!session) return <Loader />;
-    const icon = <BlurImage src="/mauzo-top.png" alt="icon" height={40} width={40} />;
+  if (!session) return <Loader />;
 
-    return (
-        <div className="bg-gray-100 h-full w-full flex flex-col justify-start">
-            <Modal showModal={showModel} setShowModal={setShowModel}>
-                <div className="inline-block w-full max-w-md pt-8 overflow-hidden text-center align-middle transition-all bg-white shadow-xl rounded-lg"
-                >
-                    <ProjectForm  setShowModel={setShowModel} userId={session!.user!.id!} />
-                </div>
-            </Modal>
-            <Header session={session}
-                logo={(<BlurImage width={80} height={80} alt="logo" src="/logo-yavin.png" />)}
-                menu={<BurgerMenu />}
-                heading={"Dashboard"}
-                onMenuClick={(e) => {
-                    e.preventDefault();
-                    showMenu((v) => !v);
-                }}
-            >
-                <Link key="pos" href="/pos">
-                    {icon}
-                </Link>,
-                <Link key="notification" href="/notification">
-                    {icon}
-                </Link>
-                <Link key="profile" href="/profile">
-                    {icon}
-                </Link>
-            </Header>
-            <div className="flex flex-row justify-start h-full w-full">
-                <SidebarMenu isMenuShowing={isMenuShowing}>
-                    <SidebarMenuItem icon={icon} text="Dashboard">
-                    </SidebarMenuItem>
-                    <SidebarMenuItem icon={icon} text="Products">
-                        <SidebarChildMenuItem icon={icon} text="Sales" onSelected={(e) => {
-
-                        }} />
-                        <SidebarChildMenuItem icon={icon} text="Purchases" onSelected={(e) => {
-
-                        }} />
-                        <SidebarChildMenuItem icon={icon} text="Peoples" onSelected={(e) => {
-
-                        }} />
-                        <SidebarChildMenuItem icon={icon} text="Purchase returns" onSelected={(e) => {
-
-                        }} />
-                    </SidebarMenuItem>
-                    <SidebarMenuItem icon={icon} text="Sales">
-                        <h1>4</h1><h2 >5</h2><h3>6</h3>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem icon={icon} text="Sale returns">
-                        <h1>7</h1><h2 >8</h2><h3>9</h3>
-                    </SidebarMenuItem>
-
-                </SidebarMenu>
-                <div className="flex flex-col justify-start w-full h-screen border-gray-200 bg-white m-2 p-8 rounded-sm" >
-                    <ProjectsList id={session.user!.id!}
-                        onNewProject={(e) => {
-                            setShowModel(true);
-                        }}
-                        onManage={(v) => {
-                           setShowModel(true);
-                        }}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="flex justify-center w-full">
+      <div className=" md:w-full max-w-4xl">
+        <ProjectsList
+          id={session.user!.id!}
+          onManage={(e) => {}}
+          onNewProject={({refetch}) => {
+            show({
+              content: ({
+                hide,
+                ModalContainer,
+                ModalContent,
+                ModalAction,
+              }) => {
+                return (
+                  <ModalContainer>
+                    <ModalContent>
+                      <TenantForm refetch={refetch} session={session} ModalAction={ModalAction} hide={hide} />
+                    </ModalContent>
+                  </ModalContainer>
+                );
+              },
+            });
+          }}
+        />
+      </div>
+    </div>
+  );
 }
 
+function TenantForm({
+  refetch,
+  session,
+  ModalAction,
+  hide,
+}: {
+  refetch:()=>void,
+  session: Session;
+  ModalAction: FC<any>;
+  hide: () => void;
+}) {
+  const [config, form] = useZodForm(tenantCreateInputSchema, {
+    imageBlurhash: {
+      hidden: true,
+    },
+    customDomain: {
+      hidden: true,
+    },
+    userId: {
+      hidden: true,
+      registerOptions: {
+        value: session?.user?.id,
+      },
+    },
+    image: {
+      hidden: true,
+    },
+    name:{
+      label:"Business name",
+      ordering:1
+    },
+    subdomain: {
+      label: "Subdomain",
+      ordering:2,
+    },
+    logo:{
+      hidden:true
+    },
+    description:{
+      label:"Description",
+      textArea:true,
+      ordering:5
+    },
+    
+  });
+ const [error,setError] = useState("");
+ const [success,setSuccess] = useState("");
+  const trpc = useTrpcTenant();
+  const result = trpc.tenant.create.useMutation({
+    onSuccess:(data)=>{
+      setSuccess("Businesss created successfully")
+      refetch();
+      setTimeout(()=>{
+        hide();
+      },3000)
+    },
+    onError:(error)=>{
+      setError("Failed to create ")
+    }
+  })
+  return (
 
+    <form
+      onSubmit={form.handleSubmit(
+        async (data) => {
+          //submit here
+          await result.mutateAsync(data as any);
+        },
+        (e) => {
+          console.error(e);
+        }
+      )}
+    >
+      <div className="w-full font-semibold text-base"> Create Business</div>
+      <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
+        {config.map((i) => {
+          return <FormInputField key={i.name} {...i} />;
+        })}
+      </div>
+      <ModalAction>
+        <button
+          className="btn btn-sm btn-warning btn-outline"
+          onClick={(e) => {
+            e.preventDefault();
+            hide();
+          }}
+        >
+          Cancel
+        </button>
+        <button type="submit" className="btn btn-sm btn-success">
+          Save
+        </button>
+      </ModalAction>
+      {error&& <div className="w-full text-center text-error">
+        {error}
+      </div>}
+      {success&& <div className="w-full text-center text-success">
+        {success}
+      </div>}
+      {result.isLoading&& <div className="w-full text-center text-success">
+        "Submitting..."
+      </div>}
+    </form>
+  );
+}
+
+Index.getLayout = (Page: ReactNode) => {
+  return <AppLayout>{Page}</AppLayout>;
+};

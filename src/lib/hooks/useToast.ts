@@ -19,6 +19,5 @@ export function useToast() {
         }
     }, [setMessages, messages]);
 
-   // const result: [typeof show, typeof clear, typeof messages] = [show, clear, messages];
     return {showToast:show,clearToast:clear,messages};
 }

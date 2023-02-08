@@ -11,48 +11,100 @@ import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 
 export function Layout({ children, ...props }: WithChildren) {
-   const { data, toggle} = useDrawer();
-    const { show, menus } = data ?? {};
-    return (
-        <div {...props}>
-            <Navbar />
-            <Toast />
-            <Modal />
-            <ProgressIndicator />
+  const { data, toggle } = useDrawer();
 
-            <div className="drawer drawer-mobile">
-                <input id="my-drawer" type="checkbox" checked={show} className="drawer-toggle" readOnly />
+  const { show, menus } = data ?? {};
+  return (
+    <div {...props}>
+      <Navbar />
+      <Toast />
+      <Modal />
+      <ProgressIndicator />
 
+      <div className="drawer drawer-mobile">
+        <input
+          id="my-drawer"
+          type="checkbox"
+          checked={show}
+          className="drawer-toggle"
+          readOnly
+        />
 
-                <div className="drawer-content">
-                    {/* <!-- Page content here --> */}
-                    <EndDrawer>
-                        <Breadcrumb />
-
-                        <div className="flex flex-col flex-1 mx-4 mb-4 mt-2 min-h-[80vh]">
-                            {children}
-
-                        </div>
-                        {/* <div className=" p-2 flex-none flex justify-end items-center">
+        <div className="drawer-content">
+          {/* <!-- Page content here --> */}
+          <EndDrawer>
+            <div className="flex flex-col flex-1 mx-4 mb-4 mt-2 min-h-[80vh]">
+              {children}
+            </div>
+            {/* <div className=" p-2 flex-none flex justify-end items-center">
 <Pagination />
 </div> */}
-                        <div className="flex-none">
-                            <Footer />
-                        </div>
-
-                    </EndDrawer>
-
-                </div>
-                <div className="drawer-side pb-16">
-                    <label htmlFor="my-drawer" className="drawer-overlay" onClick={() => {
-                        toggle(true);
-                    }}></label>
-
-                    <ul className=" w-48 bg-base-100 text-base-content border-r-2 border-gray-100 overflow-x-hidden">
-                        {menus?.map((menu) => <DrawerNavMenuItem key={menu.name} menu={menu} />)}
-                    </ul>
-                </div>
+            <div className="flex-none">
+              <Footer />
             </div>
+          </EndDrawer>
         </div>
-    );
+        <div className="drawer-side pb-16">
+          <label
+            htmlFor="my-drawer"
+            className="drawer-overlay"
+            onClick={() => {
+              toggle(true);
+            }}
+          ></label>
+
+          <ul className=" w-48 bg-base-100 text-base-content border-r-2 border-gray-100 overflow-x-hidden">
+            {menus?.map((menu) => (
+              <DrawerNavMenuItem key={menu.name} menu={menu} />
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function AppLayout({ children, ...props }: WithChildren) {
+  return (
+    <div {...props}>
+    <Navbar />
+    <Toast />
+    <Modal />
+    <ProgressIndicator />
+
+    <div className="drawer drawer-mobile">
+      <input
+        id="my-drawer"
+        type="checkbox"
+        checked={false}
+        className="drawer-toggle"
+        readOnly
+      />
+
+      <div className="drawer-content">
+        {/* <!-- Page content here --> */}
+       
+          <div className="flex flex-col flex-1 mx-4 mb-4 mt-2 min-h-[80vh]">
+            {children}
+          </div>
+       
+          <div className="flex-none">
+            <Footer />
+          </div>
+
+      </div>
+      <div className="drawer-side pb-16">
+        <label
+          htmlFor="my-drawer"
+          className="drawer-overlay"
+          onClick={() => {
+          
+          }}
+        ></label>
+
+       
+      </div>
+    </div>
+  </div>
+  );
 }
