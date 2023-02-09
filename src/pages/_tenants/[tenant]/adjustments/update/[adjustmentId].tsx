@@ -43,7 +43,7 @@ export function UpdateAdjustment({
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback("/adjustment")
+  const {showProgress,callbacks} = useProgressFeedback("/adjustments")
   const result = trpcWithHost.adjustment.update.useMutation({
     onSuccess: (data, variables, context) => {
       callbacks.onSuccess(data);

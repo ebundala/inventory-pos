@@ -10,17 +10,18 @@ export function useProgressFeedback(redirect?: string) {
     const callbacks = {
         onSuccess: (data: unknown) => {
             hideProgress();
+            if (redirect) {
+                setTimeout(() => {
+                    router.replace(redirect);
+                }, 100);
+            }
             showToast({
                 timeout: 5000,
                 type: ToastMessageType.warning,
                 content: <span>Success</span>,
                 id: Date.now().toString()
             });
-            if (redirect) {
-                setTimeout(() => {
-                    router.replace(redirect);
-                }, 5000);
-            }
+          
         },
         onError: ({ message }: { message: string; }) => {
             hideProgress();

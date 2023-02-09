@@ -72,14 +72,13 @@ export const createPurchase = async (
   if (purchaseDetails && purchaseDetails.length) {
     const productWarehouse = await getProductWarehouse(ctx,purchaseDetails,data.warehouseId);
    if(data.status === "Received"){
-   const updatePw = purchaseDetails.map((v)=>{
+   const updatePw = purchaseDetails.map((v)=>{   
       const pw = getOneProductWarehouse(productWarehouse,{
         productId:v.productId,
         productVariantId:v.productVariantId,
         warehouseId:data.warehouseId!});
        
       if(!pw) return null;
-      //console.log("quantity",pw!.qty);
       return ctx.tx!.productWarehouse.update({
         where:{id:pw!.id},data:{
           qty:pw!.qty+v.quantity

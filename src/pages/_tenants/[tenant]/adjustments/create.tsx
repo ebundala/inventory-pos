@@ -45,7 +45,7 @@ export function CreateAdjustment({
   
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback()
+  const {showProgress,callbacks} = useProgressFeedback("/adjustments")
 
   const result = trpcWithHost.adjustment.create.useMutation(callbacks);
 
