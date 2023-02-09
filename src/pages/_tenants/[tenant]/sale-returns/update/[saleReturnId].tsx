@@ -42,6 +42,7 @@ import {
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface SaleReturnPathProps extends ParsedUrlQuery {
   saleReturnId: string;
@@ -413,6 +414,7 @@ export function UpdateSaleReturn({
       form.setValue(Prisma.SaleReturnScalarFieldEnum.paidAmount, grandTotal);
     }
   }, [grandTotal, paymentStatus]);
+  const checkDuplicates = useEnforceUniqueProduct(saleReturnDetailsForm as any);
 
   if (!saleReturn || !saleReturn?.id)
     return (
@@ -450,7 +452,7 @@ export function UpdateSaleReturn({
             onChange={(e, reset) => {
               const v = e.target.value;
               //console.log(v)
-              saleReturnDetailsForm.append(v);
+              checkDuplicates(v as any);
               if (reset) {
                 reset();
               }

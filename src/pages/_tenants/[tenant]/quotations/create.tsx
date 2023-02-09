@@ -12,7 +12,6 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { Prisma, Product, ProductVariant, ProductWarehouse, QuotationDetail, Unit } from '@prisma/client'
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
-//import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProductSearch, productToQuotationDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
@@ -23,6 +22,7 @@ import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks
 import { OrderSummary } from "@/components/OrderSummary";
 import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 
 
@@ -173,6 +173,8 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
         Prisma.QuotationScalarFieldEnum.grandTotal,
         Prisma.QuotationScalarFieldEnum.warehouseId])
 
+    const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
+
     return (
         <FormContainer title={<h2>Create Quotation</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -201,8 +203,8 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
-                            //console.log(v)
-                            quotationDetailsForm.append(v);
+                           
+                           checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

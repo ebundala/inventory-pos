@@ -27,6 +27,7 @@ import { useProductSearch, productToPurchaseDetailFormater, productDefaultQueryB
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { usePurchaseFormFieldOptions } from "../../../../../lib/hooks/usePurchaseFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface PurchasePathProps extends ParsedUrlQuery {
     purchaseId: string;
@@ -197,6 +198,8 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
         Prisma.PurchaseScalarFieldEnum.discount,
         Prisma.PurchaseScalarFieldEnum.shipping,
         Prisma.PurchaseScalarFieldEnum.grandTotal,Prisma.PurchaseScalarFieldEnum.warehouseId])
+        
+    const checkDuplicates = useEnforceUniqueProduct(purchaseDetailsForm as any);
 
     return (
         <FormContainer title={<h2>Update Purchase</h2>}>
@@ -227,7 +230,7 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            purchaseDetailsForm.append(v);
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

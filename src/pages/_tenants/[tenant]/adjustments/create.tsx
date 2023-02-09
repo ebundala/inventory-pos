@@ -20,11 +20,11 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 export function CreateAdjustment({
   tenant,
-  user,
-  defaultWarehouse,
+  user, 
 }: TAppConfig) {
 
   const options = useAdjustmentFormFieldOptions();
@@ -77,6 +77,7 @@ export function CreateAdjustment({
 
   const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
 
+  const checkDuplicates = useEnforceUniqueProduct(adjustmentDetailsForm as any);
 
   return (
     <FormContainer title={<h2>Create Adjustment</h2>}>
@@ -108,9 +109,8 @@ export function CreateAdjustment({
             keyPath={(v) => getProductFormatedName(v as any)}
             displayValuePath={(v) => getProductFormatedName(v as any)}
             onChange={(e, reset) => {
-              const v = e.target.value;
-              // console.log(v)
-              adjustmentDetailsForm.append(v);
+              const v = e.target.value;             
+              checkDuplicates(v as any);
               if (reset) {
                 reset();
               }

@@ -4,7 +4,7 @@ import { createSaleReturnInputSchema } from "@/core/sale_return/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { getValue, useZodForm } from "@/lib/util/form-gen";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
@@ -23,6 +23,7 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useSaleReturnFormFieldOptions } from "../../../../lib/hooks/useSaleReturnFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "../../../../lib/hooks/useEnforceUniqueProduct";
 
 export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
@@ -58,6 +59,7 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
         form.setValue(Prisma.SaleReturnScalarFieldEnum.discount, 0)
         form.setValue(Prisma.SaleReturnScalarFieldEnum.shipping, 0)
         form.setValue(Prisma.SaleReturnScalarFieldEnum.paidAmount, 0)
+        form.setValue(Prisma.SaleReturnScalarFieldEnum.taxNet, 0)
     }, [])
 
     const detailsData = useRenderFieldArrayForm(saleReturnDetailsFormName, saleReturnDetailsForm, form, saleReturnDetailsConfig)
@@ -230,12 +232,14 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
             form.setValue(Prisma.SaleReturnScalarFieldEnum.paidAmount, grandTotal); 
         }
     },[grandTotal,paymentStatus]);
+    
+    const checkDuplicates = useEnforceUniqueProduct(saleReturnDetailsForm as any);
 
     return (
         <FormContainer title={<h2>Create Sale return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-               showProgress({animated:true})
+                showProgress({animated:true})
                 await result.mutateAsync(data as any);
              
 
@@ -259,8 +263,10 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
-                            //console.log(v)
-                            saleReturnDetailsForm.append(v);
+                           
+                            checkDuplicates(v as any);
+                           
+                            
                             if (reset) {
                                 reset();
                             }
@@ -277,7 +283,6 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
                             return { data: labels, ...rest }
                         }}
 
-                    // props={{ type: "text", hidden: false, disabled: false, }}
                     />
                 </div>
 
@@ -416,6 +421,5 @@ export default function Index() {
     )
 }
 Index.getLayout = getLayout;
-
 
 

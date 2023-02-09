@@ -13,8 +13,31 @@ export type CreateWarehouseInput = {
 }
 export const createWarehouse = async (input: CreateWarehouseInput,ctx:TenantContext) => {
     const { tenantId, ...data } = input;
+    const {user} = ctx.session??{};
+    const products = await ctx.tx!.product.findMany({select:{id:true}});
+    
     return ctx.tx!.warehouse.create({
-        data:{tenantId:tenantId,...data}
+        data:{
+            tenantId:tenantId,
+            ...data,
+            user_warehouse:{
+                create:{
+                    userId:user!.id!,
+                    tenantId:tenantId
+                }
+            },
+            productWarehouses:{
+                createMany:{
+                    skipDuplicates:true,
+                        data:products.map((v)=>(                            {
+                           tenantId:tenantId,
+                          productId:v.id,
+                          qty:0
+                        }))
+                    }
+                
+            }
+        }
    })
 }
 export type UpdateWarehouseInput = {

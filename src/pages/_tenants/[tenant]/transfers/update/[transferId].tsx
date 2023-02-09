@@ -26,6 +26,7 @@ import { useProductSearch, productToTransferDetailFormater, productDefaultQueryB
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface TransferPathProps extends ParsedUrlQuery {
     transferId: string;
@@ -179,6 +180,7 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
         Prisma.TransferScalarFieldEnum.grandTotal,
         Prisma.TransferScalarFieldEnum.fromWarehouseId]);
 
+    const checkDuplicates = useEnforceUniqueProduct(transferDetailsForm as any)
 
     return (
         <FormContainer title={<h2>Update Transfer</h2>}>
@@ -206,9 +208,8 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
-                            const v = e.target.value;
-                            //console.log(v)
-                            transferDetailsForm.append(v);
+                            const v = e.target.value;                            
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

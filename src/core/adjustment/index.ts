@@ -51,25 +51,8 @@ export const createAdjustment = async (
       },
     },
   });
-  const productWarehouse = (
-    await ctx.tx!.productWarehouse.findMany({
-      distinct: [
-        Prisma.ProductWarehouseScalarFieldEnum.productId,
-        Prisma.ProductWarehouseScalarFieldEnum.warehouseId,
-        Prisma.ProductWarehouseScalarFieldEnum.productVariantId,
-      ],
-      where: {
-        OR: adjustmentDetails.map((d) => ({
-          warehouseId: data.warehouseId,
-          productId: d.productId,
-          productVariantId: d.productVariantId,
-        })),
-      },
-    })
-  ).reduce(
-    (p, c, i, arr) => p.set(`${c.productId}-${c.productVariantId}`, c),
-    new Map<string, ProductWarehouse>()
-  );
+  const productWarehouse = await getProductWarehouse(ctx,adjustmentDetails,data.warehouseId);
+
 
   const pwData = adjustmentDetails
     .map((d) => {
@@ -78,7 +61,7 @@ export const createAdjustment = async (
         productId:d.productId,
         productVariantId:d.productVariantId
       })
-      //productWarehouse.get(`${d.productId}-${d.productVariantId}`);
+      
       if (!pw) return null;
       if (d.type === "Addition") {
         return {

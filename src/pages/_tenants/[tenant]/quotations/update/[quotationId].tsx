@@ -41,6 +41,7 @@ import {
 } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface QuotationPathProps extends ParsedUrlQuery {
   quotationId: string;
@@ -308,7 +309,7 @@ export function UpdateQuotation({
       Prisma.QuotationScalarFieldEnum.grandTotal,
       Prisma.QuotationScalarFieldEnum.warehouseId,
     ]);
-
+   const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
   if (!quotation || !quotation?.id)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
@@ -344,7 +345,7 @@ export function UpdateQuotation({
             onChange={(e, reset) => {
               const v = e.target.value;
               //console.log(v)
-              quotationDetailsForm.append(v);
+              checkDuplicates(v as any);
               if (reset) {
                 reset();
               }

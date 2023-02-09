@@ -28,6 +28,7 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { usePurchaseReturnFormFieldOptions } from "@/lib/hooks/usePurchaseReturnFormFieldOptions";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface PurchaseReturnPathProps extends ParsedUrlQuery {
     purchaseReturnId: string;
@@ -246,6 +247,9 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
                 form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
             }
         }, [grandTotal, paymentStatus]);
+
+        const checkDuplicates = useEnforceUniqueProduct(purchaseReturnDetailsForm as any);
+
     return (
         <FormContainer title={<h2>Update Purchase Return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -274,8 +278,8 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
-                            //console.log(v)
-                            purchaseReturnDetailsForm.append(v);
+                            
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

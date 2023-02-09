@@ -22,6 +22,7 @@ import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks
 import { OrderSummary } from "@/components/OrderSummary";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
@@ -50,6 +51,7 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
         form.setValue(Prisma.TransferScalarFieldEnum.date, new Date())
         form.setValue(Prisma.TransferScalarFieldEnum.ref, Date.now().toString())
         form.setValue(Prisma.TransferScalarFieldEnum.taxRate, 0)
+        form.setValue(Prisma.TransferScalarFieldEnum.taxNet, 0)
         form.setValue(Prisma.TransferScalarFieldEnum.discount, 0)
         form.setValue(Prisma.TransferScalarFieldEnum.shipping, 0)
 
@@ -150,7 +152,7 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
     })
 
     useMemo(() => {
-        // console.log(data);
+       
         const values = form.getValues();
         for (let v of data) {
             if (getValue(['value'], v) !== getValue(v.path, values)) {
@@ -168,6 +170,7 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
         Prisma.TransferScalarFieldEnum.grandTotal,
         Prisma.TransferScalarFieldEnum.fromWarehouseId]);
 
+    const checkDuplicates = useEnforceUniqueProduct(transferDetailsForm as any)
 
     return (
         <FormContainer title={<h2>Create Transfer</h2>}>
@@ -195,9 +198,8 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
-                            const v = e.target.value;
-                            //console.log(v)
-                            transferDetailsForm.append(v);
+                            const v = e.target.value;                        
+                           checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

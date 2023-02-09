@@ -30,6 +30,7 @@ import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastMessageType } from "@/types/ToastMessageType";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 interface SalePathProps extends ParsedUrlQuery {
     saleId: string;
@@ -247,6 +248,8 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
         }
     }, [grandTotal, paymentStatus]);
 
+    const checkDuplicates = useEnforceUniqueProduct(saleDetailsForm as any)
+
     if (!sale || !sale?.id) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
             <span className="m-auto">Invalid sale</span>
@@ -280,7 +283,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            saleDetailsForm.append(v);
+                           checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

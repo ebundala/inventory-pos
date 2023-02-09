@@ -38,6 +38,7 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { usePurchaseReturnFormFieldOptions } from "../../../../lib/hooks/usePurchaseReturnFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 export function CreatePurchaseReturn({
   tenant,
@@ -83,7 +84,7 @@ export function CreatePurchaseReturn({
   >({ control: form.control, name: paymentPurchaseReturnFormName });
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback("/purchase-returns")
+  const { showProgress, callbacks } = useProgressFeedback("/purchase-returns");
 
   const result = trpcWithHost.purchase_return.create.useMutation(callbacks);
 
@@ -96,6 +97,8 @@ export function CreatePurchaseReturn({
     form.setValue(Prisma.PurchaseReturnScalarFieldEnum.taxRate, 0);
     form.setValue(Prisma.PurchaseReturnScalarFieldEnum.discount, 0);
     form.setValue(Prisma.PurchaseReturnScalarFieldEnum.shipping, 0);
+    form.setValue(Prisma.PurchaseReturnScalarFieldEnum.paidAmount, 0);
+    form.setValue(Prisma.PurchaseReturnScalarFieldEnum.taxNet, 0);
   }, []);
 
   const detailsData = useRenderFieldArrayForm(
@@ -439,13 +442,15 @@ export function CreatePurchaseReturn({
     }
   }, [grandTotal, paymentStatus]);
 
+  const checkDuplicates = useEnforceUniqueProduct(purchaseReturnDetailsForm as any)
+
   return (
     <FormContainer title={<h2>Create Purchase return</h2>}>
       <form
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            showProgress({animated:true})
+            showProgress({ animated: true });
             await result.mutateAsync(data as any);
           },
           (e) => {
@@ -466,9 +471,8 @@ export function CreatePurchaseReturn({
             keyPath={(v) => getProductFormatedName(v as any)}
             displayValuePath={(v) => getProductFormatedName(v as any)}
             onChange={(e, reset) => {
-              const v = e.target.value;
-              //console.log(v)
-              purchaseReturnDetailsForm.append(v);
+              const v = e.target.value;              
+              checkDuplicates(v as any);
               if (reset) {
                 reset();
               }
@@ -488,7 +492,7 @@ export function CreatePurchaseReturn({
 
         <div className="w-full  ">
           <CustomTable
-          colDeps={[warehouseId]}
+            colDeps={[warehouseId]}
             rowsData={detailsData}
             collumsData={() => [
               {
@@ -503,8 +507,9 @@ export function CreatePurchaseReturn({
                 Cell: ({ row }: { row: any }) => {
                   return (
                     <div className="w-[160px] whitespace-normal text-ellipsis break-words">
-                        {getProductFormatedName(row.original)}
-                    </div>);
+                      {getProductFormatedName(row.original)}
+                    </div>
+                  );
                 },
               },
               {
@@ -528,7 +533,7 @@ export function CreatePurchaseReturn({
                     productVariant?: ProductVariant;
                   };
 
-                  if (detail.product?.isVariant === true) {                    
+                  if (detail.product?.isVariant === true) {
                     return value
                       ?.filter(
                         (v) =>

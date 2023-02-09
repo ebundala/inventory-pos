@@ -20,6 +20,7 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 export function UpdateAdjustment({
   adjustment,
@@ -79,6 +80,7 @@ export function UpdateAdjustment({
     regularConfig
   );
   const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
+  const checkDuplicates = useEnforceUniqueProduct(adjustmentDetailsForm as any);
 
   if ((!adjustment || !adjustment?.id) && !loading)
     return (
@@ -117,7 +119,7 @@ export function UpdateAdjustment({
             onChange={(e, reset) => {
               const v = e.target.value;
               //console.log(v)
-              adjustmentDetailsForm.append({ id: -1, ...v });
+              checkDuplicates({ id: -1, ...v } as any);
               if (reset) {
                 reset();
               }

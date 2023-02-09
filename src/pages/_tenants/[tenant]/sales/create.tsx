@@ -23,6 +23,7 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useSaleFormFieldOptions } from "../../../../lib/hooks/useSaleFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 
 export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
@@ -234,7 +235,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
             form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal); 
         }
     },[grandTotal,paymentStatus]);
-
+    const checkDuplicates = useEnforceUniqueProduct(saleDetailsForm as any)
     return (
         <FormContainer title={<h2>Create Sale</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -262,9 +263,8 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                         keyPath={(v) => getProductFormatedName(v as any)}
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
-                            const v = e.target.value;
-                            //console.log(v)
-                            saleDetailsForm.append(v);
+                            const v = e.target.value;                           
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }

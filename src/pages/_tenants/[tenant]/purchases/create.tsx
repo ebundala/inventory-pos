@@ -23,6 +23,7 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { usePurchaseFormFieldOptions } from "@/lib/hooks/usePurchaseFormFieldOptions";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 
 
 export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
@@ -59,7 +60,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         form.setValue(Prisma.PurchaseScalarFieldEnum.taxRate, 0)
         form.setValue(Prisma.PurchaseScalarFieldEnum.discount, 0)
         form.setValue(Prisma.PurchaseScalarFieldEnum.shipping, 0)
-
+        form.setValue(Prisma.PurchaseScalarFieldEnum.paidAmount, 0)
     }, [])
 
     const detailsData = useRenderFieldArrayForm(purchaseDetailFormName, purchaseDetailsForm, form, purchaseDetailFieldConfig!)
@@ -174,7 +175,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                             partialData.push(
                                 ...[
                                     { value: change, default: 0, path: [paymentPath, i, Prisma.PaymentSaleScalarFieldEnum.change] },
-
+                                   // { value: paidAmount, default: 0, path: [paymentPath, i, Prisma.PaymentSaleScalarFieldEnum.amount] }
                                 ]
                             )
 
@@ -235,6 +236,8 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
             }
         }, [grandTotal, paymentStatus]);
 
+        const checkDuplicates = useEnforceUniqueProduct(purchaseDetailsForm as any);
+
     return (
         <FormContainer title={<h2>Create Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -263,7 +266,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                         onChange={(e, reset) => {
                             const v = e.target.value;
                             //console.log(v)
-                            purchaseDetailsForm.append(v);
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }
