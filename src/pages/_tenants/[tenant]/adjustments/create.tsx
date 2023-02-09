@@ -18,16 +18,14 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
-import { useToast } from "@/lib/hooks/useToast";
-import { ToastMessageType } from "@/types/ToastMessageType";
-import { Toast } from "@/components/Toast";
+
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function CreateAdjustment({
   tenant,
   user,
   defaultWarehouse,
 }: TAppConfig) {
-  const {showToast,clearToast,messages} = useToast();
 
   const options = useAdjustmentFormFieldOptions();
 
@@ -47,24 +45,9 @@ export function CreateAdjustment({
   
 
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.adjustment.create.useMutation({
-    onError:(error, variables, context) =>{
-      showToast({
-        id: error.message,
-        type: ToastMessageType.error,      
-        timeout: 3000,
-        content: `Oops there is an error\n ${error.message} `
-      });
-    },
-    onSuccess:(data, variables, context) =>{
-      showToast({
-        id: data.ref,
-        type: ToastMessageType.success,      
-        timeout: 3000,
-        content: "Successfuly created"
-      });
-    },
-  });
+  const {showProgress,callbacks} = useProgressFeedback()
+
+  const result = trpcWithHost.adjustment.create.useMutation(callbacks);
 
   useMemo(() => {
     form.setValue(
@@ -101,7 +84,7 @@ export function CreateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-           
+            showProgress({animated:true});
             await result.mutateAsync(data as any);
            
           },

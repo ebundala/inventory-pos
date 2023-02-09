@@ -14,6 +14,7 @@ import { UseMutationResult } from "@tanstack/react-query";
 import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export default function CurrencyIndex() {
     const {currencies, result:{isLoading:loading, isSuccess:success},refetch} = useCurrencies();
@@ -40,16 +41,26 @@ export default function CurrencyIndex() {
     }),[]);
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.setting.currency.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
-        refetch();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    const result2 = trpcWithHost.setting.currency.update.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
     if (loading) return <Loader />
@@ -64,7 +75,10 @@ export default function CurrencyIndex() {
                             content:(props) => {                       
                        return <CurrencyForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createCurrencyInputSchema} 
                        fieldOptions={options} title={
                         "Create Currency"
@@ -129,7 +143,10 @@ export default function CurrencyIndex() {
                                         content:(props) => {                       
                                    return <CurrencyForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                    showProgress({animated:true});
+                                    return result2.mutateAsync(data);
+                                  }}
                                    schema={updateCurrencyInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
@@ -160,10 +177,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const CurrencyForm:FC<ZodFormSchema<Currency>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const CurrencyForm:FC<ZodFormSchema<Currency>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -173,7 +190,7 @@ const CurrencyForm:FC<ZodFormSchema<Currency>> =({ show, hide,useMutationResult,
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

@@ -5,19 +5,22 @@ import { useStore } from "@/lib/context";
 export function useToast() {
     const [messages, setMessages] = useStore((s) => s.toastMessages);
 
-    const clear = useCallback((m: ToastMessage) => {
+    const clearToast = useCallback((m: ToastMessage) => {
         if (messages.has(m)) {
             messages.delete(m);
-            setMessages({ toastMessages: messages });
+            const newMsgs = new Set(messages.values());
+
+            setMessages({ toastMessages: newMsgs });
         }
     }, [messages, setMessages]);
 
-    const show = useCallback((m: ToastMessage) => {
+    const showToast = useCallback((m: ToastMessage) => {
         if (!messages.has(m)) {
             messages.add(m);
-            setMessages({ toastMessages: messages });
+            const newMsgs = new Set(messages.values());
+            setMessages({ toastMessages: newMsgs });
         }
     }, [setMessages, messages]);
 
-    return {showToast:show,clearToast:clear,messages};
+    return {showToast,clearToast,messages};
 }

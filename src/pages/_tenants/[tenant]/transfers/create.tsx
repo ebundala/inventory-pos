@@ -21,6 +21,7 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { OrderSummary } from "@/components/OrderSummary";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
@@ -39,7 +40,9 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
     const transferDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: transferDetailsFormName });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.transfer.create.useMutation();
+    const {showProgress,callbacks} = useProgressFeedback("/transfers")
+
+    const result = trpcWithHost.transfer.create.useMutation(callbacks);
 
 
 
@@ -170,10 +173,9 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
         <FormContainer title={<h2>Create Transfer</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+                showProgress({animated:true});
                 await result.mutateAsync(data as any);
-                //  form.reset();
-
+               
             }, (e) => {
                 console.error(e);
             })}>

@@ -143,14 +143,16 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             },
             isVariant: {
                 label: "Product has variants",
-                ordering: 13
+                ordering: 16
             },
             isActive: {
                 label: "In sale",
+                ordering:14
             },
             isImei: {
-                label: "Product has IMEI",
-                hidden: true
+                label: "Product has IMEI/Serial number",
+                ordering:15
+               // hidden: true
             },
             "productVariants.0.name": {
                 label: "Variant name",

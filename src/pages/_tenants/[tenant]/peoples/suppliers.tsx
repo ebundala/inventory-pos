@@ -14,6 +14,7 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useSuppliers } from "@/lib/hooks/useSuppliers";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 
 export default function SupplierIndex() {
@@ -57,16 +58,26 @@ export default function SupplierIndex() {
     }),[]);
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.people.supplier.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
-        refetch();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    const result2 = trpcWithHost.people.supplier.update.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
     if (loading) return <Loader />
@@ -80,7 +91,10 @@ export default function SupplierIndex() {
                             content:(props) => {                       
                        return <SupplierForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createSupplierInputSchema} 
                        fieldOptions={options} title={
                         "Create Supplier"
@@ -157,7 +171,10 @@ export default function SupplierIndex() {
                                         content:(props) => {                       
                                    return <SupplierForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                    showProgress({animated:true});
+                                    return result2.mutateAsync(data);
+                                  }}
                                    schema={updateSupplierInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
@@ -188,10 +205,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -201,7 +218,7 @@ const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,useMutationResult,
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

@@ -26,6 +26,7 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToPurchaseDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { usePurchaseFormFieldOptions } from "../../../../../lib/hooks/usePurchaseFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface PurchasePathProps extends ParsedUrlQuery {
     purchaseId: string;
@@ -61,11 +62,15 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
     const paymentPurchasesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchaseFormName });
 
     const trpcWithHost = useTrpcTenant();
+    const {showProgress,callbacks} = useProgressFeedback("/purchases")
+
     const result = trpcWithHost.purchase.update.useMutation({
         onSuccess:(data, variables, context) =>{
            form.reset();
+           callbacks.onSuccess(data)
            refetch()
         },
+        onError:callbacks.onError
     });
 
 
@@ -197,7 +202,7 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
         <FormContainer title={<h2>Update Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+                showProgress({animated:true})
                 await result.mutateAsync(data as any);
                 
 

@@ -15,6 +15,7 @@ import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useBrands } from "@/lib/hooks/useBrands";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function BrandIndex({brands,refetch}:BrandsIndexProps) {
    
@@ -44,16 +45,26 @@ export function BrandIndex({brands,refetch}:BrandsIndexProps) {
     }),[]);
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.product.brand.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
-        refetch();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    const result2 = trpcWithHost.product.brand.update.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    
@@ -68,7 +79,10 @@ export function BrandIndex({brands,refetch}:BrandsIndexProps) {
                             content:(props) => {                       
                        return <BrandForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createBrandInputSchema} 
                        fieldOptions={options} title={
                         "Create Brand"
@@ -134,7 +148,10 @@ export function BrandIndex({brands,refetch}:BrandsIndexProps) {
                                         content:(props) => {                       
                                    return <BrandForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                    showProgress({animated:true});
+                                    return result2.mutateAsync(data);
+                                  }}
                                    schema={updateBrandInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
@@ -179,10 +196,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const BrandForm:FC<ZodFormSchema<Brand>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const BrandForm:FC<ZodFormSchema<Brand>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -192,7 +209,7 @@ const BrandForm:FC<ZodFormSchema<Brand>> =({ show, hide,useMutationResult, Modal
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

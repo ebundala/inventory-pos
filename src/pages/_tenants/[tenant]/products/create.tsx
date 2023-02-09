@@ -12,6 +12,10 @@ import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useProductFormFieldOptions } from "@/lib/hooks/useProductFormFieldOptions";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { Prisma } from "@prisma/client";
+import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
+import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 
 export function CreateProduct() {
@@ -21,10 +25,16 @@ export function CreateProduct() {
     const [config, form] = useZodForm(createProductInputSchema, options, {
         defaultValues: { tenantId: tenant?.tenantId }
     });
+   const [noteField,config2] = useGetZodFormField(Prisma.ProductScalarFieldEnum.note,config);
+   const [boolFields,config3] = useGetZodFormFields([
+    Prisma.ProductScalarFieldEnum.isVariant,
+    Prisma.ProductScalarFieldEnum.isActive,
+    Prisma.ProductScalarFieldEnum.isImei
+   ],config2);
 
-    const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
+    const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config3)
     const fname = useFieldArrayName(fieldArrayConfig);
-    const hasVariant = form.watch("isVariant", false);
+    const hasVariant = form.watch(Prisma.ProductScalarFieldEnum.isVariant, false);
     const productVariantsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
     useMemo(() => {
         const len = productVariantsForm.fields.length;
@@ -35,17 +45,19 @@ export function CreateProduct() {
             }
         }
     }, [hasVariant])
+
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.product.create.useMutation();
-    //if (tenantLoading || categoryLoading || brandsLoading || unitsLoading) return <Loader />
+    const {showProgress,callbacks} = useProgressFeedback("/products")
+
+    const result = trpcWithHost.product.create.useMutation(callbacks);
 
     return (
         <FormContainer title={<h2>Create product</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
+                showProgress({animated:true});
                 await result.mutateAsync(data as any);
-                form.reset();
-                console.log(data);
+               
             }, (e) => {
                 console.error(e);
             })}>
@@ -53,8 +65,21 @@ export function CreateProduct() {
                     {reguralConfig.map((i) => {
                         return (<FormInputField key={i.name} {...i} />);
                     })}
-
                 </div>
+                
+                 <div className="grid grid-flow-row xs:grid-cols-1 ">
+                {noteField&&<FormInputField key={noteField.name} {...noteField} />}
+                </div>
+
+                {boolFields.map((i) => {
+                        return (
+                        <div className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+                        <FormInputField key={i.name} {...i} />
+                        </div> 
+                        );
+                    })}
+                  
                 {hasVariant && <div className="w-full bg-gray-200 p-4 rounded-md">
                     <div className="h-10 w-full">
                         <h2>Products variants</h2>

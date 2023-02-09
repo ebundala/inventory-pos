@@ -41,6 +41,7 @@ import {
 } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface SaleReturnPathProps extends ParsedUrlQuery {
   saleReturnId: string;
@@ -82,12 +83,14 @@ export function UpdateSaleReturn({
   >({ control: form.control, name: paymentSaleReturnsFormName });
 
   const trpcWithHost = useTrpcTenant();
+  const {showProgress,callbacks} = useProgressFeedback("/sale-returns")
+
   const result = trpcWithHost.sale_return.update.useMutation({
     onSuccess: (data, variables, context) => {
-      // form.reset();
-      //  refetch();
-      // router.push("/saleReturns")
+      callbacks.onSuccess(data);
+        refetch();    
     },
+    onError:callbacks.onError
   });
 
   useEffect(() => {
@@ -423,7 +426,7 @@ export function UpdateSaleReturn({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            console.log(data);
+            showProgress({animated:true});
             await result.mutateAsync(data as any);
             //  form.reset();
           },

@@ -22,6 +22,7 @@ import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks
 import { OrderSummary } from "@/components/OrderSummary";
 import { usePurchaseFormFieldOptions } from "@/lib/hooks/usePurchaseFormFieldOptions";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 
 export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
@@ -46,11 +47,9 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
     const paymentPurchasesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchasesFormName });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.purchase.create.useMutation({
-        onSuccess:(data, variables, context) =>{
-           // form.reset();
-        },
-    });
+    const {showProgress,callbacks} = useProgressFeedback("/purchases")
+
+    const result = trpcWithHost.purchase.create.useMutation(callbacks);
 
 
 
@@ -240,7 +239,7 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         <FormContainer title={<h2>Create Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+               showProgress({animated:true})
                 await result.mutateAsync(data as any);
                 
 

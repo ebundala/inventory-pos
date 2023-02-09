@@ -19,9 +19,9 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function UpdateAdjustment({
-  defaultWarehouse,
   adjustment,
   loading,
   refetch,
@@ -43,10 +43,13 @@ export function UpdateAdjustment({
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
+  const {showProgress,callbacks} = useProgressFeedback("/adjustment")
   const result = trpcWithHost.adjustment.update.useMutation({
     onSuccess: (data, variables, context) => {
+      callbacks.onSuccess(data);
       refetch();
     },
+    onError:callbacks.onError
   });
 
   useMemo(() => {
@@ -90,6 +93,7 @@ export function UpdateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
+            showProgress({animated:true})
             await result.mutateAsync(data as any);
           },
           (e) => {

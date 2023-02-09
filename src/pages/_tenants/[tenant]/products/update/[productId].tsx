@@ -15,6 +15,10 @@ import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
+import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
+import { Prisma } from "@prisma/client";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface ProductPathProps extends ParsedUrlQuery {
     productId: string;
@@ -26,7 +30,13 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
     const [config, form] = useZodForm(updateProductInputSchema, options, {
         defaultValues: { ...(product ?? {}) }
     });
-    const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
+    const [noteField,config2] = useGetZodFormField(Prisma.ProductScalarFieldEnum.note,config);
+    const [boolFields,config3] = useGetZodFormFields([
+     Prisma.ProductScalarFieldEnum.isVariant,
+     Prisma.ProductScalarFieldEnum.isActive,
+     Prisma.ProductScalarFieldEnum.isImei
+    ],config2);
+    const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config3)
 
     const fname = useFieldArrayName(fieldArrayConfig);
 
@@ -42,9 +52,10 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
         }
 
     },[product])
-
-    const result = trpcWithHost.product.update.useMutation();
-
+   const {showProgress,callbacks} = useProgressFeedback("/products")
+    
+    const result = trpcWithHost.product.update.useMutation(callbacks);
+    
     if (!product || !product?.id) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
             <span className="m-auto">Invalid product</span>
@@ -53,10 +64,10 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
         <FormContainer title={<h2>Update product</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
+                showProgress({animated:true})
                 await result.mutateAsync(data as any);
-                form.reset();
                 refetch();
-                console.log(data);
+               
             }, (e) => {
                 console.error(e);
             })}>
@@ -65,6 +76,18 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
                         return (<FormInputField key={`${i.name}.${index}`} {...i} />);
                     })}
                 </div>
+                <div className="grid grid-flow-row xs:grid-cols-1 ">
+                {noteField&&<FormInputField key={noteField.name} {...noteField} />}
+                </div>
+
+                {boolFields.map((i) => {
+                        return (
+                        <div className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+                        <FormInputField key={i.name} {...i} />
+                        </div> 
+                        );
+                    })}
                 {hasVariant && <div className="w-full bg-gray-200 p-4 rounded-md">
                     <div className="h-10 w-full">
                         <h2>Products variants</h2>
@@ -81,7 +104,7 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
                                     <button onClick={(e) => {
                                         e.preventDefault();
                                         productVariantsForm.remove(i);
-                                        console.log(i);
+                                       
                                     }} className="btn btn-outline btn-accent btn-xs rounded-md"> remove</button>
                                 </div>
                             </div>
@@ -93,7 +116,7 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
                     }} className="btn btn-outline btn-accent btn-xs rounded-md my-4">add variant</button>
                 </div>}
                 <div className="flex flex-row py-3 justify-start">
-
+                    
                     <button type="submit" className="btn btn-primary rounded-md  " >Submit </button>
                 </div>
             </form>
@@ -125,3 +148,5 @@ function useProductRequiredData() {
     return {data:{ tenant, product,refetch },isLoading: tenantLoading || loading};
 }
 type ProductRequiredDataReturnType = ReturnType<typeof useProductRequiredData>
+
+

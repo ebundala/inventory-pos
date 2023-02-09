@@ -27,6 +27,7 @@ import { useProductSearch, productToPurchaseReturnDetailFormater, productDefault
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { usePurchaseReturnFormFieldOptions } from "@/lib/hooks/usePurchaseReturnFormFieldOptions";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface PurchaseReturnPathProps extends ParsedUrlQuery {
     purchaseReturnId: string;
@@ -53,11 +54,14 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
     const paymentPurchaseReturnsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentPurchaseReturnFormName });
 
     const trpcWithHost = useTrpcTenant();
+    const {showProgress,callbacks} = useProgressFeedback("/purchase-returns")
+
     const result = trpcWithHost.purchase_return.update.useMutation({
         onSuccess:(data, variables, context) =>{
-           form.reset();
+          callbacks.onSuccess(data)
            refetch()
         },
+        onError:callbacks.onError
     });
 
 
@@ -246,7 +250,7 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
         <FormContainer title={<h2>Update Purchase Return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+                showProgress({animated:true})
                 await result.mutateAsync(data as any);
                 
 

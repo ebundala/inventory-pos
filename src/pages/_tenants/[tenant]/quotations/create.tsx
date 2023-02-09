@@ -22,6 +22,7 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { OrderSummary } from "@/components/OrderSummary";
 import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 
 
@@ -40,7 +41,9 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
     const quotationDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.quotation.create.useMutation();
+    const {showProgress,callbacks} = useProgressFeedback("/quotations")
+
+    const result = trpcWithHost.quotation.create.useMutation(callbacks);
 
 
 
@@ -174,9 +177,9 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
         <FormContainer title={<h2>Create Quotation</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+                showProgress({animated:true});
                 await result.mutateAsync(data as any);
-                form.reset();
+               
 
             }, (e) => {
                 console.error(e);

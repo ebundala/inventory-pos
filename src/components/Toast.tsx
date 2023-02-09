@@ -5,13 +5,13 @@ import { useToast } from "@/lib/hooks/useToast";
 export function Toast() {
     const {showToast, clearToast, messages} = useToast();
     const showing = messages.size;
-    const messagesArr:ToastMessage[] = []; // useMemo<ToastMessage[]>(() => {
-      //  const arr: ToastMessage[] = [];
+    const messagesArr=useMemo<ToastMessage[]>(() => {
+        const arr: ToastMessage[] = [];
         messages.forEach((e) => {
-            messagesArr.push(e);
+            arr.push(e);
         });
-    //    return arr;
-    //}, [messages.size]);
+        return arr;
+    }, [messages]);
 
     function getDismiss(m: ToastMessage) {
         if (messages.has(m)) {

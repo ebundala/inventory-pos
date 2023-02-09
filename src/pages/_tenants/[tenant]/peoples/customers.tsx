@@ -14,6 +14,7 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useCustomers } from "@/lib/hooks/useCustomers";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export default function CustomerIndex() {
     const {customers, result:{isLoading:loading, isSuccess:success},refetch} = useCustomers();
@@ -56,16 +57,26 @@ export default function CustomerIndex() {
     }),[]);
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.people.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
-        refetch();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    const result2 = trpcWithHost.people.update.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
     if (loading) return <Loader />
@@ -80,7 +91,10 @@ export default function CustomerIndex() {
                             content:(props) => {                       
                        return <CustomerForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createCustomerInputSchema} 
                        fieldOptions={options} title={
                         "Create Customer"
@@ -157,7 +171,10 @@ export default function CustomerIndex() {
                                         content:(props) => {                       
                                    return <CustomerForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                    showProgress({animated:true});
+                                    return result2.mutateAsync(data);
+                                  }}
                                    schema={updateCustomerInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
@@ -188,10 +205,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const CustomerForm:FC<ZodFormSchema<Customer>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const CustomerForm:FC<ZodFormSchema<Customer>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -201,7 +218,7 @@ const CustomerForm:FC<ZodFormSchema<Customer>> =({ show, hide,useMutationResult,
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

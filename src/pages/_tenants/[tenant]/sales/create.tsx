@@ -22,6 +22,7 @@ import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks
 import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useSaleFormFieldOptions } from "../../../../lib/hooks/useSaleFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 
 export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
@@ -48,7 +49,9 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
     const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
 
     const trpcWithHost = useTrpcTenant();
-    const result = trpcWithHost.sale.create.useMutation();
+    const {showProgress,callbacks} = useProgressFeedback("/sales")
+
+    const result = trpcWithHost.sale.create.useMutation(callbacks);
 
 
 
@@ -236,9 +239,9 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         <FormContainer title={<h2>Create Sale</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
-                await result.mutateAsync(data as any);
-              //  form.reset();
+               showProgress({animated:true});
+               await result.mutateAsync(data as any);
+              
 
             }, (e) => {
                 console.error(e);

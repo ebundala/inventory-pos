@@ -48,109 +48,86 @@ export const createTenant = async (
     data: {
       tenantId: id,
       ...data,
-      // Warehouse:{
-      //   create:{
-      //       name:"Default warehouse",            
-      //       user_warehouse:{
-      //           create:{
-      //               userId:userId,
-      //               tenantId:id
-      //           }
-      //       }
-      //   }
-      // },
-      Unit:{
-        create:{
-            name:"Pieces",
-            shortName:"Pcs",
-            operator:"x",
-            operatorValue:1,            
-        }
+
+      Unit: {
+        create: {
+          name: "Pieces",
+          shortName: "Pcs",
+          operator: "x",
+          operatorValue: 1,
+        },
       },
-      // Customer:{
-      //   create:{
-      //       name:"Walk-in-customer",
-      //       code:1,
-      //       email:`${getTenantUrl(data.subdomain,'info@')}`
-      //   }
-      // },
-      Brand:{
-        create:{
-          name:"Default brand",          
-        }
+
+      Brand: {
+        create: {
+          name: "Default brand",
+        },
       },
-      Supplier:{
-        create:{
-          name:"Default supplier",
-          code:1,
-          email:`${getTenantUrl(data.subdomain,'info@')}`
-        }
+      Supplier: {
+        create: {
+          name: "Default supplier",
+          code: 1,
+          email: `${getTenantUrl(data.subdomain, "info@")}`,
+        },
       },
-      Category:{
-        create:{
-          name:"Default category",
-          code: "1"
-        }
+      Category: {
+        create: {
+          name: "Default category",
+          code: "1",
+        },
       },
-      // Currency:{
-      //   create:{
-      //     name:"Tanzanian Shilling",
-      //     code:"TZS",
-      //     symbol:"Tsh"
-      //   }
-      // },
-      PosSetting:{
-        create:{
-          showAddress:false,
-          showBarcode:true,
-          showCustomer:true,
-          showDiscount:false,
-          showEmail:false,
-          showNote:true,
-          showPhone:false,
-          noteCustomer:"Thank you for shopping with us - Welcome again"
-        }
+
+      PosSetting: {
+        create: {
+          showAddress: false,
+          showBarcode: true,
+          showCustomer: true,
+          showDiscount: false,
+          showEmail: false,
+          showNote: true,
+          showPhone: false,
+          noteCustomer: "Thank you for shopping with us - Welcome again",
+        },
       },
-      Setting:{
-        create:{          
-          defaultLanguage:"En",
-          companyAddress:"",
-          companyName:data.name,
-          companyPhone:"",
-          footer:"",
-          developedBy:"",
-          email:`${getTenantUrl(data.subdomain,'info@')}`,
-          logo:data.logo,
-          customer:{
-            create:{   
-              tenantId:id,           
-              name:"Walk-in-customer",
-              code:1,
-              email:`${getTenantUrl(data.subdomain,'info@')}`
-          }
+      Setting: {
+        create: {
+          defaultLanguage: "En",
+          companyAddress: "",
+          companyName: data.name,
+          companyPhone: "",
+          footer: "",
+          developedBy: "",
+          email: `${getTenantUrl(data.subdomain, "info@")}`,
+          logo: data.logo,
+          customer: {
+            create: {
+              tenantId: id,
+              name: "Walk-in-customer",
+              code: 1,
+              email: `${getTenantUrl(data.subdomain, "info@")}`,
+            },
           },
-          currency:{
-            create:{
-              tenantId:id,
-              name:"Tanzanian Shilling",
-              code:"TZS",
-              symbol:"Tsh"
-            }
+          currency: {
+            create: {
+              tenantId: id,
+              name: "Tanzanian Shilling",
+              code: "TZS",
+              symbol: "Tsh",
+            },
           },
-          warehouse:{           
-              create:{
-                tenantId:id,
-                  name:"Default warehouse",            
-                  user_warehouse:{
-                      create:{
-                          userId:userId,
-                          tenantId:id
-                      }
-                  }
-              
-            }
-          }
-        }
+          warehouse: {
+            create: {
+              tenantId: id,
+              name: "Default warehouse",
+              user_warehouse: {
+                create: {
+                  userId: userId,
+                  tenantId: id,
+                },
+              },
+            },
+          },
+        },
       },
       members: {
         connect: {

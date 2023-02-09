@@ -14,6 +14,7 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useWarehouses } from "@/lib/hooks/useWarehouses";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export default function CurrencyIndex() {
     const {warehouses, result:{isLoading:loading, isSuccess:success},refetch} = useWarehouses();
@@ -52,16 +53,26 @@ export default function CurrencyIndex() {
     }),[]);
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.setting.warehouse.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
-        refetch();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
    const result2 = trpcWithHost.setting.warehouse.update.useMutation({
     onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
     if (loading) return <Loader />
@@ -76,7 +87,10 @@ export default function CurrencyIndex() {
                             content:(props) => {                       
                        return <WarehouseForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createWarehouseInputSchema} 
                        fieldOptions={options} title={
                         "Create Warehouse"
@@ -149,7 +163,10 @@ export default function CurrencyIndex() {
                                         content:(props) => {                       
                                    return <WarehouseForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                    showProgress({animated:true});
+                                    return result2.mutateAsync(data);
+                                  }}
                                    schema={updateWarehouseInputSchema} 
                                    fieldOptions={options} 
                                    defaultValues={row.original}
@@ -180,10 +197,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
+const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
     const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
 
@@ -191,7 +208,7 @@ const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,useMutationResul
         <ModalContainer>
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

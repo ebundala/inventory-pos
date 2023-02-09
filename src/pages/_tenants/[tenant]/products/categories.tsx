@@ -1,5 +1,4 @@
 import { FormInputField } from "@/components/FormInputField";
-import Loader from "@/components/sites/Loader";
 import { createCategoryInputSchema, updateCategoryInputSchema } from "@/core/category/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useModal } from "@/lib/hooks/useModel";
@@ -9,28 +8,39 @@ import { useZodForm } from "@/lib/util/form-gen";
 import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 import { Category } from "@prisma/client";
-import { UseMutationResult } from "@tanstack/react-query";
 import { FC, ReactNode, useMemo } from "react";
-import { z, ZodFirstPartySchemaTypes } from "zod";
+import { ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     const [showModal, hide, data] = useModal();
     
     
    const trpcWithHost = useTrpcTenant();
+   const {showProgress,callbacks} = useProgressFeedback()
+
    const result1 = trpcWithHost.product.category.create.useMutation({
     onSuccess:(data,variable,ctx)=>{
-        hide();
-        refetch();
-    }
-   });
-   const result2 = trpcWithHost.product.category.update.useMutation({
-    onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
         hide();
         refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
+    }
+   });
+
+   const result2 = trpcWithHost.product.category.update.useMutation({
+    onSuccess:(data,variable,ctx)=>{
+        callbacks.onSuccess(data);
+        hide();
+        refetch()
+    },
+    onError:(error)=>{
+        callbacks.onError(error);
     }
    });
 
@@ -44,7 +54,10 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                             content:(props) => {                       
                        return <CategoryForm 
                        {...props} 
-                       useMutationResult={result1}
+                       mutateAsync={(data)=>{
+                        showProgress({animated:true});
+                        return result1.mutateAsync(data);
+                      }}
                        schema={createCategoryInputSchema}                        
                        title={
                         "Create category"
@@ -101,12 +114,15 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <div className="flex flex-row gap-2">
                                 <button onClick={(e)=>{
-                                    console.log(row);
+                                   // console.log(row);
                                     showModal({
                                         content:(props) => {                       
                                    return <CategoryForm 
                                    {...props} 
-                                   useMutationResult={result2}
+                                   mutateAsync={(data)=>{
+                                      showProgress({animated:true});
+                                      return result2.mutateAsync(data);
+                                    }}
                                    schema={updateCategoryInputSchema}                                    
                                    defaultValues={row.original}
                                    title="Update category"/>
@@ -152,10 +168,10 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
     schema:T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    useMutationResult:UseMutationResult<R,unknown,z.infer<T>,unknown>
+    mutateAsync:(data:any)=>Promise<unknown>
 }
 
-const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide,useMutationResult, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues})=>{
+const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide, mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues})=>{
     const {tenant} = useTenant();
     const options = useMemo(()=>({
         tenantId:{
@@ -183,7 +199,7 @@ const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide,useMutationResult,
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await useMutationResult.mutateAsync(data as any);
+                  await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>

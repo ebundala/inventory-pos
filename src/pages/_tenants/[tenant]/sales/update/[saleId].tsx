@@ -29,6 +29,7 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastMessageType } from "@/types/ToastMessageType";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface SalePathProps extends ParsedUrlQuery {
     saleId: string;
@@ -58,13 +59,14 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
    // const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
 
     const trpcWithHost = useTrpcTenant();
+    const {showProgress,callbacks} = useProgressFeedback("/sales")
+
     const result = trpcWithHost.sale.update.useMutation({
         onSuccess: (data, variables, context) => {
-            // form.reset();
-            //  refetch();
-            // router.push("/sales") 
-
+          callbacks.onSuccess(data)
+             refetch();         
         },
+        onError:callbacks.onError
     });
 
     useEffect(() => {
@@ -253,7 +255,7 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
         <FormContainer title={<h2>Update Sale</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
+                showProgress({animated:true});
                 await result.mutateAsync(data as any);
                 //  form.reset();
 

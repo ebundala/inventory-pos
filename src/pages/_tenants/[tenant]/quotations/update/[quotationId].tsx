@@ -40,6 +40,7 @@ import {
   productDefaultQueryBuilder,
 } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface QuotationPathProps extends ParsedUrlQuery {
   quotationId: string;
@@ -69,22 +70,22 @@ export function UpdateQuotation({
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
+  const {showProgress,callbacks} = useProgressFeedback("/quotations")
+
   const result = trpcWithHost.quotation.update.useMutation({
     onSuccess: (data, variables, context) => {
       form.reset();
+      callbacks.onSuccess(data);
       refetch();
     },
+    onError:callbacks.onError
   });
 
   useEffect(() => {
     if (quotation) {
       form.reset(quotation);
     }
-    // form.setValue(Prisma.QuotationScalarFieldEnum.date, new Date())
-    // form.setValue(Prisma.QuotationScalarFieldEnum.ref, Date.now().toString())
-    // form.setValue(Prisma.QuotationScalarFieldEnum.taxRate, 0)
-    // form.setValue(Prisma.QuotationScalarFieldEnum.discount, 0)
-    // form.setValue(Prisma.QuotationScalarFieldEnum.shipping, 0)
+   
   }, [quotation]);
 
   const detailsData = useRenderFieldArrayForm(
@@ -320,7 +321,7 @@ export function UpdateQuotation({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            console.log(data);
+            showProgress({animated:true});
             await result.mutateAsync(data as any);
           },
           (e) => {

@@ -25,6 +25,7 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToTransferDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 interface TransferPathProps extends ParsedUrlQuery {
     transferId: string;
@@ -48,13 +49,14 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
     const transferDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: transferDetailsFormName });
 
     const trpcWithHost = useTrpcTenant();
+    const {showProgress,callbacks} = useProgressFeedback("/transfers")
+
     const result = trpcWithHost.transfer.update.useMutation({
         onSuccess: (data, variables, context) => {
-            // form.reset();
-            //  refetch();
-            // router.push("/transfers") 
-
+            callbacks.onSuccess(data);
+            refetch();           
         },
+        onError:callbacks.onError
     });
 
     useEffect(() => {
@@ -182,9 +184,8 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
         <FormContainer title={<h2>Update Transfer</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
                 //submit here
-                console.log(data);
-                await result.mutateAsync(data as any);
-                //  form.reset();
+                showProgress({animated:true});
+                await result.mutateAsync(data as any);               
 
             }, (e) => {
                 console.error(e);

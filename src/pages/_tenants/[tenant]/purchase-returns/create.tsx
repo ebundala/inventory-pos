@@ -37,6 +37,7 @@ import {
 import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { usePurchaseReturnFormFieldOptions } from "../../../../lib/hooks/usePurchaseReturnFormFieldOptions";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 
 export function CreatePurchaseReturn({
   tenant,
@@ -82,11 +83,9 @@ export function CreatePurchaseReturn({
   >({ control: form.control, name: paymentPurchaseReturnFormName });
 
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.purchase_return.create.useMutation({
-    onSuccess: (data, variables, context) => {
-      // form.reset();
-    },
-  });
+  const {showProgress,callbacks} = useProgressFeedback("/purchase-returns")
+
+  const result = trpcWithHost.purchase_return.create.useMutation(callbacks);
 
   useEffect(() => {
     form.setValue(Prisma.PurchaseReturnScalarFieldEnum.date, new Date());
@@ -441,12 +440,12 @@ export function CreatePurchaseReturn({
   }, [grandTotal, paymentStatus]);
 
   return (
-    <FormContainer title={<h2>Create PurchaseReturn</h2>}>
+    <FormContainer title={<h2>Create Purchase return</h2>}>
       <form
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            console.log(data);
+            showProgress({animated:true})
             await result.mutateAsync(data as any);
           },
           (e) => {
