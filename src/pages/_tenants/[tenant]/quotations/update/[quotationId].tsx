@@ -11,7 +11,6 @@ import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldO
 import { useEffect, useMemo } from "react";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
@@ -42,6 +41,8 @@ import {
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { TStockDataInput } from "@/types/TStockDataInput";
 
 interface QuotationPathProps extends ParsedUrlQuery {
   quotationId: string;
@@ -359,7 +360,6 @@ export function UpdateQuotation({
               return { data: labels, ...rest };
             }}
 
-            // props={{ type: "text", hidden: false, disabled: false, }}
           />
         </div>
 
@@ -401,24 +401,8 @@ export function UpdateQuotation({
                   value: ProductWarehouse[];
                   row: any;
                 }) => {
-                  const detail = row.original as QuotationDetail & {
-                    product: Product;
-                    productVariant?: ProductVariant;
-                  };
-
-                  if (detail.product?.isVariant === true) {                    
-                    return value
-                      ?.filter(
-                        (v) =>
-                          v.warehouseId === warehouseId &&
-                          v.productVariantId === detail.productVariantId
-                      )
-                      ?.reduce((p, c) => p + c.qty, 0);
-                  }
-
-                  return value
-                    ?.filter((v) => v.warehouseId === warehouseId)
-                    ?.reduce((p, c) => p + c.qty, 0);
+                  const detail = row.original as TStockDataInput;
+                  return calculateStock(detail);
                 },
               },
               {

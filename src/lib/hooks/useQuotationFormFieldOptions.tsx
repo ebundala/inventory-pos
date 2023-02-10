@@ -37,16 +37,19 @@ export function useQuotationFormFieldOptions(opts?: { warehouse?: Warehouse; cus
 
         taxRate: {
             label: "Tax (%)",
-            ordering: 4
+            ordering: 4,
+            min: 0
         },
 
         discount: {
             label: "Discount",
-            ordering: 5
+            ordering: 5,
+            min: 0
         },
         shipping: {
             label: "Shipping",
-            ordering: 6
+            ordering: 6,
+            min: 0
         },
 
         status: {
@@ -70,11 +73,13 @@ export function useQuotationFormFieldOptions(opts?: { warehouse?: Warehouse; cus
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            min: 0
         },
         grandTotal: {
             label: "Grand total",
             hidden: true,
-            ordering: 11
+            ordering: 11,
+            min: 0
         },
         id:{hidden:true},
         userId: {
@@ -99,12 +104,14 @@ export function useQuotationFormFieldOptions(opts?: { warehouse?: Warehouse; cus
             label: "Quantity",
             ordering: 15,
             hideLabel: true,
+            min: 1
         },
         "quotationDetails.0.discount": {
             label: "Discount",
             ordering: 16,
             hideLabel: true,
-            readonly: true
+            readonly: true,
+
         },
         "quotationDetails.0.taxNet": {
             label: "Tax",

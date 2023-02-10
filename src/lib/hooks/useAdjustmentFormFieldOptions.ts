@@ -57,10 +57,11 @@ export function useAdjustmentFormFieldOptions(opts?: {
         hidden: true,
       },
       "adjustmentDetails.0.quantity": {
-        label: "",
+        hideLabel: true,
+        min: 1
       },
       "adjustmentDetails.0.type": {
-        label: "",
+        hideLabel: true,
         options: ["Addition", "Subtraction"],
       },
     };

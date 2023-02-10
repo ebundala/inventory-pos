@@ -5,11 +5,16 @@ import { getLayout } from "@/layouts/getLayout";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
-import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
+import {
+  FieldArrayPath,
+  FieldValues,
+  useFieldArray,
+  useWatch,
+} from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { AdjustmentDetail, Prisma, Product, ProductVariant, ProductWarehouse } from "@prisma/client";
+import { Prisma, Product, ProductVariant, ProductWarehouse } from "@prisma/client";
 import { FormComboBox } from "@/components/combobox";
 import { CustomTable } from "@/components/table";
 import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
@@ -21,12 +26,13 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { TStockDataInput } from "@/types/TStockDataInput";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useToast } from "@/lib/hooks/useToast";
+import { useAdjustmentStockConstraints } from "../../../../lib/hooks/useAdjustmentStockConstraints";
 
-export function CreateAdjustment({
-  tenant,
-  user, 
-}: TAppConfig) {
-
+export function CreateAdjustment({ tenant, user }: TAppConfig) {
   const options = useAdjustmentFormFieldOptions();
 
   const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
@@ -42,10 +48,9 @@ export function CreateAdjustment({
     FieldArrayPath<FieldValues>,
     "key"
   >({ control: form.control, name: fname });
-  
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback("/adjustments")
+  const { showProgress, callbacks } = useProgressFeedback("/adjustments");
 
   const result = trpcWithHost.adjustment.create.useMutation(callbacks);
 
@@ -61,7 +66,7 @@ export function CreateAdjustment({
     form.setValue(Prisma.AdjustmentScalarFieldEnum.ref, Date.now().toString());
   }, []);
 
- // const errors = form.formState.errors;
+  // const errors = form.formState.errors;
 
   const detailsData = useRenderFieldArrayForm(
     fname,
@@ -76,7 +81,11 @@ export function CreateAdjustment({
   );
 
   const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
+  
 
+  const typeFields = useAdjustmentStockConstraints(form.control)
+  useSetComputedValues(form, typeFields);
+  
   const checkDuplicates = useEnforceUniqueProduct(adjustmentDetailsForm as any);
 
   return (
@@ -85,16 +94,14 @@ export function CreateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            showProgress({animated:true});
+            showProgress({ animated: true });
             await result.mutateAsync(data as any);
-           
           },
           (e) => {
             console.error(e);
           }
         )}
       >
-        
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
           {otherFields.map((i) => {
             return <FormInputField key={i.name} {...i} />;
@@ -109,7 +116,7 @@ export function CreateAdjustment({
             keyPath={(v) => getProductFormatedName(v as any)}
             displayValuePath={(v) => getProductFormatedName(v as any)}
             onChange={(e, reset) => {
-              const v = e.target.value;             
+              const v = e.target.value;
               checkDuplicates(v as any);
               if (reset) {
                 reset();
@@ -139,8 +146,9 @@ export function CreateAdjustment({
                 Cell: ({ row }: { row: any }) => {
                   return (
                     <div className="w-[160px] whitespace-normal text-ellipsis break-words">
-                        {getProductFormatedName(row.original)}
-                    </div>);
+                      {getProductFormatedName(row.original)}
+                    </div>
+                  );
                 },
               },
               {
@@ -154,29 +162,28 @@ export function CreateAdjustment({
                   value: ProductWarehouse[];
                   row: any;
                 }) => {
-                  const detail = row.original as AdjustmentDetail & {
-                    product: Product;
-                    productVariant?: ProductVariant;
-                  };
-
-                  if (detail.product?.isVariant === true) {                    
-                    return value
-                      ?.filter(
-                        (v) =>
-                          v.warehouseId === warehouseId &&
-                          v.productVariantId === detail.productVariantId
-                      )
-                      ?.reduce((p, c) => p + c.qty, 0);
-                  }
-                    return value
-                    ?.filter((v) => v.warehouseId === warehouseId)
-                    ?.reduce((p, c) => p + c.qty, 0);
+                  const detail = row.original as TStockDataInput;
+                  return calculateStock(detail, warehouseId);
                 },
               },
               {
                 Header: "Quantity",
                 accessor: "fields.2",
                 disableSortBy: true,
+                Cell: ({ row, value }: { value: any; row: any }) => {
+                  const v = form.getValues(
+                    `adjustmentDetails.${row.index}.type`
+                  );
+                  console.log(v);
+                  if (value?.props?.props && v === "Subtraction") {
+                    const detail = row.original as TStockDataInput;
+                    const stock = calculateStock(detail, warehouseId);
+                    //Dirty way to enforce max stock level
+                    value.props.props.max = stock;
+                  }
+
+                  return value;
+                },
               },
               {
                 Header: "Type",
@@ -234,3 +241,4 @@ export default function Index() {
   );
 }
 Index.getLayout = getLayout;
+

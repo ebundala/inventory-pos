@@ -6,18 +6,18 @@ export function useToast() {
     const [messages, setMessages] = useStore((s) => s.toastMessages);
 
     const clearToast = useCallback((m: ToastMessage) => {
-        if (messages.has(m)) {
-            messages.delete(m);
-            const newMsgs = new Set(messages.values());
+        if (messages.has(m.id)) {
+            messages.delete(m.id);
+            const newMsgs = new Map(messages.entries());
 
             setMessages({ toastMessages: newMsgs });
         }
     }, [messages, setMessages]);
 
     const showToast = useCallback((m: ToastMessage) => {
-        if (!messages.has(m)) {
-            messages.add(m);
-            const newMsgs = new Set(messages.values());
+        if (!messages.has(m.id)) {
+            messages.set(m.id,m);
+            const newMsgs = new Map(messages.entries());;
             setMessages({ toastMessages: newMsgs });
         }
     }, [setMessages, messages]);

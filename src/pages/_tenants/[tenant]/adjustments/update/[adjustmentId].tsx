@@ -11,7 +11,13 @@ import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigTo
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { AdjustmentDetail, Prisma, Product, ProductVariant, ProductWarehouse } from "@prisma/client";
+import {
+  AdjustmentDetail,
+  Prisma,
+  Product,
+  ProductVariant,
+  ProductWarehouse,
+} from "@prisma/client";
 import { CustomTable } from "@/components/table";
 import { FormComboBox } from "@/components/combobox";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
@@ -21,6 +27,10 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { TStockDataInput } from "@/types/TStockDataInput";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useAdjustmentStockConstraints } from "@/lib/hooks/useAdjustmentStockConstraints";
 
 export function UpdateAdjustment({
   adjustment,
@@ -44,13 +54,13 @@ export function UpdateAdjustment({
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback("/adjustments")
+  const { showProgress, callbacks } = useProgressFeedback("/adjustments");
   const result = trpcWithHost.adjustment.update.useMutation({
     onSuccess: (data, variables, context) => {
       callbacks.onSuccess(data);
       refetch();
     },
-    onError:callbacks.onError
+    onError: callbacks.onError,
   });
 
   useMemo(() => {
@@ -81,6 +91,8 @@ export function UpdateAdjustment({
   );
   const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
   const checkDuplicates = useEnforceUniqueProduct(adjustmentDetailsForm as any);
+  const typeFields = useAdjustmentStockConstraints(form.control);
+  useSetComputedValues(form, typeFields);
 
   if ((!adjustment || !adjustment?.id) && !loading)
     return (
@@ -95,7 +107,7 @@ export function UpdateAdjustment({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            showProgress({animated:true})
+            showProgress({ animated: true });
             await result.mutateAsync(data as any);
           },
           (e) => {
@@ -149,8 +161,9 @@ export function UpdateAdjustment({
                 Cell: ({ row }: { row: any }) => {
                   return (
                     <div className="w-[160px] whitespace-normal text-ellipsis break-words">
-                        {getProductFormatedName(row.original)}
-                    </div>);
+                      {getProductFormatedName(row.original)}
+                    </div>
+                  );
                 },
               },
               {
@@ -169,7 +182,7 @@ export function UpdateAdjustment({
                     productVariant?: ProductVariant;
                   };
 
-                  if (detail.product?.isVariant === true) {                    
+                  if (detail.product?.isVariant === true) {
                     return value
                       ?.filter(
                         (v) =>
@@ -187,6 +200,19 @@ export function UpdateAdjustment({
                 Header: "Quantity",
                 accessor: "fields.3",
                 disableSortBy: true,
+                Cell: ({ row, value }: { value: any; row: any }) => {
+                  if (
+                    value?.props?.props &&
+                    row.original.type === "Subtraction"
+                  ) {
+                    const detail = row.original as TStockDataInput;
+                    const stock = calculateStock(detail, warehouseId);
+                    //Dirty way to enforce max stock level
+                    value.props.props.max = stock;
+                  }
+
+                  return value;
+                },
               },
               {
                 Header: "Type",

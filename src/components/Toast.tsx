@@ -14,7 +14,7 @@ export function Toast() {
     }, [messages]);
 
     function getDismiss(m: ToastMessage) {
-        if (messages.has(m)) {
+        if (messages.has(m.id)) {
             return () => {
                 clearToast(m);
             };

@@ -122,7 +122,7 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
       </>);
   }
   else {
-    console.log("type", props.type);
+    
     el = (
       <>
         {!hideLabel && <label className={`label ${hidden}`}>

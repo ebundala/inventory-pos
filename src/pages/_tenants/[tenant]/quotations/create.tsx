@@ -23,6 +23,8 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { useQuotationFormFieldOptions } from "@/lib/hooks/useQuotationFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { TStockDataInput } from "@/types/TStockDataInput";
 
 
 
@@ -263,30 +265,23 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                                 value: ProductWarehouse[];
                                 row: any;
                               }) => {
-                                const detail = row.original as QuotationDetail & {
-                                  product: Product;
-                                  productVariant?: ProductVariant;
-                                };
-              
-                                if (detail.product?.isVariant === true) {                    
-                                  return value
-                                    ?.filter(
-                                      (v) =>
-                                        v.warehouseId === warehouseId &&
-                                        v.productVariantId === detail.productVariantId
-                                    )
-                                    ?.reduce((p, c) => p + c.qty, 0);
-                                }
-                                return value
-                                ?.filter((v) => v.warehouseId === warehouseId)
-                                ?.reduce((p, c) => p + c.qty, 0);
+                                const detail = row.original as TStockDataInput;
+                                 return calculateStock(detail,warehouseId)
                             },
                         },
                         {
                             Header: "Quantity",
                             accessor: "fields.2",
                             disableSortBy: true,
-
+                            Cell: ({ row, value }: { value: any; row: any }) => {
+                                const detail = row.original as TStockDataInput;
+                                const stock = calculateStock(detail, warehouseId);
+                                //Dirty way to enforce max stock level
+                                if (value?.props?.props) {
+                                  value.props.props.max = stock;
+                                }              
+                                return value;
+                              },
                         },
                         // {
                         //     Header: `Discount (${symbol})`,

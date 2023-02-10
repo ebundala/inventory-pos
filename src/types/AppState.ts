@@ -58,7 +58,7 @@ export interface AppState {
     //UI data
     drawerFocusedMenuKey: string | null;
     progressIndicator: ProgressIndicatorData & WithShow | null;
-    toastMessages: Set<ToastMessage>;
+    toastMessages: Map<string,ToastMessage>;
     modalData: ModalData & WithShow | null;
     endDrawerData: EndDrawerData & WithShow | null;
     drawerData: DrawerData & WithShow | null;

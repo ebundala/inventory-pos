@@ -24,9 +24,12 @@ import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useSaleFormFieldOptions } from "../../../../lib/hooks/useSaleFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { TStockDataInput } from "@/types/TStockDataInput";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
 
 
-export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
+export function CreateSale({ tenant, user, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
 
     const options = useSaleFormFieldOptions();
@@ -47,7 +50,6 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
 
     const saleDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: saleDetailsFormName });
     const paymentSalesForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: paymentSalesFormName });
-    const shipmentForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: shipmentsFormName });
 
     const trpcWithHost = useTrpcTenant();
     const {showProgress,callbacks} = useProgressFeedback("/sales")
@@ -123,8 +125,6 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                             // Todo compute quantity based on units and its parent;
                             const productQuantity = (detail.quantity ?? 0);
                             const productDiscount = (detail.discount ?? 0);
-                            const saleUnitId = detail.product?.unitSaleId;
-                            const stockUnitId = detail.product?.unitId;
                             const productPrice = (detail.product?.price ?? 0);
                             const taxValue = (productTaxRate / 100 * productPrice);
                             const productPriceBeforeTax = productPrice + (taxValue * productTaxMethodAction)
@@ -184,16 +184,7 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
         }
     })
 
-    useMemo(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+    useSetComputedValues(form, data);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.SaleScalarFieldEnum.taxRate,
@@ -281,7 +272,6 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                             return { data: labels, ...rest }
                         }}
 
-                    // props={{ type: "text", hidden: false, disabled: false, }}
                     />
                 </div>
 
@@ -324,30 +314,24 @@ export function CreateSale({ tenant, defaultWarehouse, user, setting, defaultCur
                                 value: ProductWarehouse[];
                                 row: any;
                               }) => {
-                                const detail = row.original as SaleDetail & {
-                                  product: Product;
-                                  productVariant?: ProductVariant;
-                                };
-              
-                                if (detail.product?.isVariant === true) {                    
-                                  return value
-                                    ?.filter(
-                                      (v) =>
-                                        v.warehouseId === warehouseId &&
-                                        v.productVariantId === detail.productVariantId
-                                    )
-                                    ?.reduce((p, c) => p + c.qty, 0);
-                                }
-                                return value
-                                ?.filter((v) => v.warehouseId === warehouseId)
-                                ?.reduce((p, c) => p + c.qty, 0);
+                                const detail = row.original as TStockDataInput;
+                                return calculateStock(detail,warehouseId);
                             },
                         },
                         {
                             Header: "Quantity",
                             accessor: "fields.2",
                             disableSortBy: true,
-
+                            Cell: ({ row, value }: { value: any; row: any }) => {
+                                const detail = row.original as TStockDataInput;
+                                const stock = calculateStock(detail, warehouseId);
+                                //Dirty way to enforce max stock level
+                                if (value?.props?.props) {
+                                  value.props.props.max = stock;
+                                }
+              
+                                return value;
+                              },
                         },
                         // {
                         //     Header: `Discount (${symbol})`,
