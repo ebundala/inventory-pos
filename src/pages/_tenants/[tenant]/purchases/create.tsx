@@ -24,9 +24,12 @@ import { usePurchaseFormFieldOptions } from "@/lib/hooks/usePurchaseFormFieldOpt
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { usePurchaseConstraints } from "../../../../lib/hooks/usePurchaseConstraints";
 
 
-export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
+export function CreatePurchase({ tenant, user, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
     
     const options = usePurchaseFormFieldOptions();
@@ -125,8 +128,6 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
                             // Todo compute quantity based on units and its parent;
                             const productQuantity = getValue([Prisma.PurchaseDetailScalarFieldEnum.quantity],detail);
                             const productDiscount = getValue([Prisma.PurchaseDetailScalarFieldEnum.discount],detail);
-                            const saleUnitId = detail.product?.unitSaleId;
-                            const stockUnitId = detail.product?.unitId;
                             const taxValue = (productTaxRate / 100 * productPrice);
                             const productPriceBeforeTax = productPrice + (taxValue * productTaxMethodAction)
                             const productTaxNet = taxValue * productQuantity
@@ -186,17 +187,17 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
             return partialData;
         }
     })
-
-    useEffect(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+ useSetComputedValues(form,data)
+    // useEffect(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
         Prisma.PurchaseScalarFieldEnum.taxRate,
@@ -237,7 +238,9 @@ export function CreatePurchase({ tenant, defaultWarehouse, user, setting, defaul
         }, [grandTotal, paymentStatus]);
 
         const checkDuplicates = useEnforceUniqueProduct(purchaseDetailsForm as any);
-
+     const constraints =  usePurchaseConstraints(form.control);
+     useSetComputedValues(form,constraints);
+     
     return (
         <FormContainer title={<h2>Create Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -420,6 +423,7 @@ export default function Index() {
     )
 }
 Index.getLayout = getLayout;
+
 
 
 

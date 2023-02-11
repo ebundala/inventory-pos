@@ -43,6 +43,8 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 import { calculateStock } from "@/lib/util/calculateStock";
 import { TStockDataInput } from "@/types/TStockDataInput";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useQuotationConstraints } from "@/lib/hooks/useQuotationConstraints";
 
 interface QuotationPathProps extends ParsedUrlQuery {
   quotationId: string;
@@ -72,7 +74,7 @@ export function UpdateQuotation({
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
-  const {showProgress,callbacks} = useProgressFeedback("/quotations")
+  const { showProgress, callbacks } = useProgressFeedback("/quotations");
 
   const result = trpcWithHost.quotation.update.useMutation({
     onSuccess: (data, variables, context) => {
@@ -80,14 +82,13 @@ export function UpdateQuotation({
       callbacks.onSuccess(data);
       refetch();
     },
-    onError:callbacks.onError
+    onError: callbacks.onError,
   });
 
   useEffect(() => {
     if (quotation) {
       form.reset(quotation);
     }
-   
   }, [quotation]);
 
   const detailsData = useRenderFieldArrayForm(
@@ -284,22 +285,22 @@ export function UpdateQuotation({
       return partialData;
     },
   });
-
-  useMemo(() => {
-    // console.log(data);
-    const values = form.getValues();
-    for (let v of data) {
-      // Todo find better way to detect changes
-      if (v.value !== getValue(v.path, values)) {
-        // console.log("changed ",v.value,getValue(v.path,values))
-        if (!v.value) {
-          form.setValue(v.path.join("."), v.default);
-        } else {
-          form.setValue(v.path.join("."), v.value);
-        }
-      }
-    }
-  }, [data]);
+  useSetComputedValues(form,data);
+  // useMemo(() => {
+  //   // console.log(data);
+  //   const values = form.getValues();
+  //   for (let v of data) {
+  //     // Todo find better way to detect changes
+  //     if (v.value !== getValue(v.path, values)) {
+  //       // console.log("changed ",v.value,getValue(v.path,values))
+  //       if (!v.value) {
+  //         form.setValue(v.path.join("."), v.default);
+  //       } else {
+  //         form.setValue(v.path.join("."), v.value);
+  //       }
+  //     }
+  //   }
+  // }, [data]);
 
   const [taxRate, taxNet, discount, shipping, grandTotal, warehouseId] =
     form.watch([
@@ -310,7 +311,10 @@ export function UpdateQuotation({
       Prisma.QuotationScalarFieldEnum.grandTotal,
       Prisma.QuotationScalarFieldEnum.warehouseId,
     ]);
-   const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
+  const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
+  const constraints = useQuotationConstraints(form.control);
+  useSetComputedValues(form, constraints);
+
   if (!quotation || !quotation?.id)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
@@ -323,7 +327,7 @@ export function UpdateQuotation({
         onSubmit={form.handleSubmit(
           async (data) => {
             //submit here
-            showProgress({animated:true});
+            showProgress({ animated: true });
             await result.mutateAsync(data as any);
           },
           (e) => {
@@ -359,7 +363,6 @@ export function UpdateQuotation({
 
               return { data: labels, ...rest };
             }}
-
           />
         </div>
 
@@ -402,7 +405,8 @@ export function UpdateQuotation({
                   row: any;
                 }) => {
                   const detail = row.original as TStockDataInput;
-                  return calculateStock(detail);
+                  console.log(detail);
+                  return calculateStock(detail, warehouseId);
                 },
               },
               {

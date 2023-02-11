@@ -21,7 +21,7 @@ export function useEnforceUniqueProduct<R extends UseFieldArrayReturn<FieldValue
             showToast({
                 id: Date.now().toString(),
                 content: "This item is already selected",
-                type: ToastMessageType.warning, timeout: 3000
+                type: ToastMessageType.error, timeout: 3000
             });
         } else {
             if (data !== undefined) {
@@ -29,6 +29,5 @@ export function useEnforceUniqueProduct<R extends UseFieldArrayReturn<FieldValue
             }
         }
     }, [form]);
-    //const reset = useCallback(()=>setData(undefined),[setData])
     return check;
 }

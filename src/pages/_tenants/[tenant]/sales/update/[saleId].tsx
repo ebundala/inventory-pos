@@ -11,7 +11,6 @@ import { useSaleFormFieldOptions } from "@/lib/hooks/useSaleFormFieldOptions";
 import { useEffect, useMemo } from 'react';
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
@@ -27,10 +26,10 @@ import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToSaleDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
-import { useToast } from "@/lib/hooks/useToast";
-import { ToastMessageType } from "@/types/ToastMessageType";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { useSaleConstraints } from "@/lib/hooks/useSaleConstraints";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
 
 interface SalePathProps extends ParsedUrlQuery {
     saleId: string;
@@ -195,17 +194,17 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
             return partialData;
         }
     })
-
-    useEffect(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+useSetComputedValues(form,data);
+    // useEffect(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
@@ -249,7 +248,9 @@ export function UpdateSale({ tenant, sale, defaultCurrency, refetch }: SaleRequi
     }, [grandTotal, paymentStatus]);
 
     const checkDuplicates = useEnforceUniqueProduct(saleDetailsForm as any)
-
+    const constraints = useSaleConstraints(form.control);
+    useSetComputedValues(form,constraints);
+    
     if (!sale || !sale?.id) return (
         <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
             <span className="m-auto">Invalid sale</span>

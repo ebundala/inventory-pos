@@ -23,8 +23,10 @@ import { OrderSummary } from "@/components/OrderSummary";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useTransferConstraints } from "@/lib/hooks/useTransferConstraints";
 
-export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
+export function CreateTransfer({ tenant, user, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
 
     const options = useTransferFormFieldOptions();
@@ -110,8 +112,6 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
                             // Todo compute quantity based on units and its parent;
                             const productQuantity = (detail.quantity ?? 0);
                             const productDiscount = (detail.discount ?? 0);
-                            const transferUnitId = detail.product?.unitPurchaseId;
-                            const stockUnitId = detail.product?.unitId;
                             const productPrice = (detail.product?.price ?? 0);
                             const taxValue = (productTaxRate / 100 * productPrice);
                             const productPriceBeforeTax = productPrice + (taxValue * productTaxMethodAction)
@@ -150,17 +150,17 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
             return partialData;
         }
     })
-
-    useMemo(() => {
+useSetComputedValues(form,data);
+    // useMemo(() => {
        
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.TransferScalarFieldEnum.taxRate,
@@ -171,7 +171,8 @@ export function CreateTransfer({ tenant, defaultWarehouse, user, setting, defaul
         Prisma.TransferScalarFieldEnum.fromWarehouseId]);
 
     const checkDuplicates = useEnforceUniqueProduct(transferDetailsForm as any)
-
+    const constraints = useTransferConstraints(form.control);
+    useSetComputedValues(form,constraints);
     return (
         <FormContainer title={<h2>Create Transfer</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -355,6 +356,8 @@ export default function Index() {
     )
 }
 Index.getLayout = getLayout;
+
+
 
 
 

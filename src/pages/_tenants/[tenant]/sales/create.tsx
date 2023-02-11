@@ -21,12 +21,13 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
 import { OrderSummary } from "@/components/OrderSummary";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
-import { useSaleFormFieldOptions } from "../../../../lib/hooks/useSaleFormFieldOptions";
+import { useSaleFormFieldOptions } from "@/lib/hooks/useSaleFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 import { calculateStock } from "@/lib/util/calculateStock";
 import { TStockDataInput } from "@/types/TStockDataInput";
 import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useSaleConstraints } from "@/lib/hooks/useSaleConstraints";
 
 
 export function CreateSale({ tenant, user, defaultCurrency, }: TAppConfig) {
@@ -227,6 +228,9 @@ export function CreateSale({ tenant, user, defaultCurrency, }: TAppConfig) {
         }
     },[grandTotal,paymentStatus]);
     const checkDuplicates = useEnforceUniqueProduct(saleDetailsForm as any)
+    const constraints = useSaleConstraints(form.control);
+    useSetComputedValues(form,constraints);
+
     return (
         <FormContainer title={<h2>Create Sale</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -404,6 +408,7 @@ export default function Index() {
     )
 }
 Index.getLayout = getLayout;
+
 
 
 

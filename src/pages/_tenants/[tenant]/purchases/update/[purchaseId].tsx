@@ -25,9 +25,11 @@ import { CustomTable } from "@/components/table";
 import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useProductSearch, productToPurchaseDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { usePurchaseFormFieldOptions } from "../../../../../lib/hooks/usePurchaseFormFieldOptions";
+import { usePurchaseFormFieldOptions } from "@/lib/hooks/usePurchaseFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { usePurchaseConstraints } from "@/lib/hooks/usePurchaseConstraints";
 
 interface PurchasePathProps extends ParsedUrlQuery {
     purchaseId: string;
@@ -174,23 +176,23 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
             return partialData;
         }
     })
+   useSetComputedValues(form,data)
+    // useMemo(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         // Todo find better way to detect changes 
+    //         if (v.value !== getValue(v.path, values)) {
+    //             // console.log("changed ",v.value,getValue(v.path,values))
+    //             if (!v.value) {
+    //                 form.setValue(v.path.join('.'), v.default);
+    //             } else {
+    //                 form.setValue(v.path.join('.'), v.value);
 
-    useMemo(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            // Todo find better way to detect changes 
-            if (v.value !== getValue(v.path, values)) {
-                // console.log("changed ",v.value,getValue(v.path,values))
-                if (!v.value) {
-                    form.setValue(v.path.join('.'), v.default);
-                } else {
-                    form.setValue(v.path.join('.'), v.value);
-
-                }
-            }
-        }
-    }, [data]);
+    //             }
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.PurchaseScalarFieldEnum.taxRate,
@@ -200,7 +202,8 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
         Prisma.PurchaseScalarFieldEnum.grandTotal,Prisma.PurchaseScalarFieldEnum.warehouseId])
         
     const checkDuplicates = useEnforceUniqueProduct(purchaseDetailsForm as any);
-
+   const constraints = usePurchaseConstraints(form.control);
+    useSetComputedValues(form,constraints);
     return (
         <FormContainer title={<h2>Update Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {

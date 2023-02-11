@@ -23,6 +23,7 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             label: "UPC",
             value: "UPC"
         }];
+
         const taxMethods = [{ label: "Inclusive", value: "inclusive" }, { label: "Exclusive", value: "Exclusive" }];
         return {
             name: {
@@ -46,6 +47,7 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             cost: {
                 label: "Purchase price",
                 ordering: 4,
+                min:0,
                 refine:(value:any) =>{
                     return value<0?"price cannot be negative":null
                 },
@@ -54,6 +56,7 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             price: {
                 label: "Sale price",
                 ordering: 5,
+                min:0,
                 refine:(value:any) =>{
                     return value<0?"price cannot be negative":null
                 },
@@ -110,8 +113,9 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
                 }
             },
             taxNet: {
-                label: "Order Tax (%)",
+                label: "Tax (%)",
                 ordering: 9,
+                min:0,
                 refine:(value:any) =>{
                     return value<0?"Tax cannot be negative":null
                 },
@@ -125,6 +129,7 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             stockAlert: {
                 label: "Stock alert",
                 ordering: 10,
+                min:0,
                 refine:(value:any) =>{
                     return value<0?"stock cannot be negative":null
                 },
@@ -160,6 +165,7 @@ export function useProductFormFieldOptions(opts?:{productUnit?: Unit,productsSal
             "productVariants.0.qty": {
                 label: "Quantity",
                 hidden: true,
+                min:0,
                 registerOptions:{
                     setValueAs:(v:any)=>v?parseFloat(v):0
                 }

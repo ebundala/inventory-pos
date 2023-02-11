@@ -3,7 +3,7 @@ import { FormInputField } from "@/components/FormInputField";
 import { createQuotationInputSchema } from "@/core/quotation/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import { getValue, useZodForm } from "@/lib/util/form-gen";
+import { useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
 import { FieldArrayPath, FieldValues, useFieldArray } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
@@ -25,6 +25,8 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 import { calculateStock } from "@/lib/util/calculateStock";
 import { TStockDataInput } from "@/types/TStockDataInput";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useQuotationConstraints } from "@/lib/hooks/useQuotationConstraints";
 
 
 
@@ -149,23 +151,23 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
             return partialData;
         }
     })
+    useSetComputedValues(form,data)
+    // useMemo(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         // Todo find better way to detect changes 
+    //         if (v.value !== getValue(v.path, values)) {
+    //             // console.log("changed ",v.value,getValue(v.path,values))
+    //             if (!v.value) {
+    //                 form.setValue(v.path.join('.'), v.default);
+    //             } else {
+    //                 form.setValue(v.path.join('.'), v.value);
 
-    useMemo(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            // Todo find better way to detect changes 
-            if (v.value !== getValue(v.path, values)) {
-                // console.log("changed ",v.value,getValue(v.path,values))
-                if (!v.value) {
-                    form.setValue(v.path.join('.'), v.default);
-                } else {
-                    form.setValue(v.path.join('.'), v.value);
-
-                }
-            }
-        }
-    }, [data]);
+    //             }
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.QuotationScalarFieldEnum.taxRate,
@@ -176,7 +178,8 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
         Prisma.QuotationScalarFieldEnum.warehouseId])
 
     const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
-
+    const constraints = useQuotationConstraints(form.control);
+    useSetComputedValues(form,constraints);
     return (
         <FormContainer title={<h2>Create Quotation</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
@@ -223,7 +226,6 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                             return { data: labels, ...rest }
                         }}
 
-                    // props={{ type: "text", hidden: false, disabled: false, }}
                     />
                 </div>
 

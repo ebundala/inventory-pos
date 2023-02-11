@@ -40,16 +40,28 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
 
         taxRate: {
             label: "Tax (%)",
-            ordering: 4
+            ordering: 4,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         discount: {
             label: "Discount",
-            ordering: 5
+            ordering: 5,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         shipping: {
             label: "Shipping",
-            ordering: 6
+            ordering: 6,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         status: {
@@ -73,6 +85,7 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            min:0,
             registerOptions:{
                 value:0
             }
@@ -80,10 +93,18 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
         grandTotal: {
             label: "Grand total",
             hidden: true,
-            ordering: 11
+            ordering: 11,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         paidAmount: {
             label: "Paying Amount",
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         paymentStatus: {
             label: "Payment Status",
@@ -115,12 +136,20 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
             label: "Quantity",
             ordering: 15,
             hideLabel: true,
+            min:1,
+            registerOptions:{
+                value:1
+            }
         },
         "purchaseDetails.0.discount": {
             label: "Discount",
             ordering: 16,
             hideLabel: true,
-            readonly: true
+            readonly: true,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "purchaseDetails.0.taxNet": {
             label: "Tax",
@@ -181,7 +210,11 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
         },
         "paymentPurchases.0.amount": {
             label: "Received Amount",
-            ordering: 11
+            ordering: 11,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "paymentPurchases.0.reglement": {
             label: "Payment method",
@@ -199,6 +232,10 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
             label: "Change",
             readonly: { format: currencyFormat.format },
             ordering: 13,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
     }), [supplier, warehouse]);
 }

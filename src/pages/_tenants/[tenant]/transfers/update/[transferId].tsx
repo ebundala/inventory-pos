@@ -27,6 +27,8 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useTransferFormFieldOptions } from "@/lib/hooks/useTransferFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useTransferConstraints } from "@/lib/hooks/useTransferConstraints";
 
 interface TransferPathProps extends ParsedUrlQuery {
     transferId: string;
@@ -160,17 +162,17 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
             return partialData;
         }
     })
-
-    useMemo(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+useSetComputedValues(form,data)
+    // useMemo(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.TransferScalarFieldEnum.taxRate,
@@ -181,7 +183,9 @@ export function UpdateTransfer({ transfer, defaultCurrency, refetch }: TransferR
         Prisma.TransferScalarFieldEnum.fromWarehouseId]);
 
     const checkDuplicates = useEnforceUniqueProduct(transferDetailsForm as any)
-
+    const constraints = useTransferConstraints(form.control);
+    useSetComputedValues(form,constraints);
+    
     return (
         <FormContainer title={<h2>Update Transfer</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
