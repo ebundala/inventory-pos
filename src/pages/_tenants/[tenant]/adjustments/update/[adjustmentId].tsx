@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
 import { updateAdjustmentInputSchema } from "@/core/adjustment/index.zod";

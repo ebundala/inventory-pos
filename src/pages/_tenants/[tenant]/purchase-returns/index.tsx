@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"

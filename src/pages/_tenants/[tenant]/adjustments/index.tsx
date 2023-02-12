@@ -107,7 +107,8 @@ function Adjustments({router}:TAppConfig) {
 export default function Index() {
 
     return (
-        <CollectRequiredDataWrapper useHooks={()=>useAppConfig()}>
+     
+        <CollectRequiredDataWrapper useHooks={useAppConfig}>
             {(props) => <Adjustments {...props} />}
         </CollectRequiredDataWrapper>
     );

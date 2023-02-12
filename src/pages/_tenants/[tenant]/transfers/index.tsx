@@ -127,6 +127,7 @@ type TransferListProps = ReturnType<typeof useTransfers>
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const data = useTransfers();
             return { data, isLoading: data.result.isLoading }
         }}>

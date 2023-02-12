@@ -1,0 +1,19 @@
+FROM node:latest
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY ./prisma/schema.prisma ./prisma/schema.prisma
+COPY ./studio.json ./package.json
+RUN yarn add prisma
+RUN yarn add @prisma/client
+
+#attach schema files volume here
+#VOLUME [ "/usr/src/app/schema.prisma"] 
+
+EXPOSE 5555
+
+CMD [ "yarn","studio"]

@@ -58,7 +58,7 @@ export const authOptions: NextAuthOptions = {
       client: {        
         client_id: secrets.client_id,
         client_secret: secrets.client_secret,
-        redirect_uris: ["http://ebundala.dev:3000/api/auth/callback/boxyhq-saml",/*"http://localhost:3000/api/oauth/oidc/callback"*/ ]
+        redirect_uris: ["http://ebundala.dev:3000/api/auth/callback/boxyhq-saml"]
       },
       idToken: true,
       checks: [ "pkce", "state" ],

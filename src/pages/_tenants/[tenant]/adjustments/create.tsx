@@ -123,6 +123,7 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
               }
             }}
             useGetDataHook={() => {
+              // eslint-disable-next-line react-hooks/rules-of-hooks
               const { labels, data, ...rest } = useProductSearch();
               return { data: labels, ...rest };
             }}

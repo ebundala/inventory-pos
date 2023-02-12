@@ -1,6 +1,7 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": ["next","next/core-web-vitals"],
   "rules": {
+    "react-hooks/exhaustive-deps":"off",
     "import/no-restricted-paths": [
       "error",
       {

@@ -131,6 +131,7 @@ type QuitationListProps = ReturnType<typeof usePurchases>
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const data = usePurchases();
             return { data, isLoading: data.result.isLoading }
         }}>

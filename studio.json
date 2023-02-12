@@ -1,0 +1,13 @@
+{
+    "name": "@mechsoft/studio",
+    "version": "0.0.10-alpha.3",
+    "description": "",
+    "author": "ebundala",
+    "private": true,
+    "license": "MIT",
+    "scripts":{
+        "studio": "yarn prisma studio "
+    }
+    
+  }
+  

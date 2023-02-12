@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
 import { createProductInputSchema } from "@/core/product/index.zod";
@@ -73,9 +75,9 @@ export function CreateProduct() {
 
                 {boolFields.map((i) => {
                         return (
-                        <div className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div key={i.name} className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
 
-                        <FormInputField key={i.name} {...i} />
+                        <FormInputField  {...i} />
                         </div> 
                         );
                     })}

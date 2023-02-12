@@ -148,7 +148,7 @@ function TenantForm({
         {success}
       </div>}
       {result.isLoading&& <div className="w-full text-center text-success">
-        "Submitting..."
+        Submitting...
       </div>}
     </form>
   );

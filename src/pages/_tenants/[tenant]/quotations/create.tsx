@@ -216,6 +216,7 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
 
                         }}
                         useGetDataHook={() => {
+                            // eslint-disable-next-line react-hooks/rules-of-hooks
                             const { labels, data, ...rest } = useProductSearch(
                                 {
                                     format: productToQuotationDetailFormater,

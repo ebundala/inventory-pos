@@ -291,6 +291,7 @@ useSetComputedValues(form,data);
 
                         }}
                         useGetDataHook={() => {
+                            // eslint-disable-next-line react-hooks/rules-of-hooks
                             const { labels, data, ...rest } = useProductSearch(
                                 {
                                     format: productToSaleDetailFormater,

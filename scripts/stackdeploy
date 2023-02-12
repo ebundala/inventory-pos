@@ -1,0 +1,13 @@
+#! /bin/bash
+#export IMAGE_TAG=$3
+# 1 username
+# 2 password
+# 3 registry
+# 4 stack name
+# 5 environment
+docker login -u "$1" -p "$2" "$3" 
+docker container prune -f
+docker-compose -f "docker-compose.$5.yml"  config > stack.yml
+docker stack deploy --prune --with-registry-auth --resolve-image always --compose-file stack.yml "$4"
+rm -f stack.yml
+#docker image prune -a -f

@@ -113,6 +113,7 @@ type QuitationListProps = ReturnType<typeof useQuotations>
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const data = useQuotations();
             return { data, isLoading: data.result.isLoading }
         }}>

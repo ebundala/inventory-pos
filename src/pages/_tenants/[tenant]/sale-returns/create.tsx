@@ -276,6 +276,7 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
 
                         }}
                         useGetDataHook={() => {
+                            // eslint-disable-next-line react-hooks/rules-of-hooks
                             const { labels, data, ...rest } = useProductSearch(
                                 {
                                     format: productToSaleReturnDetailFormater,

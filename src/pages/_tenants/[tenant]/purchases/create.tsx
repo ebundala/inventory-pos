@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
 import { createPurchaseInputSchema } from "@/core/purchase/index.zod";

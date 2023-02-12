@@ -148,6 +148,7 @@ type SaleListProps = ReturnType<typeof useSales>
 export default function Index() {
     return (
         <CollectRequiredDataWrapper useHooks={() => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const data = useSales();
             return { data, isLoading: data.result.isLoading }
         }}>

@@ -1,0 +1,8 @@
+node_modules
+.vscode
+.github
+__tests__
+docker-compose.yaml
+Dockerfile
+Dockerfile.studio
+README.md

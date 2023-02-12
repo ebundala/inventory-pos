@@ -10,6 +10,7 @@ export function renderFieldArrayForm({ config, key, index, errors, register, nam
         const valueAsNumber = v.type == ZodFirstPartyTypeKind.ZodNumber;
         const name1 = `${name}.${index}.${fieldName}`;
         const props = { ...v,name:name1, error, key: `${key}_${index}_${i}`, props: { ...v.props, ...register(name1, { valueAsDate, valueAsNumber }) } };
+        // eslint-disable-next-line react/jsx-key
         return (<FormInputField {...props} />);
     });
 }

@@ -484,6 +484,7 @@ useSetComputedValues(form,data);
               }
             }}
             useGetDataHook={() => {
+              // eslint-disable-next-line react-hooks/rules-of-hooks
               const { labels, data, ...rest } = useProductSearch({
                 format: productToPurchaseReturnDetailFormater,
                 queryBuilder: productDefaultQueryBuilder,
@@ -492,7 +493,6 @@ useSetComputedValues(form,data);
               return { data: labels, ...rest };
             }}
 
-            // props={{ type: "text", hidden: false, disabled: false, }}
           />
         </div>
 

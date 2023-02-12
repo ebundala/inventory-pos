@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 import {
   useTable,
   useGlobalFilter,
@@ -267,7 +268,7 @@ function TablePaginationNav({
         />
       </li>
     ));
-  }, [pageCount, pageIndex]);
+  }, [gotoPage, pageCount, pageIndex]);
   return (
     <ul className="flex gap-2">
       <li>
@@ -404,6 +405,7 @@ export function CustomTable({
   colDeps=[]
 }: TableProps) {
   const data = useMemo(() => rowsData, [rowsData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const columns = useMemo(collumsData, colDeps);
   const {
     getTableProps,

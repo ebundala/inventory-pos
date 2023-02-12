@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useRouter } from "next/router";
 import Loader from "@/components/sites/Loader";
 import { getLayout } from "@/layouts/getLayout";

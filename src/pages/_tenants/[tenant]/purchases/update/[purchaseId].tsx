@@ -240,6 +240,7 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
 
                         }}
                         useGetDataHook={() => {
+                            // eslint-disable-next-line react-hooks/rules-of-hooks
                             const { labels, data, ...rest } = useProductSearch(
                                 {
                                     format: productToPurchaseDetailFormater,

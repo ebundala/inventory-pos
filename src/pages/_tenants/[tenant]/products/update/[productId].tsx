@@ -82,9 +82,9 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
 
                 {boolFields.map((i) => {
                         return (
-                        <div className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div key={i.name} className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
 
-                        <FormInputField key={i.name} {...i} />
+                        <FormInputField  {...i} />
                         </div> 
                         );
                     })}

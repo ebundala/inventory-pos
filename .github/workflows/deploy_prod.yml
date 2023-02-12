@@ -1,0 +1,219 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI Prod
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+# on:
+#   release:
+#     types: [published]
+  # Allows you to run this workflow manually from the Actions tab
+  # workflow_dispatch:
+env:
+  REGISTRY: ghcr.io
+  SERVER_IMAGE_NAME: server
+  STUDIO_IMAGE_NAME: studio
+  REPO_NAME: ${{ github.repository }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2    
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1  
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          registry: ${{env.REGISTRY}}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract server metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3       
+        with:
+          images: ${{ env.REGISTRY }}/${{env.REPO_NAME}}/${{ env.SERVER_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Extract studio metadata (tags, labels) for Docker
+        id: meta1
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{env.REPO_NAME}}/${{ env.STUDIO_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - name: Build app Server image        
+        uses: docker/build-push-action@v2.4.0
+        with:
+            # List of extra privileged entitlement (eg. network.host,security.insecure)
+            # allow: # optional
+            # # List of build-time variables
+             build-args: GOOGLE_APPLICATION_CREDENTIALS=${{secrets.FIREBASE_ADM_FILE}} # optional
+            # # Builder instance
+            # builder: # optional
+            # # List of external cache sources for buildx (eg. user/app:cache, type=local,src=path/to/dir)
+            # cache-from: # optional
+            # # List of cache export destinations for buildx (eg. user/app:cache, type=local,dest=path/to/dir)
+            # cache-to: # optional
+            # # Build's context is the set of files located in the specified PATH or URL
+             context: "./" # optional
+            # # Path to the Dockerfile
+             file: "./Dockerfile" # optional
+            # # List of metadata for an image
+            #  labels: "itahuduma" # optional
+            # # Load is a shorthand for --output=type=docker
+            # load: # optional, default is false
+            # # Set the networking mode for the RUN instructions during build
+            # network: # optional
+            # # Do not use cache when building the image
+            # no-cache: true # optional, default is false
+            # # List of output destinations (format: type=local,dest=path)
+            #  outputs: "type=docker,dest=./oci/app.tar" # optional
+            # # List of target platforms for build
+            # platforms: # optional
+            # # Always attempt to pull a newer version of the image
+            # pull: # optional, default is false
+            # # Push is a shorthand for --output=type=registry
+            # push: # optional, default is false
+            # # List of secrets to expose to the build (eg. key=string, GIT_AUTH_TOKEN=mytoken)
+            # secrets: # optional
+            # # List of secret files to expose to the build (eg. key=filename, MY_SECRET=./secret.txt)
+            # secret-files: # optional
+            # # List of SSH agent socket or keys to expose to the build
+            # ssh: # optional
+            # # List of tags
+            #  tags: "faw-backend-v2:${{github.sha}}" # optional
+            # # Sets the target stage to build
+            # target: # optional
+            # # GitHub Token used to authenticate against a repository for Git context
+            # github-token: # optional, default is ${{ github.token }}
+             push: true
+             tags: ${{ steps.meta.outputs.tags }}
+             labels: ${{ steps.meta.outputs.labels }}
+      - name: Build studio image        
+        uses: docker/build-push-action@v2.4.0
+        with:
+          context: "./"
+          file: "./Dockerfile.studio"
+          push: true
+          tags: ${{ steps.meta1.outputs.tags }}
+          labels: ${{ steps.meta1.outputs.labels }}
+          # labels: "studio"
+          # outputs: "type=docker,dest=./oci/studio.tar"
+          # tags: "studio:${{github.sha}}"
+      # - name: Build graphhopper image        
+      #   uses: docker/build-push-action@v2.4.0
+      #   with:
+      #     context: "./graphhopper"
+      #     file: "./graphhopper/Dockerfile"
+      #     labels: "graphhopper"
+      #     outputs: "type=docker,dest=./oci/graphhopper.tar"
+      #     tags: "graphhopper:${{github.sha}}"
+      # - name: Copy app image files to remote
+      #   uses: appleboy/scp-action@master
+      #   with:
+      #     host: ${{ secrets.HOST }}
+      #     username: ${{ secrets.USERNAME }}
+      #     port: ${{ secrets.PORT }}
+      #     passphrase: ${{secrets.PASSPHRASE }}
+      #     key: ${{ secrets.SSHKEY }}
+      #     source: "./oci"
+      #     target: "/home/${{ secrets.USERNAME }}/app/"
+
+      - name: Copy webserver files to remote
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          passphrase: ${{secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
+          source: "./webserver"
+          target: "/home/${{ secrets.USERNAME }}/app/"
+
+      # - name: Copy pgbouncer files to remote
+      #   uses: appleboy/scp-action@master
+      #   with:
+      #     host: ${{ secrets.HOST }}
+      #     username: ${{ secrets.USERNAME }}
+      #     port: ${{ secrets.PORT }}
+      #     passphrase: ${{secrets.PASSPHRASE }}
+      #     key: ${{ secrets.SSHKEY }}
+      #     source: "./pgbouncer"
+      #     target: "/home/${{ secrets.USERNAME }}/app/"
+          
+      - name: Copy docker files to remote
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          passphrase: ${{secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
+          source: "./docker-compose.prod.yml"
+          target: "/home/${{ secrets.USERNAME }}/app/"
+
+      - name: Copy scripts files to remote
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          passphrase: ${{secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
+          source: "./scripts"
+          target: "/home/${{ secrets.USERNAME }}/app/"
+  
+      - name: BUILD SERVER        
+        uses: appleboy/ssh-action@master
+        env:
+          PRISMA_ENV: ${{ secrets.PRISMA_ENV }}
+          SERVER_ENV:  ${{ secrets.SERVER_ENV }}
+          FIREBASE_ADM_AC: ${{secrets.FIREBASE_ADM_AC}}
+          SERVER_CONF: ${{ secrets.SERVER_CONF }}
+          PGBOUNCER_CONF: ${{ secrets.PGBOUNCER_CONF }}
+          PGBOUNCER_USERLIST: ${{ secrets.PGBOUNCER_USERLIST }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}         
+          script: |
+           cd /home/${{ secrets.USERNAME }}/app          
+           mkdir -p prisma          
+           mkdir -p redis/data
+           chmod +x scripts/stackdeploy
+           chmod +x scripts/stackdown
+           chmod +x scripts/create_file
+            
+              
+           ./scripts/create_file .env "${{ env.SERVER_ENV}}"
+           ./scripts/create_file  webserver/nginx-conf/nginx.conf "${{env.SERVER_CONF}}"
+           ./scripts/create_file  keys/google-openid-configuration.json "${{env.GOOGLE_OIDC_CONF}}"
+           ./scripts/create_file  keys/openid_key.json "${{env.OPENID_KEY}}"
+
+            docker login -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+            docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.SERVER_IMAGE_NAME }}:main
+            docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.STUDIO_IMAGE_NAME }}:main
+           ./scripts/stackdeploy ${{ github.repository_owner }} ${{ secrets.GITHUB_TOKEN }} ${{env.REGISTRY}} shopcare prod
+          #  ./scripts/create_file  pgbouncer/conf/pgbouncer.ini "${{env.PGBOUNCER_CONF}}"
+          #  ./scripts/create_file  pgbouncer/conf/userlist.txt "${{env.PGBOUNCER_USERLIST}}"
+
+          #  ./scripts/stackdeploy prod itahuduma ${{github.sha}}
+

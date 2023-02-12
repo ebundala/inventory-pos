@@ -1,0 +1,2 @@
+#!/bin/bash
+echo  | base64 -i "$1" | tr --delete '\n' > "$1.base64" 

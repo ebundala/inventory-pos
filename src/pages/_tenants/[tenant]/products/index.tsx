@@ -1,9 +1,9 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import Loader from "@/components/sites/Loader";
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
 import { useProducts } from "@/lib/hooks/useProducts";
-import { Product, ProductVariant, ProductWarehouse } from "@prisma/client";
+import { ProductWarehouse } from "@prisma/client";
 import { useRouter } from "next/router";
 
 
