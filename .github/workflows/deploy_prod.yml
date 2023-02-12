@@ -1,4 +1,3 @@
-# This is a basic workflow to help you get started with Actions
 
 name: CI Prod
 
@@ -13,12 +12,14 @@ on:
 #   release:
 #     types: [published]
   # Allows you to run this workflow manually from the Actions tab
-  # workflow_dispatch:
+  workflow_dispatch:
 env:
   REGISTRY: ghcr.io
   SERVER_IMAGE_NAME: server
   STUDIO_IMAGE_NAME: studio
   REPO_NAME: ${{ github.repository }}
+  GITHUB_USER: ${{ github.repository_owner }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,9 +34,11 @@ jobs:
         uses: docker/setup-buildx-action@v1  
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1 
+        
+        
         with:
           registry: ${{env.REGISTRY}}
-          username: ${{ github.repository_owner }}
+          username: $GITHUB_USER
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract server metadata (tags, labels) for Docker
         id: meta
@@ -63,7 +66,7 @@ jobs:
             # List of extra privileged entitlement (eg. network.host,security.insecure)
             # allow: # optional
             # # List of build-time variables
-             build-args: GOOGLE_APPLICATION_CREDENTIALS=${{secrets.FIREBASE_ADM_FILE}} # optional
+            #  build-args: GOOGLE_APPLICATION_CREDENTIALS=${{secrets.FIREBASE_ADM_FILE}} # optional
             # # Builder instance
             # builder: # optional
             # # List of external cache sources for buildx (eg. user/app:cache, type=local,src=path/to/dir)
@@ -181,13 +184,12 @@ jobs:
   
       - name: BUILD SERVER        
         uses: appleboy/ssh-action@master
-        env:
-          PRISMA_ENV: ${{ secrets.PRISMA_ENV }}
-          SERVER_ENV:  ${{ secrets.SERVER_ENV }}
-          FIREBASE_ADM_AC: ${{secrets.FIREBASE_ADM_AC}}
-          SERVER_CONF: ${{ secrets.SERVER_CONF }}
-          PGBOUNCER_CONF: ${{ secrets.PGBOUNCER_CONF }}
-          PGBOUNCER_USERLIST: ${{ secrets.PGBOUNCER_USERLIST }}
+        env:          
+          SERVER_ENV:  ${{ secrets.SERVER_ENV }}          
+          SERVER_CONF: ${{ secrets.SERVER_CONF }}        
+          OPENID_KEY: ${{ secrets.OPENID_KEY }} 
+          GOOGLE_OIDC_CONF: ${{ secrets.GOOGLE_OIDC_CONF }}
+          USERNAME: ${{ secrets.USERNAME }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -196,8 +198,7 @@ jobs:
           key: ${{ secrets.SSHKEY }}         
           script: |
            cd /home/${{ secrets.USERNAME }}/app          
-           mkdir -p prisma          
-           mkdir -p redis/data
+           mkdir -p prisma        
            chmod +x scripts/stackdeploy
            chmod +x scripts/stackdown
            chmod +x scripts/create_file
@@ -208,10 +209,10 @@ jobs:
            ./scripts/create_file  keys/google-openid-configuration.json "${{env.GOOGLE_OIDC_CONF}}"
            ./scripts/create_file  keys/openid_key.json "${{env.OPENID_KEY}}"
 
-            docker login -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+            docker login -u ${{ env.GITHUB_USER }} -p ${{ env.GITHUB_TOKEN }} ghcr.io
             docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.SERVER_IMAGE_NAME }}:main
             docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.STUDIO_IMAGE_NAME }}:main
-           ./scripts/stackdeploy ${{ github.repository_owner }} ${{ secrets.GITHUB_TOKEN }} ${{env.REGISTRY}} shopcare prod
+           ./scripts/stackdeploy ${{ env.GITHUB_USER }} ${{ env.GITHUB_TOKEN }} ${{env.REGISTRY}} shopcare prod
           #  ./scripts/create_file  pgbouncer/conf/pgbouncer.ini "${{env.PGBOUNCER_CONF}}"
           #  ./scripts/create_file  pgbouncer/conf/userlist.txt "${{env.PGBOUNCER_USERLIST}}"
 
