@@ -19,3 +19,4 @@ public/site
 keys/*
 .env.local
 *.base64
+.vscode/deleted
