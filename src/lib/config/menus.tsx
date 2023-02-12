@@ -119,7 +119,7 @@ export const menus: LinkMenuData[] = [
     {
         name: "Sales",
         link: '#',
-        icon: <BsGraphUp size={32} />,
+        icon: <BsGraphUp  />,
         subMenus: [
             {
                 name: "Create Sales",
