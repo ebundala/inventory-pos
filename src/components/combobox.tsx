@@ -107,7 +107,7 @@ export function FormComboBox({ useGetDataHook, value, defaultOption, elevation =
           }}
           {...inputProps}
         />
-         <Combobox.Button className="absolute inset-y-0 right-0 flex flex-col justify-end pr-2 pb-2">
+         <Combobox.Button className="absolute right-0 top-11 h-fit flex flex-col justify-end pr-2 pb-">
            {/* <div className='flex flex-col items-center '>  */}
             <FaChevronUp
                 className="h-4 w-4 text-gray-400"
@@ -121,7 +121,7 @@ export function FormComboBox({ useGetDataHook, value, defaultOption, elevation =
             </Combobox.Button> 
         {/* </div> */}
         {error &&
-          <span className={`pt-2 text text-error text-xs font-semibold ${hidden ? 'hidden' : ''}`}>{error}</span>}
+          <span className={`pt-1 text text-error text-xs font-semibold ${hidden ? 'hidden' : ''}`}>{error}</span>}
 
         <Transition
           as={Fragment}
