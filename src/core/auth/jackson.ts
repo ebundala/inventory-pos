@@ -3,8 +3,6 @@ import jackson, {
     type JacksonOption,
   } from "@boxyhq/saml-jackson";
 import { inferAsyncReturnType } from "@trpc/server";
-import jwtSigningKeys from 'keys/openid_key.json';  
-  const samlAudience = "https://saml.boxyhq.com";
   const samlPath = "/api/auth/saml/acs";
   const oidcPath ="/api/outh/oidc/callback"
   const opts: JacksonOption = {
@@ -13,7 +11,10 @@ import jwtSigningKeys from 'keys/openid_key.json';
     samlPath,
     oidcPath,
      openid:{
-      jwtSigningKeys
+      jwtSigningKeys:{
+        private:process.env.OPENID_RSA_PRIVATE_KEY!,
+        public:process.env.OPENID_RSA_PUBLIC_KEY!
+      }
      },
     db: {
      // encryptionKey:process.env.DB_ENCRYPTION_KEY,

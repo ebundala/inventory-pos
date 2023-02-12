@@ -4,7 +4,8 @@
 # ./scripts/tobase64  prisma/.env
 ./scripts/tobase64  webserver/nginx-conf/nginx.conf
 ./scripts/tobase64  webserver/certbot/nginx-conf/nginx.conf
-./scripts/tobase64  keys/openid_key.json
-./scripts/tobase64  keys/google-openid-configuration.json
+# ./scripts/tobase64  keys/openid_key.json
+# ./scripts/tobase64  keys/google-openid-configuration.json
+# ./scripts/tobase64  keys/client_secret.json
 
 

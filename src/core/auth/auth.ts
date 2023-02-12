@@ -1,16 +1,17 @@
-import { type NextAuthOptions } from "next-auth";
-import GitHubProvider from "next-auth/providers/github";
+import { NextAuthOptions } from "next-auth";
+// import GitHubProvider from "next-auth/providers/github";
 //import GoogleProvider, { GoogleProfile } from "next-auth/providers/google";
 
 import BoxyHQSAMLProvider from 'next-auth/providers/boxyhq-saml';
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/core";
-import { googleOidcDiscoveryUrl, secrets } from "@/core/util/oidcConfig";
-import googleCfg from 'keys/google-openid-configuration.json';
-import { APP_HOST } from "@/lib/util";
+import { googleOidcDiscoveryUrl} from "@/core/util/oidcConfig";
+
+import googleCfg from "@/core/util/google-openid-configuration";
 import { Prisma } from "@prisma/client";
 
-const  useSecureCookies = false;//process.env.NODE_ENV === 'production';
+const  useSecureCookies = process.env.NODE_ENV === 'production';
+
 const cookieBuilder = (name:string)=>({
   name:`${useSecureCookies?'__Secure-':''}next-auth.${name}`,
   options:{
@@ -22,27 +23,29 @@ const cookieBuilder = (name:string)=>({
   }
 })
 
-if (!process.env.GITHUB_ID || !process.env.GITHUB_SECRET)
-  throw new Error("Failed to initialize Github authentication");
+ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET)
+   throw new Error("Failed to initialize Google authentication");
 
 if (!process.env.NEXTAUTH_SECRET)
   throw new Error("Auth secret is required");
 
+
+
 export const authOptions: NextAuthOptions = {
   providers: [
-    GitHubProvider({     
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-      profile(profile) {
-        return {
-          id: profile.id.toString(),
-          name: profile.name || profile.login,
-          gh_username: profile.login,
-          email: profile.email,
-          image: profile.avatar_url,
-        };
-      },
-    }),
+    // GitHubProvider({     
+    //   clientId: process.env.GITHUB_ID,
+    //   clientSecret: process.env.GITHUB_SECRET,
+    //   profile(profile) {
+    //     return {
+    //       id: profile.id.toString(),
+    //       name: profile.name || profile.login,
+    //       gh_username: profile.login,
+    //       email: profile.email,
+    //       image: profile.avatar_url,
+    //     };
+    //   },
+    // }),
     BoxyHQSAMLProvider({         
       issuer: googleCfg.issuer,
       wellKnown: googleOidcDiscoveryUrl,
@@ -56,9 +59,9 @@ export const authOptions: NextAuthOptions = {
       clientId: "dummy",//secrets.client_id,
       clientSecret: "dummy",//secrets.client_secret,
       client: {        
-        client_id: secrets.client_id,
-        client_secret: secrets.client_secret,
-        redirect_uris: ["http://ebundala.dev:3000/api/auth/callback/boxyhq-saml"]
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uris: [`${process.env.NEXTAUTH_URL}/api/auth/callback/boxyhq-saml`]
       },
       idToken: true,
       checks: [ "pkce", "state" ],
