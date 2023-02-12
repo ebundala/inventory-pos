@@ -24,6 +24,8 @@ import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useSaleReturnFormFieldOptions } from "../../../../lib/hooks/useSaleReturnFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "../../../../lib/hooks/useEnforceUniqueProduct";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useSaleReturnConstraints } from "../../../../lib/hooks/useSaleReturnConstraints";
 
 export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
@@ -180,17 +182,17 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
             return partialData;
         }
     })
-
-    useMemo(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+   useSetComputedValues(form,data);
+    // useMemo(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.SaleReturnScalarFieldEnum.taxRate,
@@ -234,7 +236,8 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
     },[grandTotal,paymentStatus]);
     
     const checkDuplicates = useEnforceUniqueProduct(saleReturnDetailsForm as any);
-
+   const constraints = useSaleReturnConstraints(form.control);
+   useSetComputedValues(form,constraints);
     return (
         <FormContainer title={<h2>Create Sale return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {

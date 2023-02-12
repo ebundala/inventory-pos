@@ -10,8 +10,10 @@ import { TStockDataInput } from "@/types/TStockDataInput";
 
 
 
-
+ 
 export function useTransferConstraints<T extends Control<FieldValues, unknown> = Control<FieldValues, unknown>>(control: T) {
+   // const [cached,setCached] = useState<string|undefined>(undefined);
+      
     return useComputedZodFormValues({
         control: control,
         compute: (data, showToast) => {
@@ -39,6 +41,7 @@ export function useTransferConstraints<T extends Control<FieldValues, unknown> =
                                     timeout: 5000,
                                     type: ToastMessageType.error
                                 });
+                              
                             }
                         });
                     }
@@ -46,13 +49,14 @@ export function useTransferConstraints<T extends Control<FieldValues, unknown> =
                 else if (!toWarehouseId) {
                     if (details && details instanceof Array && details.length > 0) {
                         requestIdleCallback(() => {
-                            if (showToast != undefined) {
+                            if (showToast != undefined ) {
                                 showToast({
-                                    id: "invalid_customer",
+                                    id: "invalid_towarehouse",
                                     content: `Please select a destination warehouse`,
                                     timeout: 5000,
                                     type: ToastMessageType.error
                                 });
+                               
                             }
                         });
                     }
@@ -62,8 +66,8 @@ export function useTransferConstraints<T extends Control<FieldValues, unknown> =
                 else if (toWarehouseId === fromWarehouseId) {
                     partialData.push(
                         {
-                            value: null,
-                            default: null,
+                            value: undefined,
+                            default: undefined,
                             path: [
                                 Prisma.TransferScalarFieldEnum.toWarehouseId,
                             ],
@@ -72,11 +76,12 @@ export function useTransferConstraints<T extends Control<FieldValues, unknown> =
                     requestIdleCallback(() => {
                         if (showToast != undefined) {
                             showToast({
-                                id: "invalid_customer",
+                                id: "invalid_transfer",
                                 content: `You cant transfer to same warehouse`,
                                 timeout: 5000,
                                 type: ToastMessageType.error
                             });
+                           
                         }
                     });
                 }

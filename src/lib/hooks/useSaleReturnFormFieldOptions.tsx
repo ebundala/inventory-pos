@@ -38,16 +38,28 @@ export function useSaleReturnFormFieldOptions(opts?: { warehouse?: Warehouse; cu
 
         taxRate: {
             label: "Tax (%)",
-            ordering: 4
+            ordering: 4,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         discount: {
             label: "Discount",
-            ordering: 5
+            ordering: 5,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         shipping: {
             label: "Shipping",
-            ordering: 6
+            ordering: 6,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         status: {
@@ -79,14 +91,26 @@ export function useSaleReturnFormFieldOptions(opts?: { warehouse?: Warehouse; cu
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         grandTotal: {
             label: "Grand total",
             hidden: true,
-            ordering: 11
+            ordering: 11,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         paidAmount: {
             label: "Paying Amount",
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         id: { hidden: true },
         userId: {
@@ -111,6 +135,11 @@ export function useSaleReturnFormFieldOptions(opts?: { warehouse?: Warehouse; cu
             label: "Quantity",
             ordering: 15,
             hideLabel: true,
+            
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "saleReturnDetails.0.discount": {
             label: "Discount",
@@ -171,7 +200,11 @@ export function useSaleReturnFormFieldOptions(opts?: { warehouse?: Warehouse; cu
         },
         "paymentSaleReturns.0.amount": {
             label: "Received Amount",
-            ordering: 11
+            ordering: 11,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "paymentSaleReturns.0.reglement": {
             label: "Payment method",

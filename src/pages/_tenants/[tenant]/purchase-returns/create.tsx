@@ -15,7 +15,7 @@ import {
   Product,
   ProductVariant,
   ProductWarehouse,
-  PurchaseReturnDetail,
+  PurchaseReturnDetail,  
   Unit,
 } from "@prisma/client";
 import { FormComboBox } from "@/components/combobox";
@@ -39,6 +39,9 @@ import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { usePurchaseReturnFormFieldOptions } from "../../../../lib/hooks/usePurchaseReturnFormFieldOptions";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { calculateStock } from "@/lib/util/calculateStock";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { usePurchaseReturnConstraints } from "../../../../lib/hooks/usePurchaseReturnConstraints";
 
 export function CreatePurchaseReturn({
   tenant,
@@ -148,7 +151,7 @@ export function CreatePurchaseReturn({
     compute: (data) => {
       const partialData: TComputedFormFieldsResult = [];
       const detailsPath = "purchaseReturnDetails";
-      const paymentPath = "paymentSales";
+      const paymentPath = "paymentPurchaseReturns";
 
       let grandTotal = 0,
         subTotal = 0,
@@ -353,7 +356,7 @@ export function CreatePurchaseReturn({
                     path: [
                       paymentPath,
                       i,
-                      Prisma.PaymentSaleScalarFieldEnum.change,
+                      Prisma.PaymentPurchaseReturnScalarFieldEnum.change,
                     ],
                   },
                 ]
@@ -365,17 +368,18 @@ export function CreatePurchaseReturn({
       return partialData;
     },
   });
+useSetComputedValues(form,data);
 
-  useEffect(() => {
-    // console.log(data);
-    const values = form.getValues();
-    for (let v of data) {
-      if (getValue(["value"], v) !== getValue(v.path, values)) {
-        console.log("changed ", v.value, getValue(v.path, values));
-        form.setValue(v.path.join("."), v.value);
-      }
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   // console.log(data);
+  //   const values = form.getValues();
+  //   for (let v of data) {
+  //     if (getValue(["value"], v) !== getValue(v.path, values)) {
+  //       console.log("changed ", v.value, getValue(v.path, values));
+  //       form.setValue(v.path.join("."), v.value);
+  //     }
+  //   }
+  // }, [data]);
 
   const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
     Prisma.PurchaseReturnScalarFieldEnum.taxRate,
@@ -385,12 +389,12 @@ export function CreatePurchaseReturn({
     Prisma.PurchaseReturnScalarFieldEnum.grandTotal,
   ]);
   const [paymentStatus, warehouseId] = form.watch([
-    Prisma.SaleScalarFieldEnum.paymentStatus,
-    Prisma.SaleScalarFieldEnum.warehouseId,
+    Prisma.PurchaseReturnScalarFieldEnum.paymentStatus,
+    Prisma.PurchaseReturnScalarFieldEnum.warehouseId,
   ]);
   const paymentFields = useMemo(() => {
     if (paymentStatus === "Paid") {
-      form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+      form.setValue(Prisma.PurchaseReturnScalarFieldEnum.paidAmount, grandTotal);
     }
 
     if (paymentStatus === "Pending") {
@@ -438,11 +442,13 @@ export function CreatePurchaseReturn({
 
   useEffect(() => {
     if (paymentStatus === "Paid") {
-      form.setValue(Prisma.SaleScalarFieldEnum.paidAmount, grandTotal);
+      form.setValue(Prisma.PurchaseReturnScalarFieldEnum.paidAmount, grandTotal);
     }
   }, [grandTotal, paymentStatus]);
 
   const checkDuplicates = useEnforceUniqueProduct(purchaseReturnDetailsForm as any)
+  const constraints = usePurchaseReturnConstraints(form.control);
+  useSetComputedValues(form,constraints);
 
   return (
     <FormContainer title={<h2>Create Purchase return</h2>}>
@@ -633,3 +639,7 @@ export default function Index() {
   );
 }
 Index.getLayout = getLayout;
+
+
+
+

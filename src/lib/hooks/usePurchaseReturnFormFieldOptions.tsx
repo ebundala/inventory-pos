@@ -38,16 +38,28 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
 
         taxRate: {
             label: "Tax (%)",
-            ordering: 4
+            ordering: 4,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         discount: {
             label: "Discount",
-            ordering: 5
+            ordering: 5,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         shipping: {
             label: "Shipping",
-            ordering: 6
+            ordering: 6,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
 
         status: {
@@ -71,6 +83,7 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
             label: "Tax total",
             hidden: true,
             ordering: 10,
+            min:0,
             registerOptions: {
                 value: 0
             }
@@ -81,7 +94,11 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
             ordering: 11
         },
         paidAmount: {
-            label: "Paying Amount",
+            label: "Paying Amount",            
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         paymentStatus: {
             label: "Payment Status",
@@ -105,14 +122,18 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
         "purchaseReturnDetails.0.cost": {
             label: "Unit Cost",
             hideLabel: true,
-            readonly: true,
+            readonly: { format: currencyFormat.format },
             ordering: 14,
             //hidden: true
         },
         "purchaseReturnDetails.0.quantity": {
             label: "Quantity",
             ordering: 15,
-            hideLabel: true,
+            hideLabel: true,            
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "purchaseReturnDetails.0.discount": {
             label: "Discount",
@@ -123,13 +144,13 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
         "purchaseReturnDetails.0.taxNet": {
             label: "Tax",
             hideLabel: true,
-            readonly: true,
+            readonly: { format: currencyFormat.format },
             ordering: 17
         },
         "purchaseReturnDetails.0.total": {
             label: "Subtotal",
             hideLabel: true,
-            readonly: true,
+            readonly: { format: currencyFormat.format },
             ordering: 18
         },
 
@@ -179,7 +200,11 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
         },
         "paymentPurchaseReturns.0.amount": {
             label: "Received Amount",
-            ordering: 11
+            ordering: 11,
+            min:0,
+            registerOptions:{
+                value:0
+            }
         },
         "paymentPurchaseReturns.0.reglement": {
             label: "Payment method",

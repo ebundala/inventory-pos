@@ -12,7 +12,7 @@ import { LinkMenuData } from "@/types/LinkMenuData";
 export const menus: LinkMenuData[] = [
     {
         name: "Dashboard",
-        link: '#',
+        link: '/',
         icon: <BsReceipt size={32} />,
         subMenus: []
     },
@@ -228,12 +228,7 @@ export const menus: LinkMenuData[] = [
         link: '#',
         icon: <BsGear size={32} />,
         subMenus: [
-            {
-                name: "Account",
-                link: '/account',
-                icon: <BsCashCoin />,
-                subMenus: []
-            },
+           
             {
                 name: "System settings",
                 link: '/settings/system',

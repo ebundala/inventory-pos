@@ -43,6 +43,8 @@ import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
+import { useSaleReturnConstraints } from "@/lib/hooks/useSaleReturnConstraints";
 
 interface SaleReturnPathProps extends ParsedUrlQuery {
   saleReturnId: string;
@@ -336,17 +338,17 @@ export function UpdateSaleReturn({
       return partialData;
     },
   });
-
-  useEffect(() => {
-    // console.log(data);
-    const values = form.getValues();
-    for (let v of data) {
-      if (getValue(["value"], v) !== getValue(v.path, values)) {
-        console.log("changed ", v.value, getValue(v.path, values));
-        form.setValue(v.path.join("."), v.value);
-      }
-    }
-  }, [data]);
+useSetComputedValues(form,data);
+  // useEffect(() => {
+  //   // console.log(data);
+  //   const values = form.getValues();
+  //   for (let v of data) {
+  //     if (getValue(["value"], v) !== getValue(v.path, values)) {
+  //       console.log("changed ", v.value, getValue(v.path, values));
+  //       form.setValue(v.path.join("."), v.value);
+  //     }
+  //   }
+  // }, [data]);
 
   const [taxRate, taxNet, discount, shipping, grandTotal, warehouseId] =
     form.watch([
@@ -415,7 +417,8 @@ export function UpdateSaleReturn({
     }
   }, [grandTotal, paymentStatus]);
   const checkDuplicates = useEnforceUniqueProduct(saleReturnDetailsForm as any);
-
+  const constraints = useSaleReturnConstraints(form.control);
+  useSetComputedValues(form,constraints);
   if (!saleReturn || !saleReturn?.id)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">

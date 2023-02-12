@@ -29,6 +29,8 @@ import { usePurchaseReturnFormFieldOptions } from "@/lib/hooks/usePurchaseReturn
 import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
+import { usePurchaseReturnConstraints } from "@/lib/hooks/usePurchaseReturnConstraints";
+import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
 
 interface PurchaseReturnPathProps extends ParsedUrlQuery {
     purchaseReturnId: string;
@@ -99,7 +101,7 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
         control: form.control, compute: (data) => {
             const partialData: TComputedFormFieldsResult = [];
             const detailsPath = 'purchaseReturnDetails';
-            const paymentPath = "paymentSales";
+            const paymentPath = "paymentPurchaseReturns";
 
             let grandTotal = 0, subTotal = 0, taxNet = 0;
 
@@ -196,17 +198,17 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
             return partialData;
         }
     })
-
-    useEffect(() => {
-        // console.log(data);
-        const values = form.getValues();
-        for (let v of data) {
-            if (getValue(['value'], v) !== getValue(v.path, values)) {
-                console.log("changed ", v.value, getValue(v.path, values))
-                form.setValue(v.path.join('.'), v.value);
-            }
-        }
-    }, [data]);
+useSetComputedValues(form,data);
+    // useEffect(() => {
+    //     // console.log(data);
+    //     const values = form.getValues();
+    //     for (let v of data) {
+    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
+    //             console.log("changed ", v.value, getValue(v.path, values))
+    //             form.setValue(v.path.join('.'), v.value);
+    //         }
+    //     }
+    // }, [data]);
 
     const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
         Prisma.PurchaseReturnScalarFieldEnum.taxRate,
@@ -249,7 +251,9 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
         }, [grandTotal, paymentStatus]);
 
         const checkDuplicates = useEnforceUniqueProduct(purchaseReturnDetailsForm as any);
-
+        const constraints = usePurchaseReturnConstraints(form.control);
+        useSetComputedValues(form,constraints);
+        
     return (
         <FormContainer title={<h2>Update Purchase Return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
