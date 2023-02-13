@@ -143,9 +143,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          passphrase: ${{secrets.PASSPHRASE }}
-          key: ${{ secrets.SSHKEY }}
+          # passphrase: ${{ secrets.PASSPHRASE }}
+          # key: ${{ secrets.SSHKEY }}
           source: "./webserver"
           target: "/home/${{ secrets.USERNAME }}/app/"
 
@@ -165,9 +166,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          passphrase: ${{secrets.PASSPHRASE }}
-          key: ${{ secrets.SSHKEY }}
+          # passphrase: ${{ secrets.PASSPHRASE }}
+          # key: ${{ secrets.SSHKEY }}
           source: "./docker-compose.prod.yml"
           target: "/home/${{ secrets.USERNAME }}/app/"
 
@@ -176,9 +178,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          passphrase: ${{secrets.PASSPHRASE }}
-          key: ${{ secrets.SSHKEY }}
+          # passphrase: ${{ secrets.PASSPHRASE }}
+          # key: ${{ secrets.SSHKEY }}
           source: "./scripts"
           target: "/home/${{ secrets.USERNAME }}/app/"
   
@@ -186,16 +189,15 @@ jobs:
         uses: appleboy/ssh-action@master
         env:          
           SERVER_ENV:  ${{ secrets.SERVER_ENV }}          
-          SERVER_CONF: ${{ secrets.SERVER_CONF }}        
-          OPENID_KEY: ${{ secrets.OPENID_KEY }} 
-          GOOGLE_OIDC_CONF: ${{ secrets.GOOGLE_OIDC_CONF }}
+          SERVER_CONF: ${{ secrets.SERVER_CONF }}      
           USERNAME: ${{ secrets.USERNAME }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          key: ${{ secrets.SSHKEY }}         
+          # passphrase: ${{ secrets.PASSPHRASE }}
+          # key: ${{ secrets.SSHKEY }}         
           script: |
            cd /home/${{ secrets.USERNAME }}/app          
            mkdir -p prisma        
@@ -206,8 +208,6 @@ jobs:
               
            ./scripts/create_file .env "${{ env.SERVER_ENV}}"
            ./scripts/create_file  webserver/nginx-conf/nginx.conf "${{env.SERVER_CONF}}"
-           ./scripts/create_file  keys/google-openid-configuration.json "${{env.GOOGLE_OIDC_CONF}}"
-           ./scripts/create_file  keys/openid_key.json "${{env.OPENID_KEY}}"
 
             docker login -u ${{ env.GITHUB_USER }} -p ${{ env.GITHUB_TOKEN }} ghcr.io
             docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.SERVER_IMAGE_NAME }}:main
