@@ -20,6 +20,7 @@ env:
   REPO_NAME: ${{ github.repository }}
   GITHUB_USER: ${{ github.repository_owner }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GHCR_PAT: ${{ secrets.GHCR_PAT }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -212,7 +213,7 @@ jobs:
             docker login -u ${{ env.GITHUB_USER }} -p ${{ env.GITHUB_TOKEN }} ghcr.io
             docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.SERVER_IMAGE_NAME }}:main
             docker pull ghcr.io/ebundala/${{env.REPO_NAME}}/${{ env.STUDIO_IMAGE_NAME }}:main
-           ./scripts/stackdeploy ${{ env.GITHUB_USER }} ${{ env.GITHUB_TOKEN }} ${{env.REGISTRY}} shopcare prod
+           ./scripts/stackdeploy ${{ env.GITHUB_USER }} ${{ env.GHCR_PAT }} ${{env.REGISTRY}} shopcare prod
           #  ./scripts/create_file  pgbouncer/conf/pgbouncer.ini "${{env.PGBOUNCER_CONF}}"
           #  ./scripts/create_file  pgbouncer/conf/userlist.txt "${{env.PGBOUNCER_USERLIST}}"
 
