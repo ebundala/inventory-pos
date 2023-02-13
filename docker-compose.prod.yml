@@ -92,7 +92,7 @@ services:
     #   - ${APP_PORT}:3000
     volumes:
       # - ${PWD}/${GOOGLE_APPLICATION_CREDENTIALS}:/usr/src/app/${GOOGLE_APPLICATION_CREDENTIALS}
-      - ./webserver/web-root:/usr/src/app/public
+      - ./webserver/web-root/public:/usr/src/app/public
     networks:
       webnet:
 
