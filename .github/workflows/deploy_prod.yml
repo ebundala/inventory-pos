@@ -143,10 +143,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSPHRASE }}
+          # password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          # passphrase: ${{ secrets.PASSPHRASE }}
-          # key: ${{ secrets.SSHKEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
           source: "./webserver"
           target: "/home/${{ secrets.USERNAME }}/app/"
 
@@ -166,10 +166,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSPHRASE }}
+          # password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          # passphrase: ${{ secrets.PASSPHRASE }}
-          # key: ${{ secrets.SSHKEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
           source: "./docker-compose.prod.yml"
           target: "/home/${{ secrets.USERNAME }}/app/"
 
@@ -178,10 +178,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSPHRASE }}
+          # password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          # passphrase: ${{ secrets.PASSPHRASE }}
-          # key: ${{ secrets.SSHKEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}
           source: "./scripts"
           target: "/home/${{ secrets.USERNAME }}/app/"
   
@@ -194,10 +194,10 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSPHRASE }}
+          # password: ${{ secrets.PASSPHRASE }}
           port: ${{ secrets.PORT }}
-          # passphrase: ${{ secrets.PASSPHRASE }}
-          # key: ${{ secrets.SSHKEY }}         
+          passphrase: ${{ secrets.PASSPHRASE }}
+          key: ${{ secrets.SSHKEY }}         
           script: |
            cd /home/${{ secrets.USERNAME }}/app          
            mkdir -p prisma        
