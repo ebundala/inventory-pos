@@ -45,6 +45,8 @@ services:
     image: ghcr.io/ebundala/inventory-pos/server:main       
     environment:
      # google credentials
+       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       #  GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}
       #  FIREBASE_API_KEY: ${FIREBASE_API_KEY}
       #  STORAGE_BUCKET: ${STORAGE_BUCKET}
@@ -76,7 +78,7 @@ services:
       #  MPESA_PUB_KEY: ${MPESA_PUB_KEY}
       #  MPESA_SESSION_TTL: ${MPESA_SESSION_TTL}
       #  app
-       DEFAULT_USER_PHOTO_URL: ${DEFAULT_USER_PHOTO_URL}
+      #  DEFAULT_USER_PHOTO_URL: ${DEFAULT_USER_PHOTO_URL}
       # MAPS
       #  GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     # depends_on:
@@ -128,9 +130,9 @@ services:
     volumes:
       - ./webserver/web-root:/var/www/html
       - ./webserver/nginx-conf:/etc/nginx/conf.d
-      - ./webserver/certbot/certbot-etc:/etc/letsencrypt
-      - ./webserver/certbot/certbot-var:/var/lib/letsencrypt
+      -  /etc/letsencrypt:/etc/letsencrypt
       - ./dhparam:/etc/ssl/certs
+      - ./.env:/usr/src/app/.env
     networks:
       webnet:
     deploy:
