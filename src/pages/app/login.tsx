@@ -87,7 +87,7 @@ export default function Login() {
               setLoading(true);
 
               signIn("boxyhq-saml", {
-              //  tenant: tenant?.tenantId, //"clasohpfc00005rts4jdt99nc",            
+                tenant: "dummy",//tenant?.tenantId, //"clasohpfc00005rts4jdt99nc",            
                 product: "google-oidc",
                 callbackUrl:callbackUrl("app")
               });
