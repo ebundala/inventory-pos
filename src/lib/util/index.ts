@@ -25,6 +25,6 @@ export const truncate = (str: string, num: number) => {
 //   return `data:image/png;base64,${base64}`;
 // };
 
-export const APP_HOST = process.env.APP_HOST;
+export const APP_HOST = (new URL(process.env.NEXTAUTH_URL!)).host;
 
 

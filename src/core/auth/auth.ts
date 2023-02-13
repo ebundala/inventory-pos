@@ -106,6 +106,14 @@ export const authOptions: NextAuthOptions = {
       const host = urlObj.hostname
       // Allows callback URLs on the same origin
        if (urlObj.origin === baseUrl) return url
+      // allows url from app 
+      const slices =urlObj.hostname.split(".")
+      const slice = slices.slice(-3)
+      //Todo harden checks for app redirect
+      if(slice[0] === "app" && slice.length === 3){
+         return url;
+      }
+
       // allows url from tenants configured url
       const tenantDomain = host.replace(`.${appURL.hostname}`,"");
       const tenant = await getTenantByDomain(tenantDomain)

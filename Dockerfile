@@ -18,6 +18,7 @@ RUN yarn install
 COPY . .
 # RUN yarn run prisma:generate
 #RUN rm -rf node_modules && yarn install --frozen-lockfile
+ARG NEXT_PUBLIC_HOST = https://itahuduma.com
 RUN yarn run build
 #attach static files volume here
 VOLUME [ "/usr/src/app/public" ] 
