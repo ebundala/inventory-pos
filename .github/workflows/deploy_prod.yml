@@ -149,7 +149,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSHKEY }}
           source: "./webserver"
-          target: "/home/${{ secrets.USERNAME }}/app/"
+          target: "/home/${{ secrets.USERNAME }}/shopcare/"
 
       # - name: Copy pgbouncer files to remote
       #   uses: appleboy/scp-action@master
@@ -160,7 +160,7 @@ jobs:
       #     passphrase: ${{secrets.PASSPHRASE }}
       #     key: ${{ secrets.SSHKEY }}
       #     source: "./pgbouncer"
-      #     target: "/home/${{ secrets.USERNAME }}/app/"
+      #     target: "/home/${{ secrets.USERNAME }}/shopcare/"
           
       - name: Copy docker files to remote
         uses: appleboy/scp-action@master
@@ -172,7 +172,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSHKEY }}
           source: "./docker-compose.prod.yml"
-          target: "/home/${{ secrets.USERNAME }}/app/"
+          target: "/home/${{ secrets.USERNAME }}/shopcare/"
 
       - name: Copy scripts files to remote
         uses: appleboy/scp-action@master
@@ -184,7 +184,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSHKEY }}
           source: "./scripts"
-          target: "/home/${{ secrets.USERNAME }}/app/"
+          target: "/home/${{ secrets.USERNAME }}/shopcare/"
   
       - name: BUILD SERVER        
         uses: appleboy/ssh-action@master
@@ -200,7 +200,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSHKEY }}         
           script: |
-           cd /home/${{ secrets.USERNAME }}/app          
+           cd /home/${{ secrets.USERNAME }}/shopcare          
            mkdir -p prisma        
            chmod +x scripts/stackdeploy
            chmod +x scripts/stackdown
