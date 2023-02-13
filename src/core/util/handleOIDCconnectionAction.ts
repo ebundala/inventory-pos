@@ -1,9 +1,13 @@
 import initJackson from '@/core/auth/jackson';
 import { OIDCSSOConnection } from "@boxyhq/saml-jackson";
-import { googleOidcDiscoveryUrl, secrets } from "@/core/util/oidcConfig";
+import { googleOidcDiscoveryUrl } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "@/core/util/getTenantUrl";
 import { OIDCconnectionAction } from "@/types/OIDCconnectionAction";
-
+const  secrets = {
+    client_secret:process.env.GOOGLE_CLIENT_SECRET!,
+    client_id:process.env.GOOGLE_CLIENT_ID!
+  }
+  
 export async function handleOIDCconnectionAction(
     { tenant, action, product,
     }: OIDCconnectionAction) {

@@ -6,9 +6,14 @@ import { handleOIDCconnectionAction } from "../util/handleOIDCconnectionAction";
 import {
   googleOidcDiscoveryUrl,
   googleOidcProductName,
-  secrets,
+ 
 } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "../util/getTenantUrl";
+
+const  secrets = {
+  client_secret:process.env.GOOGLE_CLIENT_SECRET!,
+  client_id:process.env.GOOGLE_CLIENT_ID!
+}
 
 export type TenantCreateInput = {
   /**
