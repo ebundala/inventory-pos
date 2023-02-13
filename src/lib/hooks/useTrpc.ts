@@ -9,8 +9,8 @@ export function useTrpc(host: string) {
   const trpc = useMemo(() => {
     return createTRPCNext<AppRouter>({
     config({ ctx }) {
-
-      const url = `http://${host}/api/trpc`;
+       const protocal = (new URL(process.env.NEXT_PUBLIC_HOST!)).protocol
+      const url = `${protocal}//${host}/api/trpc`;
       
       return {
         queryClientConfig: {

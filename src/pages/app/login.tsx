@@ -21,7 +21,7 @@ export default function Login() {
   // Get error message added by next/auth in URL.
   const { query } = useRouter();
   const { error } = query;
-  //const { tenant, result } = useTenant();
+ 
 
   useEffect(() => {
     const errorMessage = Array.isArray(error) ? error.pop() : error;
