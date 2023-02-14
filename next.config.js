@@ -6,7 +6,8 @@ module.exports = {
     domains: [
       "res.cloudinary.com",      
       "avatars.githubusercontent.com",
-      "placeimg.com"
+      "placeimg.com",
+      "lh3.googleusercontent.com"
     ],
   },
   reactStrictMode: true,
