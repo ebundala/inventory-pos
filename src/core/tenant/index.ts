@@ -2,7 +2,7 @@ import { prisma, prismaAdmin, unimplimented } from "@/core";
 import { Prisma, ProcessStatus, RecordStatus } from "@prisma/client";
 import cuid from "cuid";
 import { TenantContext } from "@/core/trpc";
-import { handleOIDCconnectionAction } from "@core/util/handleOIDCconnectionAction";
+import { handleOIDCconnectionAction } from "../util/handleOIDCconnectionAction";
 import {
   googleOidcDiscoveryUrl,
   googleOidcProductName,
