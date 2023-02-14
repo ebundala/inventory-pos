@@ -11,7 +11,8 @@ function useRequireAuth() {
   // logged in and should redirect.
   useEffect(() => {
     if (!session && typeof session != "undefined") {
-      router.push(`/login`);
+      const url = new URL(process.env.NEXT_PUBLIC_HOST!)
+      router.replace(`${url.protocol}//app.${url.host}/login`);
     }
   }, [session, router]);
 

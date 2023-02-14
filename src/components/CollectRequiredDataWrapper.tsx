@@ -1,5 +1,6 @@
 import Loader from "@/components/sites/Loader";
 import { useProgressIndicator } from "@/lib/hooks/useProgressIndicator";
+import useRequireAuth from "@/lib/useRequireAuth";
 import { Transition } from "@headlessui/react";
 import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { RadialProgress } from "./RadialProgress";
@@ -13,7 +14,7 @@ export function CollectRequiredDataWrapper({ useHooks, children }: {
     const { data, isLoading } = useHooks();
     const [loading, setLoading] = useState(true);
     const [showProgress, hideProgress] = useProgressIndicator()
-
+    const session = useRequireAuth();
     useEffect(() => {
         setLoading(isLoading);
 
