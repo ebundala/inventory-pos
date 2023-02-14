@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { getLoginUrl } from "./util/getLoginUrl";
 
 function useRequireAuth() {
   const { data: session } = useSession();
@@ -11,8 +12,8 @@ function useRequireAuth() {
   // logged in and should redirect.
   useEffect(() => {
     if (!session && typeof session != "undefined") {
-      const url = new URL(process.env.NEXT_PUBLIC_HOST!)
-      router.replace(`${url.protocol}//app.${url.host}/login`);
+      
+      router.replace(getLoginUrl());
     }
   }, [session, router]);
 
@@ -20,3 +21,4 @@ function useRequireAuth() {
 }
 
 export default useRequireAuth;
+

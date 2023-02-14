@@ -2,6 +2,8 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import React from "react";
 import { useDrawer } from "@/lib/hooks/useDrawer";
+import {signOut} from "next-auth/react";import { getLoginUrl } from "@/lib/util/getLoginUrl";
+;
 
 export function Navbar() {
     const { data, toggle } = useDrawer();
@@ -52,7 +54,7 @@ export function Navbar() {
                     <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
                             {session.status == "authenticated" && <Image
-                                src={"/logo-yavin2.png" ?? session.data.user.image}
+                                src={ session.data.user.image ??"/logo-yavin2.png"}
                                 width={40}
                                 height={40}
                                 alt={session.data.user.name ?? "User avatar"} />}
@@ -68,7 +70,9 @@ export function Navbar() {
                             </a>
                         </li>
                         <li><a>Settings</a></li>
-                        <li><a>Logout</a></li>
+                        <li onClick={(e)=>signOut({
+                            callbackUrl:getLoginUrl()
+                        })}><a >Logout</a></li>
                     </ul>
                 </div>
             </div>
