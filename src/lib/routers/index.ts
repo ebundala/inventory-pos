@@ -1,5 +1,4 @@
 import { router, publicProcedure } from "@/core/trpc";
-import { registerOidcActionHandler } from "@/lib/util/registerOidcActionHandler";
 import { adjustmentRouter } from "./adjustments/adjustment";
 import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";
@@ -7,14 +6,14 @@ import { productRouter } from "./products/product";
 import { purchaseRouter } from "./purchases/purchase";
 import { purchaseReturnRouter } from "./purchase_return/purchase_return";
 import { quotationRouter } from "./quotations/quotation";
+import { reportRouter } from "./report/report";
 import { saleRouter } from "./sales/sale";
 import { saleReturnRouter } from "./sale_return/sale_return";
 import { settingRouter } from "./settings/setting";
 import { tenantRouter } from "./tenants/tenant";
 import { transferRouter } from "./transfers/transfer";
 export {createContext} from '@/core/trpc';
-// register oidc actions handlers
-//registerOidcActionHandler();
+
 
 export const appRouter = router({
     tenant:tenantRouter,
@@ -29,7 +28,8 @@ export const appRouter = router({
     transfer:transferRouter,
     people:customerRouter,
     hrm:companyRouter,
-    version:publicProcedure.query(()=>({version:10}))
+    report:reportRouter,
+    version:publicProcedure.query(()=>({version:"1.0.0-RC-1"}))
 })
 
 export type AppRouter = typeof appRouter;

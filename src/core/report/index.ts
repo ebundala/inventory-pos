@@ -1,0 +1,406 @@
+import { Prisma } from "@prisma/client";
+import { TenantContext } from "@/core/trpc";
+
+const productIncludes = {
+  productVariants: true,
+  productUnit: true,
+  productPurchaseUnit: true,
+  productsSaleUnit: true,
+  category: true,
+  brand: true,
+  productWarehouse: true,
+};
+
+export type DateRangeInput = {
+  startDate: Date;
+  endDate: Date;
+  take?: number;
+  skip?: number;
+  cursor?: number;
+};
+export const productTopSellers = async (
+  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  ctx: TenantContext
+) => {
+  const stats = await ctx.tx!.saleDetail.groupBy({
+    where: {
+      sale: {
+        status: { equals: "Completed" },
+      },
+      AND: [
+        {
+          date: {
+            lte: endDate,
+          },
+        },
+        {
+          date: {
+            gte: startDate,
+          },
+        },
+      ],
+    },
+    by: [Prisma.SaleDetailScalarFieldEnum.productId],
+    _sum: {
+      quantity: true,
+      total: true,
+    },
+    orderBy: {
+      _sum: {
+        quantity: Prisma.SortOrder.desc,
+      },
+    },
+    take,
+    skip,
+  });
+  const ids = stats.map((v) => v.productId);
+
+  const products = await ctx.tx!.product.findMany({
+    include: productIncludes,
+    where: { id: { in: ids } },
+  });
+  return stats.map((v) => {
+    const i = products.findIndex((e) => e.id === v.productId);
+    return { ...products.at(i), ...v };
+  });
+};
+
+export const topCustomers = async (
+  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  ctx: TenantContext
+) => {
+  const stats = await ctx.tx!.sale.groupBy({
+    where: {
+      status: { equals: "Completed" },
+
+      AND: [
+        {
+          date: {
+            lte: endDate,
+          },
+        },
+        {
+          date: {
+            gte: startDate,
+          },
+        },
+      ],
+    },
+    by: [Prisma.SaleScalarFieldEnum.customerId],
+    _sum: {
+      grandTotal: true,
+    },
+    orderBy: {
+      _sum: {
+        grandTotal: Prisma.SortOrder.desc,
+      },
+    },
+    take,
+    skip,
+  });
+  const ids = stats.map((v) => v.customerId);
+
+  const products = await ctx.tx!.customer.findMany({    
+    where: { id: { in: ids } },
+  });
+  return stats.map((v) => {
+    const i = products.findIndex((e) => e.id === v.customerId);
+    return { ...products.at(i), ...v };
+  });
+};
+
+export const sales = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.sale.groupBy({
+      where: {
+        status: { equals: "Completed" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        grandTotal: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+
+  export const purchases = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.purchase.groupBy({
+      where: {
+        status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        grandTotal: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+  export const saleReturns = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.saleReturn.groupBy({
+      where: {
+        status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        grandTotal: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+  export const purchaseReturns = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.saleReturn.groupBy({
+      where: {
+        status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        grandTotal: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+
+  export const stockAlerts = async (
+    ctx: TenantContext
+  ) => {
+   const productMap = (await ctx.tx!.product.findMany({select:{id:true,stockAlert:true}})).reduce((p,c,i,arr)=>{
+  return p.set(c.id,c)
+   },new Map<number,{id:number,stockAlerts?:number}>());
+
+   const stats = await ctx.tx!.productWarehouse.groupBy({     
+      by: [Prisma.ProductWarehouseScalarFieldEnum.productId],
+      _sum: {
+        qty: true,
+      },
+      orderBy: {
+        _sum:{
+        qty: Prisma.SortOrder.asc,
+        }
+      },     
+    });
+    const ids:number[]=[];
+    for(let e of stats){
+        const p = productMap.get(e.productId);
+        if(p?.stockAlerts&&e&&e._sum.qty&&p.stockAlerts<= e._sum.qty){
+            ids.push(e.productId);
+        }
+    }
+
+    return ctx.tx!.product.findMany({where:{id:{in:ids}},include:productIncludes})
+  };
+
+  export const paymentSale = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.paymentSale.groupBy({
+      where: {
+       // status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+  export const paymentSaleReturns = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.paymentSaleReturn.groupBy({
+      where: {
+       // status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+  export const paymentPurchase = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.paymentPurchase.groupBy({
+      where: {
+       // status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
+
+
+  export const paymentPurchaseReturn = async (
+    { startDate, endDate, cursor, take, skip }: DateRangeInput,
+    ctx: TenantContext
+  ) => {
+   return ctx.tx!.paymentPurchase.groupBy({
+      where: {
+       // status: { equals: "Received" },
+        AND: [
+          {
+            date: {
+              lte: endDate,
+            },
+          },
+          {
+            date: {
+              gte: startDate,
+            },
+          },
+        ],
+      },
+      by: [Prisma.SaleScalarFieldEnum.date],
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+          date: Prisma.SortOrder.asc,
+      },
+      take,
+      skip,
+    });
+    
+  };
