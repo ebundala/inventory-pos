@@ -81,6 +81,7 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
     el = <Controller
       name={name}
       control={control}
+      
       render={({ field }) => {
         //console.log((field.value as Date)?.toLocaleDateString() );
         // const { type,
@@ -101,8 +102,8 @@ export function FormInputField({ label, hideLabel, disabled, comboboxProps, name
                 ...field,
                 value,
                 onChange: (e:any) => {
-                  console.log(e.target.value)
-                  field.onChange(e);
+                  console.log(e.target.value)                  
+                  field.onChange({target:{value:new Date(e.target.value)}});
                 }
               } as any} 
               
