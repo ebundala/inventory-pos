@@ -37,7 +37,7 @@ export function CollectRequiredDataWrapper({ useHooks, children }: {
         >
         <div className="w-full h-screen md:pb-80 flex flex-col items-center justify-center">
             <div className="w-8 h-8 ">
-                <RadialProgress animated={true} ></RadialProgress>
+                <RadialProgress animated={true} >{''}</RadialProgress>
             </div>
         </div>
         </Transition>

@@ -246,30 +246,62 @@ export const sales = async (
   export const stockAlerts = async (
     ctx: TenantContext
   ) => {
-   const productMap = (await ctx.tx!.product.findMany({select:{id:true,stockAlert:true}})).reduce((p,c,i,arr)=>{
-  return p.set(c.id,c)
-   },new Map<number,{id:number,stockAlerts?:number}>());
+   const productMap = (await ctx.tx!.product.findMany({select:{id:true,stockAlert:true,isVariant:true}})).reduce((p,c)=>{
+   return p.set(c.id,c);
+   },new Map<number,{id:number,stockAlert:number|null}>());
 
    const stats = await ctx.tx!.productWarehouse.groupBy({     
-      by: [Prisma.ProductWarehouseScalarFieldEnum.productId],
+      by: [Prisma.ProductWarehouseScalarFieldEnum.productId,
+        Prisma.ProductWarehouseScalarFieldEnum.warehouseId,
+        Prisma.ProductWarehouseScalarFieldEnum.productVariantId
+      ],
       _sum: {
         qty: true,
       },
       orderBy: {
         _sum:{
         qty: Prisma.SortOrder.asc,
+
         }
       },     
     });
-    const ids:number[]=[];
-    for(let e of stats){
-        const p = productMap.get(e.productId);
-        if(p?.stockAlerts&&e&&e._sum.qty&&p.stockAlerts<= e._sum.qty){
-            ids.push(e.productId);
-        }
-    }
+    // const ids:number[]=[];
+    // const warehouseIds:number[]=[];
+    // for(let e of stats){
 
-    return ctx.tx!.product.findMany({where:{id:{in:ids}},include:productIncludes})
+    //     const p = productMap.get(e.productId);
+    //     if(p?.stockAlert&&e._sum){
+    //       if(p.stockAlert>=(e._sum.qty??0))
+    //         ids.push(e.productId);
+    //         warehouseIds.push(e.warehouseId);
+
+    //     }
+    // }
+    const alerts = stats.filter((e)=>{
+           const p = productMap.get(e.productId);
+        if(p?.stockAlert&&e._sum){
+          if(p.stockAlert>=(e._sum.qty??0))
+            return true;
+
+        }
+        return false;
+    })
+    const warehouses = (await ctx.tx!.warehouse.findMany())
+    const warehousesMap = warehouses.reduce((p,v)=>p.set(v.id,v),new Map<number,typeof warehouses[0]>);
+    const products= await ctx.tx!.product.findMany({where:{
+      id:{in:alerts.map((stat)=>stat.productId)},
+    },     
+
+    include:productIncludes});
+
+    const prodMap = products.reduce((p,v)=>p.set(v.id,v as any),new Map<number,typeof products[0]>);
+   
+    return alerts.map((alert)=>{
+      const product = prodMap.get(alert.productId)!;
+      const productVariant = product.productVariants.find((v)=>alert.productVariantId === v.id)
+      const warehouse = warehousesMap.get(alert.warehouseId)!;
+      return {...alert,product,productVariant,warehouse};
+    })
   };
 
   export const paymentSale = async (

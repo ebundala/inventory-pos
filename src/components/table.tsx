@@ -136,9 +136,9 @@ function TableSelectMenu({
   );
   return (
     <Listbox value={value} onChange={setValue} disabled={disabled}>
-      <div className={`relative input input-bordered w-full ${className}`}>
+      <div className={`relative input input-bordered w-full z-50 ${className}`}>
         <Listbox.Button
-          className={`relative w-full  rounded-xl py-3 pl-3 pr-10 text-base text-gray-700 text-left shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none
+          className={`relative w-full  rounded-xl h-full pl-3 pr-10 text-base text-gray-700 text-left shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none
           ${
             disabled
               ? "bg-gray-200 cursor-not-allowed"
@@ -162,12 +162,12 @@ function TableSelectMenu({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white text-base shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none">
+          <Listbox.Options className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white text-base shadow-[0_4px_10px_rgba(0,0,0,0.03)] focus:outline-none">
             {options.map((option) => (
               <Listbox.Option
                 key={option.value}
                 className={({ active }) =>
-                  `relative cursor-default select-none py-3 pl-10 pr-4 ${
+                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
                     active ? "bg-yellow-100" : ""
                   }`
                 }
