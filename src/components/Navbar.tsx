@@ -3,12 +3,16 @@ import Image from "next/image";
 import React from "react";
 import { useDrawer } from "@/lib/hooks/useDrawer";
 import {signOut} from "next-auth/react";import { getLoginUrl } from "@/lib/util/getLoginUrl";
+import { router } from "@/core/trpc";
+import { getConsoleUrl } from "@/lib/util/getCallbackUrl";
+import { useRouter } from "next/router";
 ;
 
 export function Navbar() {
     const { data, toggle } = useDrawer();
     const { show: sideBarShowing } = data ?? {};
     const session = useSession();
+    const router = useRouter();
     return (
         <div className="navbar bg-base-100 border-b-2 border-gray-100">
             <div className="flex-none">
@@ -63,13 +67,17 @@ export function Navbar() {
                         </div>
                     </label>
                     <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
-                        <li>
+                        <li onClick={(e)=>{
+                            router.push("/settings/system")
+                        }}>
                             <a className="justify-between">
-                                Profile
+                                Settings
                                 <span className="badge">New</span>
                             </a>
                         </li>
-                        <li><a>Settings</a></li>
+                        <li  onClick={(e)=>{
+                            router.push(getConsoleUrl())
+                        }}><a>Console</a></li>
                         <li onClick={(e)=>signOut({
                             callbackUrl:getLoginUrl()
                         })}><a >Logout</a></li>

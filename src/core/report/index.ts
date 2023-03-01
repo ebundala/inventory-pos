@@ -213,7 +213,7 @@ export const sales = async (
     { startDate, endDate, cursor, take, skip }: DateRangeInput,
     ctx: TenantContext
   ) => {
-   return ctx.tx!.saleReturn.groupBy({
+   return ctx.tx!.purchaseReturn.groupBy({
       where: {
         status: { equals: "Received" },
         AND: [

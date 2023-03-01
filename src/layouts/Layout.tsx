@@ -6,7 +6,6 @@ import { Modal } from "@/components/Modal";
 import { ProgressIndicator } from "@/components/ProgressIndicator";
 import { Toast } from "@/components/Toast";
 import { useDrawer } from "@/lib/hooks/useDrawer";
-import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 

@@ -13,7 +13,7 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
     return useMemo((): ZodFormFieldOptions => ({
         date: {
             label: "Date",
-            ordering: 1
+            ordering: 1,
         },
         warehouseId: {
             label: "Warehouse",

@@ -1,12 +1,17 @@
 import { WithChildren } from "@/types";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { EndDrawerContainerProps } from "@/types/EndDrawerContainerProps";
 import { useEndDrawer } from "@/lib/hooks/useEndDrawer";
 import { useThemesList } from "@/lib/hooks/useThemesList";
 import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
-
+import {useOverlayScrollbars} from "overlayscrollbars-react"
 export function EndDrawer({ children }: WithChildren) {
     const { data, open, close, update, toggle, reset } = useEndDrawer();
+    const ref = useRef();
+    // const [initialize,instance] = useOverlayScrollbars({defer:true,});
+    // useEffect(()=>{
+    //     initialize(ref.current as any);
+    // },[initialize])
     const themes = useThemesList()
     useChangeTheme()  
     const { show, content } = data ?? {};
@@ -24,7 +29,7 @@ export function EndDrawer({ children }: WithChildren) {
                     e.target.checked ? open() : close();
                 }
             }} className="drawer-toggle" />
-            <div className="drawer-content overflow-y-visible pb-10">
+            <div ref={ref as any} className="drawer-content overflow-y-visible pb-10">
                 {children}
             </div>
             <div className="drawer-side  ">

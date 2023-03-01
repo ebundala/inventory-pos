@@ -5,16 +5,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import LoadingDots from "@/components/app/loading-dots";
 import toast, { Toaster } from "react-hot-toast";
-import { useTenant } from "@/lib/hooks/useTenant";
+import { getCallbackUrl } from "../../lib/util/getCallbackUrl";
 
 const pageTitle = "Login";
 const logo = "/favicon.ico";
 const description = "Complete Inventory management and POS"
-const HOST = process.env.NEXT_PUBLIC_HOST!;
-function callbackUrl(subdomain:string){
-  const url = new URL(HOST);
-  return `${url.protocol}//${subdomain}.${url.host}`
-}
+
 export default function Login() {
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +29,7 @@ export default function Login() {
   //   </div>
   // </div>
 
-  console.log(HOST)
+  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <Head>
@@ -89,7 +85,7 @@ export default function Login() {
               signIn("boxyhq-saml", {
                 tenant: "dummy",//tenant?.tenantId, //"clasohpfc00005rts4jdt99nc",            
                 product: "google-oidc",
-                callbackUrl:callbackUrl("app")
+                callbackUrl:getCallbackUrl("app")
               });
             }}
             className={`${loading ? "cursor-not-allowed bg-gray-600" : "bg-blackv"

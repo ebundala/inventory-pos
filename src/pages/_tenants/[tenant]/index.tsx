@@ -7,7 +7,8 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import LoadingDots from "@/components/app/loading-dots";
 import { useMemo } from "react";
 import { Prisma } from "@prisma/client";
-import {LineChart,Line,CartesianGrid,XAxis,YAxis,ResponsiveContainer } from "recharts"
+import {LineChart,Line,CartesianGrid,XAxis,YAxis,ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { useSales } from "@/lib/hooks/useSales";
 
 function SalesStats({startDate,endDate}:{startDate:Date,endDate: Date}){
     const trpcTenant = useTrpcTenant();
@@ -128,15 +129,15 @@ function SalesAndPurchases({startDate,endDate}:{startDate:Date,endDate: Date}){
           return dates.map((d)=>{
             const v = dataMap.get(getDateKey(d));
             const v1 = dataMap1.get(getDateKey(d))
-            let sale = 0;
-            let purchase = 0;
+            let Sales = 0;
+            let Purchases = 0;
             if(v){
-                sale=v._sum.grandTotal||0;
+                Sales=v._sum.grandTotal||0;
             }
             if(v1){
-                purchase=v1._sum.grandTotal||0;
+                Purchases=v1._sum.grandTotal||0;
             }
-            return {date:d.toLocaleDateString(),sale,purchase};
+            return {date:d.toLocaleDateString(),Sales,Purchases};
            })
 
             }
@@ -145,15 +146,19 @@ function SalesAndPurchases({startDate,endDate}:{startDate:Date,endDate: Date}){
     },[dates,result.data,result.isSuccess,result1.data,result1.isSuccess])
   
     return(
-        <ResponsiveContainer>
+       
+        <ResponsiveContainer >
         <LineChart data={data} >
-            <Line type="monotone" dataKey="sale" stroke="#8884d8"></Line>
-            <Line type="monotone" dataKey="purchase" stroke="#1CF1d8"></Line>
+            <Line type="monotone" dataKey="Sales" stroke="green"></Line>
+            <Line type="monotone" dataKey="Purchases" stroke="orange"></Line>
             <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-            <XAxis dataKey="date"></XAxis>
-            <YAxis></YAxis>
+            <Tooltip/>
+            <Legend verticalAlign="top" height={36}/>
+            <XAxis dataKey="date"/>
+            <YAxis />
         </LineChart>
        </ResponsiveContainer>
+      
   );
 }
 function PaymentsSentAndReceived({startDate,endDate}:{startDate:Date,endDate: Date}){
@@ -177,29 +182,31 @@ function PaymentsSentAndReceived({startDate,endDate}:{startDate:Date,endDate: Da
             const data = result.data;
             const data1 = result1.data;
             if(data.length>0){
-           const dataMap= data.reduce((p,c,i)=>p.set(getDateKey(c.date),c),new Map<string,(Prisma.PickArray<Prisma.SaleGroupByOutputType, "date"[]> & {
+           const dataMap= data.reduce((p,c,i)=>p.set(getDateKey(c.date),c),new Map<string,
+           (Prisma.PickArray<Prisma.PaymentSaleGroupByOutputType, "date"[]> & {
+            _sum: {
+                amount: number | null;
+            };
+        })>());
+            const dataMap1= data1.reduce((p,c,i)=>p.set(getDateKey(c.date),c),new Map<string,
+            (Prisma.PickArray<Prisma.PaymentPurchaseGroupByOutputType, "date"[]> & {
                 _sum: {
-                    grandTotal: number | null;
-                };
-            })>());
-            const dataMap1= data1.reduce((p,c,i)=>p.set(getDateKey(c.date),c),new Map<string,(Prisma.PickArray<Prisma.SaleGroupByOutputType, "date"[]> & {
-                _sum: {
-                    grandTotal: number | null;
+                    amount: number | null;
                 };
             })>());
 
           return dates.map((d)=>{
             const v = dataMap.get(getDateKey(d));
             const v1 = dataMap1.get(getDateKey(d))
-            let sale = 0;
-            let purchase = 0;
+            let Received = 0;
+            let Sent = 0;
             if(v){
-                sale=v._sum.grandTotal||0;
+                Received=v._sum.amount||0;
             }
             if(v1){
-                purchase=v1._sum.grandTotal||0;
+                Sent=v1._sum.amount||0;
             }
-            return {date:d.toLocaleDateString(),sale,purchase};
+            return {date:d.toLocaleDateString(),Received,Sent};
            })
 
             }
@@ -210,8 +217,10 @@ function PaymentsSentAndReceived({startDate,endDate}:{startDate:Date,endDate: Da
     return(
         <ResponsiveContainer>
         <LineChart data={data} >
-            <Line type="monotone" dataKey="sale" stroke="#8884d8"></Line>
-            <Line type="monotone" dataKey="purchase" stroke="#1CF1d8"></Line>
+            <Line type="monotone" dataKey="Received" stroke="orange"></Line>
+            <Line type="monotone" dataKey="Sent" stroke="blue"></Line>
+            <Tooltip/>
+            <Legend verticalAlign="top" height={36}/>
             <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
             <XAxis dataKey="date"></XAxis>
             <YAxis></YAxis>
@@ -222,12 +231,12 @@ function PaymentsSentAndReceived({startDate,endDate}:{startDate:Date,endDate: Da
 function TopProducts({startDate,endDate}:{startDate:Date,endDate: Date}){
     const trpcTenant = useTrpcTenant();
     const result = trpcTenant.report.productTopSellers.useQuery({
-        startDate,endDate,take:0
+        startDate,endDate,take:10
     });
   return(
-    <>
-    {result.isSuccess?JSON.stringify(result.data):""}
-    </>
+    <div className="flex flex-col gap-3 font-normal text-lg">
+    {result.isSuccess?result.data.map((v)=><div key={v.id}>{v.name}</div>):""}
+    </div>
   );
 }
 function TopCustomers({startDate,endDate}:{startDate:Date,endDate: Date}){
@@ -236,11 +245,19 @@ function TopCustomers({startDate,endDate}:{startDate:Date,endDate: Date}){
         startDate,endDate,take:5
     });
   return(
-    <>
-    {result.isSuccess?JSON.stringify(result.data):""}
-    </>
+    <div className="flex flex-col gap-3 font-normal text-lg">
+    {result.isSuccess?result.data.map((v)=><div key={v.id}>{v.name}</div>):""}
+    </div>
   );
 }
+
+function RecentSales(){
+  const {result} = useSales({orderBy:{createdAt:Prisma.SortOrder.desc},take:10});
+ return( <div className="flex flex-col gap-3 font-normal text-lg">
+    {result.isSuccess?result.data.map((v)=><div key={v.id}>{v.customer.name}</div>):""}
+    </div>)
+}
+
 
 function StockAlerts(){
     const trpcTenant = useTrpcTenant();
@@ -291,15 +308,23 @@ function useGetDateRanges(start:Date,end:Date){
      }
 return dates;
 }
+function useGetDaysAgo(end:Date,days:Number){
+    const dates:Date[] = [];
+    const startDate = new Date(end);
+    for(let i=0;i<days;i++){
+        startDate.setUTCDate(startDate.getUTCDate()-1);
+    }
+    return [startDate,end];
+}
 
 function TenantIndex() {
     const router = useRouter();
     const session = useRequireAuth();
     
-    const [mStartDate,mEndDate] = useThisMonthDateRange();    
+    const [mStartDate,mEndDate] = useGetDaysAgo(new Date(),30);    
     const [dStart,dEnd] = useTodayDateRange();
     const [yStart,yEnd] = useThisYearDateRange();
-   
+    const [wStart,wEnd] = useGetDaysAgo(new Date(),7);
    
     if (router.isFallback /* || loading */ ) return <Loader />;
     return (
@@ -314,11 +339,13 @@ function TenantIndex() {
             {/* sales and purchases */}
             <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-                    <h2>sales and purchases</h2>
-                    <SalesAndPurchases startDate={mStartDate} endDate={mEndDate}/>
+                    <h2 className="font-semibold ">sales and purchases</h2>
+                    <div className="text-xs p-4 w-full h-full">
+                    <SalesAndPurchases startDate={wStart} endDate={wEnd}/>
+                    </div>
                 </div>
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-                 <h2>Top selling product ({(new Date()).getFullYear()})</h2>
+                 <h2 className="font-semibold " >Top selling product ({(new Date()).getFullYear()})</h2>
                  <TopProducts startDate={yStart} endDate={yEnd} />
                 </div>
             </div>
@@ -326,28 +353,31 @@ function TenantIndex() {
              {/* Stock alerts & top selling this month */}
              <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-                    <h2>Stock alerts</h2>
+                    <h2 className="font-semibold ">Stock alerts</h2>
                     <StockAlerts />
                 </div>
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-                 <h2>Top selling product ({(new Date()).toLocaleString('default',{month:'long'})})</h2>
+                 <h2 className="font-semibold ">Top selling product ({(new Date()).toLocaleString('default',{month:'long'})})</h2>
                  <TopProducts startDate={mStartDate} endDate={mEndDate} />
                 </div>
             </div>
               {/* payment sent and received */}
               <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-                    <h2>Payment sent and received</h2>
-                    <PaymentsSentAndReceived startDate={mStartDate} endDate={mEndDate} />
+                    <h2 className="font-semibold ">Payment sent and received</h2>
+                    <div className="text-xs p-4 w-full h-full">
+                    <PaymentsSentAndReceived startDate={wStart} endDate={wEnd} />
+                    </div>
                 </div>
                 <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-                 <h2>Top customers</h2>
+                 <h2 className="font-semibold ">Top customers</h2>
                  <TopCustomers startDate={mStartDate} endDate={mEndDate} />
                 </div>
             </div>
             {/* recent sales */}
-            <div className="flex flex-row h-[340px] shadow-md rounded-xl p-3    ">
-            <h2>Recent sales</h2>
+            <div className="flex flex-col h-[340px] shadow-md rounded-xl p-3    ">
+            <h2 className="font-semibold ">Recent sales</h2>
+            <RecentSales/>
             </div>
         </div>
     );
