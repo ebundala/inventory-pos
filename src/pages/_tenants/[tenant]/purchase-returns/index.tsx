@@ -5,6 +5,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { usePurchaseReturns } from "@/lib/hooks/usePurchaseReturns";
 import { PurchaseReturn } from "@prisma/client";
 import { useRouter } from "next/router";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 
 export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
@@ -27,20 +28,7 @@ export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={purchaseReturns ?? []}
             collumsData={() => {
 

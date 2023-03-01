@@ -16,6 +16,7 @@ import { CustomTable } from "@/components/table";
 import { useBrands } from "@/lib/hooks/useBrands";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 export function BrandIndex({brands,refetch}:BrandsIndexProps) {
    
@@ -96,20 +97,7 @@ export function BrandIndex({brands,refetch}:BrandsIndexProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={brands ?? []}
             collumsData={() => {
 

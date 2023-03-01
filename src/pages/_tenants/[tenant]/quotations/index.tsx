@@ -3,6 +3,7 @@ import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
 import { useQuotations } from "@/lib/hooks/useQuotations";
 import { useRouter } from "next/router";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 
 export function Quotations({quotations,refetch}:QuitationListProps) {
@@ -24,20 +25,7 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={quotations ?? []}
             collumsData={() => {
 

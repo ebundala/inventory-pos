@@ -4,6 +4,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { usePurchases } from "@/lib/hooks/usePurchases";
 import { Purchase } from "@prisma/client";
 import { useRouter } from "next/router";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 
 export function Purchases({purchases,refetch}:QuitationListProps) {
@@ -26,20 +27,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={purchases ?? []}
             collumsData={() => {
 

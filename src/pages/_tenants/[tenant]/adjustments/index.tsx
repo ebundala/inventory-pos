@@ -3,7 +3,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { useAdjustments } from "@/lib/hooks/useAdjustments";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
-
+import { pageOptions } from "@/lib/config/pageOptions";
 
 function Adjustments({router}:TAppConfig) {
 
@@ -24,20 +24,7 @@ function Adjustments({router}:TAppConfig) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={adjustments ?? []}
             collumsData={() => {
 

@@ -14,6 +14,7 @@ import { CustomTable } from "@/components/table";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     const [showModal, hide, data] = useModal();
@@ -71,20 +72,7 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={categories ?? []}
             collumsData={() => {
 

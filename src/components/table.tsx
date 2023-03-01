@@ -425,7 +425,7 @@ export function CustomTable({
     {
       columns,
       data,
-      initialState: { pageSize: 5 },
+      initialState: { pageSize: 50 },
     },
     useGlobalFilter,
     useSortBy,

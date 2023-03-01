@@ -4,6 +4,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { useTransfers } from "@/lib/hooks/useTransfers";
 //import { useTransfers } from "@/lib/hooks/useTransfers";
 import { useRouter } from "next/router";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 
 export function Transfers({ transfers, refetch }: TransferListProps) {
@@ -24,20 +25,7 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
         </div>
         <div className="w-full ">
             <CustomTable
-                pageOptions={[
-                    {
-                        label: "5 item per page",
-                        value: 5
-                    },
-                    {
-                        label: "2 item per page",
-                        value: 2
-                    },
-                    {
-                        label: "All items",
-                        value: 10000
-                    }
-                ]}
+                pageOptions={pageOptions}
                 rowsData={transfers ?? []}
                 collumsData={() => {
 

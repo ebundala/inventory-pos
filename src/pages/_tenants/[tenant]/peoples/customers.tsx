@@ -15,6 +15,7 @@ import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useCustomers } from "@/lib/hooks/useCustomers";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 export default function CustomerIndex() {
     const {customers, result:{isLoading:loading, isSuccess:success},refetch} = useCustomers();
@@ -108,20 +109,7 @@ export default function CustomerIndex() {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={customers ?? []}
             collumsData={() => {
 

@@ -17,6 +17,7 @@ import { useUnits } from "@/lib/hooks/useUnits";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useUnitSearch } from "@/lib/hooks/useUnitSearch";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { pageOptions } from "@/lib/config/pageOptions";
 
 function useUnitFormOptions(opts?:Unit & {unit?:Unit}){
     const {unit,operator}=opts??{};   
@@ -123,20 +124,7 @@ export function UnitIndex({units,refetch}:UnitIndexProps) {
         </div>
 
         <CustomTable
-            pageOptions={[
-                {
-                    label: "1 item per page",
-                    value: 1
-                },
-                {
-                    label: "2 item per page",
-                    value: 2
-                },
-                {
-                    label: "All items",
-                    value: 10000
-                }
-            ]}
+            pageOptions={pageOptions}
             rowsData={units ?? []}
             collumsData={() => {
 
