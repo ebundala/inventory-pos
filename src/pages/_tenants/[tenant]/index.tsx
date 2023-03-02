@@ -512,8 +512,8 @@ function StockAlerts() {
             <td>{v.product.code}</td>
             <td>{getProductFormatedName(v)}</td>
             <td>{v.warehouse.name}</td>
-            <td>{v.product.stockAlert}<span className="ml-1 text-xs text-orange-400">({v.product.productUnit?.shortName})</span></td>
-            <td> {v._sum.qty}<span className=" ml-1 text-xs text-red-500">({v.product.productUnit?.shortName})</span></td>
+            <td>{v.product.stockAlert}<span className="ml-1 text-sm text-orange-400">{v.product.productUnit?.shortName}</span></td>
+            <td> {v._sum.qty}<span className=" ml-1 text-sm text-orange-400">{v.product.productUnit?.shortName}</span></td>
           </tr>))}
         </tbody>
        </table>
@@ -597,7 +597,7 @@ function TenantIndex() {
             <SalesAndPurchases startDate={wStart} endDate={wEnd} />
           </div>
         </div>
-        <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
+        <div className="min-h-[340px] h-fit shadow-md rounded-xl md:col-span-2 p-3">
           <h2 className="font-bold text-lg mb-2">
             Top selling product ({new Date().getFullYear()})
           </h2>
@@ -607,11 +607,11 @@ function TenantIndex() {
 
       {/* Stock alerts & top selling this month */}
       <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
-        <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
+        <div className="min-h-[340px] h-fit shadow-md rounded-xl md:col-span-3 p-3">
           <h2 className="font-bold text-lg mb-2">Stock alerts</h2>
           <StockAlerts />
         </div>
-        <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
+        <div className="min-h-[340px] h-fit shadow-md rounded-xl md:col-span-2 p-3">
           <h2 className="font-bold text-lg mb-2">
             Top selling product (
             {new Date().toLocaleString("default", { month: "long" })})
@@ -627,13 +627,13 @@ function TenantIndex() {
             <PaymentsSentAndReceived startDate={wStart} endDate={wEnd} />
           </div>
         </div>
-        <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
+        <div className="min-h-[340px] h-fit shadow-md rounded-xl md:col-span-2 p-3">
           <h2 className="font-bold text-lg mb-2">Top customers ({new Date().toLocaleString("default", { month: "long" })})</h2>
           <TopCustomers startDate={mStartDate} endDate={mEndDate} />
         </div>
       </div>
       {/* recent sales */}
-      <div className="flex flex-col h-[340px] shadow-md rounded-xl p-3    ">
+      <div className="flex flex-col min-h-[340px] h-fit shadow-md rounded-xl p-3    ">
         <h2 className="font-bold text-lg mb-2">Recent sales</h2>
         <RecentSales />
       </div>
