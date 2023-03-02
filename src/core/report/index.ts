@@ -23,6 +23,7 @@ export const productTopSellers = async (
   ctx: TenantContext
 ) => {
   const stats = await ctx.tx!.saleDetail.groupBy({
+    by: [Prisma.SaleDetailScalarFieldEnum.productId],
     where: {
       sale: {
         status: { equals: "Completed" },
@@ -39,8 +40,7 @@ export const productTopSellers = async (
           },
         },
       ],
-    },
-    by: [Prisma.SaleDetailScalarFieldEnum.productId],
+    },    
     _sum: {
       quantity: true,
       total: true,
@@ -59,9 +59,10 @@ export const productTopSellers = async (
     include: productIncludes,
     where: { id: { in: ids } },
   });
+  const productMap = products.reduce((p,v)=>p.set(v.id,v),new Map<number,typeof products[0]>())
   return stats.map((v) => {
-    const i = products.findIndex((e) => e.id === v.productId);
-    return { ...products.at(i), ...v };
+    const product = productMap.get(v.productId)!;
+    return { product, ...v };
   });
 };
 

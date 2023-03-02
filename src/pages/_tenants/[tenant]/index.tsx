@@ -25,6 +25,7 @@ import {
 import { useSales } from "@/lib/hooks/useSales";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { calculateStock } from "@/lib/util/calculateStock";
+import { useSetting } from "@/lib/hooks/useSetting";
 
 function SalesStats({
   startDate,
@@ -373,11 +374,32 @@ function TopProducts({
     endDate,
     take: 10,
   });
+  const {setting} = useSetting();
+  const fmt = new Intl.NumberFormat(undefined)
+  
   return (
-    <div className="flex flex-col gap-3 font-normal text-lg">
-      {result.isSuccess
-        ? result.data.map((v) => <div key={v.id}>{v.name}</div>)
-        : ""}
+    <div className="overflow-x-auto">
+     <table className="table w-full">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {result.isSuccess&&result.data.map((v)=>(
+        <tr key={v.productId}>
+          <td>{v.product.name}</td>
+          <td>{v._sum.quantity}
+          <span className="text-sm text-orange-400 ml-1">{v.product.productUnit?.shortName}</span></td>
+
+          <td>{fmt.format(v._sum.total??0)}
+          <span className="text-sm text-orange-400 ml-1">{setting?.currency?.symbol??""}</span></td>
+        </tr>))
+        }
+      </tbody>
+     </table>
     </div>
   );
 }
@@ -394,11 +416,34 @@ function TopCustomers({
     endDate,
     take: 5,
   });
+
+  const {setting} = useSetting();
+  const fmt = new Intl.NumberFormat(undefined)
+  
   return (
-    <div className="flex flex-col gap-3 font-normal text-lg">
+    <div className="overflow-x-auto">
+      <table className="table w-full">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>phone</th>
+            <th>Amount</th>
+            
+          </tr>
+        </thead>
+        <tbody>
       {result.isSuccess
-        ? result.data.map((v) => <div key={v.id}>{v.name}</div>)
-        : ""}
+        && result.data.map((v) => (
+          <tr key={v.id}>
+            <td>{v.name}</td>
+            <td>{v.phone}</td>
+            <td>{fmt.format(v._sum.grandTotal??0)}<span className="text-sm text-orange-400 ml-1">{setting?.currency?.symbol??""}</span>
+            </td>
+          </tr>
+        ))
+        }
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -408,11 +453,36 @@ function RecentSales() {
     orderBy: { createdAt: Prisma.SortOrder.desc },
     take: 10,
   });
+  const {setting} = useSetting();
+  const fmt = new Intl.NumberFormat(undefined);
+  const fmt2 = new Intl.DateTimeFormat();
+
   return (
-    <div className="flex flex-col gap-3 font-normal text-lg">
+    <div className="overflow-x-auto">
+      <table className="table w-full">
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Status</th>
+           
+          </tr>
+        </thead>
+        <tbody>
       {result.isSuccess
-        ? result.data.map((v) => <div key={v.id}>{v.customer.name}</div>)
-        : ""}
+        && result.data.map((v) => <tr key={v.id}>
+          <td>{v.ref}</td>
+          <td>{fmt2.format(v.date)}</td>
+          <td>{v.customer.name}</td>          
+          <td>{fmt.format(v.grandTotal??0)}<span className="text-sm text-orange-400 ml-1">{setting?.currency?.symbol??""}</span></td>
+          <td>{v.status}</td>
+          
+        </tr>)
+        }
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -424,35 +494,31 @@ function StockAlerts() {
   
   
   return (
-    <>
-      <div className="flex flex-row  w-full">
-        <div className="text text-md font-bold flex-1">Code</div>
-
-        <div className="text text-md font-bold flex-1">Product</div>        
-        <div className="text text-md font-bold flex-1">Alert Level</div>
-        <div className="text text-md font-bold flex-1">Warehouse</div>
-
-        <div className="text text-md font-bold flex-1">Instock</div>
-      </div>
-      
-      {result.isSuccess &&
-        result.data.map((v) => (
-          <div key={v.product.id} className="flex flex-row space-x-2 w-full">
-            <div className="text text-md font-normal flex-1">
-              {v.product.code}
-            </div>
-            <div className="text text-md font-normal flex-1">
-              {getProductFormatedName(v)}
-            </div>
-            <div className="text text-md font-normal flex-1">{v.product.stockAlert}</div>
-            <div className="text text-sm font-normal flex-1">{v.warehouse.name}</div>
-
-            <div className="text text-md font-normal flex-1">
-              {v._sum.qty}
-            </div>
-          </div>
-        ))}
-    </>
+   
+       <div className="overflow-x-auto">
+        <table className="table w-full">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Warehouse</th>
+            <th>Alert level</th>
+            <th>In Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+        {result.isSuccess && result.data.map((v) => (
+          <tr key={v.product.id}>
+            <td>{v.product.code}</td>
+            <td>{getProductFormatedName(v)}</td>
+            <td>{v.warehouse.name}</td>
+            <td>{v.product.stockAlert}<span className="ml-1 text-xs text-orange-400">({v.product.productUnit?.shortName})</span></td>
+            <td> {v._sum.qty}<span className=" ml-1 text-xs text-red-500">({v.product.productUnit?.shortName})</span></td>
+          </tr>))}
+        </tbody>
+       </table>
+       </div>
+     
   );
 }
 
@@ -526,13 +592,13 @@ function TenantIndex() {
       {/* sales and purchases */}
       <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
         <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-          <h2 className="font-semibold ">sales and purchases</h2>
-          <div className="text-xs p-4 w-full h-full">
+          <h2 className="font-bold text-lg mb-2">Sales and Purchases</h2>
+          <div className="text-xs p-4 w-full h-full overflow-x-auto">
             <SalesAndPurchases startDate={wStart} endDate={wEnd} />
           </div>
         </div>
         <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-          <h2 className="font-semibold ">
+          <h2 className="font-bold text-lg mb-2">
             Top selling product ({new Date().getFullYear()})
           </h2>
           <TopProducts startDate={yStart} endDate={yEnd} />
@@ -542,11 +608,11 @@ function TenantIndex() {
       {/* Stock alerts & top selling this month */}
       <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
         <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-          <h2 className="font-semibold ">Stock alerts</h2>
+          <h2 className="font-bold text-lg mb-2">Stock alerts</h2>
           <StockAlerts />
         </div>
         <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-          <h2 className="font-semibold ">
+          <h2 className="font-bold text-lg mb-2">
             Top selling product (
             {new Date().toLocaleString("default", { month: "long" })})
           </h2>
@@ -556,19 +622,19 @@ function TenantIndex() {
       {/* payment sent and received */}
       <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
         <div className="h-[340px] shadow-md rounded-xl md:col-span-3 p-3">
-          <h2 className="font-semibold ">Payment sent and received</h2>
-          <div className="text-xs p-4 w-full h-full">
+          <h2 className="font-bold text-lg mb-2">Payment sent and received</h2>
+          <div className="text-xs p-4 w-full h-full overflow-x-auto">
             <PaymentsSentAndReceived startDate={wStart} endDate={wEnd} />
           </div>
         </div>
         <div className="h-[340px] shadow-md rounded-xl md:col-span-2 p-3">
-          <h2 className="font-semibold ">Top customers</h2>
+          <h2 className="font-bold text-lg mb-2">Top customers ({new Date().toLocaleString("default", { month: "long" })})</h2>
           <TopCustomers startDate={mStartDate} endDate={mEndDate} />
         </div>
       </div>
       {/* recent sales */}
       <div className="flex flex-col h-[340px] shadow-md rounded-xl p-3    ">
-        <h2 className="font-semibold ">Recent sales</h2>
+        <h2 className="font-bold text-lg mb-2">Recent sales</h2>
         <RecentSales />
       </div>
     </div>
