@@ -88,6 +88,8 @@ export function FormComboBox({ useGetDataHook, value, defaultOption, elevation =
 
           className='input input-bordered'
           {...props}
+          autoComplete='off'
+          inputMode='search'
           displayValue={(item) => hideValue ? "" : displayValueFn(item as any)}
           onChange={(e) => {
             // console.log(e.type)

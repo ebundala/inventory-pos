@@ -30,7 +30,7 @@ export const updateCompany = async (input: UpdateCompanyInput,ctx:TenantContext)
     const { id, ...data } = input;
     return ctx.tx!.company.update({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         },        
         data: { ...data }
     })
@@ -40,7 +40,7 @@ export type CompanyIds = Array<number>
 export const getUniqueCompany = async (id: CompanyId,ctx:TenantContext) => {
     return ctx.tx!.company.findUnique({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         }        
     })
 };
@@ -67,8 +67,10 @@ export const deleteManyCompany = async (ids: CompanyIds,ctx:TenantContext) => {
 };
 
 export const findManyCompany = async  (input: Omit<Prisma.CompanyFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-   
-    return ctx.tx!.company.findMany(
-        input
+   const {where,...rest} = input
+    return ctx.tx!.company.findMany({
+        where:{...where,recordStatus:RecordStatus.ACTIVE },
+        ...rest
+      }
     );
 }

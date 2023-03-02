@@ -34,7 +34,7 @@ export const updatePosSetting = async (input: UpdatePosSettingInput,ctx:TenantCo
     const { id, ...data } = input;
     return ctx.tx!.posSetting.update({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         },        
         data: { ...data }
     })
@@ -44,7 +44,7 @@ export type PosSettingIds = Array<number>
 export const getUniquePosSetting = async (id: PosSettingId,ctx:TenantContext) => {
     return ctx.tx!.posSetting.findUnique({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         }        
     })
 };
@@ -71,15 +71,22 @@ export const deleteManyPosSetting = async (ids: PosSettingIds,ctx:TenantContext)
 };
 
 export const findManyPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-    
+    const {where,...rest}=input;
     return ctx.tx!.posSetting.findMany(
-        input
+        {
+            where:{...where,recordStatus:RecordStatus.ACTIVE },
+            ...rest
+        }
     );
 }
 
 export const findFirstPosSetting = async  (input: Omit<Prisma.PosSettingFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
-    
+    const {where,...rest}=input;
+
     return ctx.tx!.posSetting.findFirst(
-        input
+        {
+            where:{...where,recordStatus:RecordStatus.ACTIVE },
+            ...rest
+        }
     );
 }

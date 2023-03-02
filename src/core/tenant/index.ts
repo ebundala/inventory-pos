@@ -269,6 +269,7 @@ export const findManyTenant = async (
     ...rest,
     where: {
       ...(where || {}),
+      recordStatus:RecordStatus.ACTIVE,
       AND: [
         {
           members: {
@@ -293,6 +294,7 @@ export const findFirstTenant = async (
     ...rest,
     where: {
       ...(where || {}),
+      recordStatus:RecordStatus.ACTIVE,
       AND: [
         {
           members: {

@@ -96,7 +96,7 @@ export type UpdateQuotationInput = {
 export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantContext) => {
     const { tenantId, id, quotationDetails, ...data } = input;
     const quotation = await ctx.tx!.quotation.findUnique({
-        where: { id }, include: {
+        where: { id,recordStatus:RecordStatus.ACTIVE }, include: {
             quotationDetails: true,
         }
     });
@@ -131,7 +131,7 @@ export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantCo
     return ctx.tx!.quotation.update({
         include,
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE
         },
         data: {
             ...data, ...details
@@ -145,7 +145,7 @@ export const getUniqueQuotation = async (id: QuotationId, ctx: TenantContext) =>
     return ctx.tx!.quotation.findUnique({
         include,
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE
         }
     })
 };
@@ -173,11 +173,11 @@ export const deleteManyQuotation = async (ids: QuotationIds, ctx: TenantContext)
 };
 
 export const findManyQuotation = async (input: Omit<Prisma.QuotationFindManyArgs, "select" | "include">, ctx: TenantContext) => {
-
+const {where,...rest}=input;
     return ctx.tx!.quotation.findMany(
         {
-            include,
-            ...input
+            where:{...where,recordStatus:RecordStatus.ACTIVE},
+            ...rest
         }
     );
 }

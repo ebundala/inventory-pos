@@ -1,6 +1,7 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { SaleWhereInputObjectSchema } from "prisma/generated/schemas/objects/SaleWhereInput.schema";
 
 export type CreateWarehouseInput = {
     name: string
@@ -54,7 +55,7 @@ export const updateWarehouse = async (input: UpdateWarehouseInput,ctx:TenantCont
     const { id, ...data } = input;
     return ctx.tx!.warehouse.update({
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         },        
         data: { ...data }
     })
@@ -65,7 +66,7 @@ export const getUniqueWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
 
     return ctx.tx!.warehouse.findUnique({
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         }        
     })
 };
@@ -92,7 +93,10 @@ export const deleteManyWarehouse = async (ids: WarehouseIds,ctx:TenantContext) =
 };
 
 export const findManyWarehouse = async (input: Omit<Prisma.WarehouseFindManyArgs,"select"|"include">,ctx:TenantContext) => {   
+    const {where,...rest}=input;
     return ctx.tx!.warehouse.findMany(
-        input
+        {
+            where:{...where,  recordStatus:RecordStatus.ACTIVE,},...rest
+        }
     );
 }

@@ -20,8 +20,12 @@ const include = {
       productVariant: true,
     },
   },
-  paymentSales: true,
-  shipments: true,
+  paymentSales: {
+    where:{  recordStatus:RecordStatus.ACTIVE,}
+  },
+  shipments: {
+    where:{  recordStatus:RecordStatus.ACTIVE,}
+  },
 };
 
 export type CreateSaleDetailsInput = {
@@ -248,7 +252,7 @@ export const updateSale = async (
     ...data
   } = input;
   const sale = await ctx.tx!.sale.findUnique({
-    where: { id },
+    where: { id,  recordStatus:RecordStatus.ACTIVE, },
     include: {
       shipments: true,
       saleDetails: true,
@@ -400,7 +404,7 @@ export const updateSale = async (
   return ctx.tx!.sale.update({
     include,
     where: {
-      id: id,
+      id: id,  recordStatus:RecordStatus.ACTIVE,
     },
     data: {
       ...data,
@@ -417,7 +421,7 @@ export const getUniqueSale = async (id: SaleId, ctx: TenantContext) => {
   return ctx.tx!.sale.findUnique({
     include,
     where: {
-      id: id,
+      id: id,  recordStatus:RecordStatus.ACTIVE,
     },
   });
 };
@@ -425,7 +429,7 @@ export const deleteSale = async (id: SaleId, ctx: TenantContext) => {
   return ctx.tx!.sale.update({
     include,
     where: {
-      id: id,
+      id: id,  
     },
     data: {
       recordStatus: RecordStatus.DELETED,
@@ -447,9 +451,11 @@ export const findManySale = async (
   input: Omit<Prisma.SaleFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {where,...rest}=input
   return ctx.tx!.sale.findMany({
+    where:{...where,  recordStatus:RecordStatus.ACTIVE,},
     include,
-    ...input,
+    ...rest,
   });
 };
 

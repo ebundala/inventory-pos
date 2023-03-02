@@ -88,14 +88,14 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
                         </div> 
                         );
                     })}
-                {hasVariant && <div className="w-full bg-gray-200 p-4 rounded-md">
-                    <div className="h-10 w-full">
-                        <h2>Products variants</h2>
+                {hasVariant && <div className="w-full p-4 rounded-md">
+                    <div className="h-10 w-full border-gray-400 border-b">
+                        <h2 className="text-lg font-semibold">Product variants</h2>
                     </div>
-                    <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="mt-4 grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {productVariantsForm.fields.map((item, i) => {
 
-                            return <div key={item.key} className="flex flex-col gap-3 p-4 border-[1px] border-gray-500 rounded-md">
+                            return <div key={item.key} className="flex flex-col gap-3 p-4 border-[1px] shadow-sm rounded-md bg-white">
                                 <div className="flex-none">#{i + 1}</div>
                                 <div className="flex flex-col">
                                     {renderFieldArrayForm({ config: fieldArrayConfig, errors: form.formState.errors, index: i, key: item.key, register: form.register, name: fname })}

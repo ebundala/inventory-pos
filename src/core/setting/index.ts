@@ -47,7 +47,7 @@ export const updateSetting = async (input: UpdateSettingInput,ctx:TenantContext)
     return ctx.tx!.setting.update({
         include,
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         },        
         data: { ...data }
     })
@@ -58,7 +58,7 @@ export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
     return ctx.tx!.setting.findUnique({
         include,
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         }        
     })
 };
@@ -86,16 +86,17 @@ export const deleteManySetting = async (ids: SettingIds,ctx:TenantContext) => {
 };
 
 export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">, ctx:TenantContext) => {
-    
+    const {where,...rest}=input;
     return ctx.tx!.setting.findMany(
-      {...input,include}
+      {...rest,where:{...where,  recordStatus:RecordStatus.ACTIVE,},include}
     );
 }
 
 export const findFirstSetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-    
+    const {where,...rest}=input;
+
     return ctx.tx!.setting.findFirst({
-       ...input,include
+       ...rest,where:{...where,  recordStatus:RecordStatus.ACTIVE,},include
     }
     );
 }

@@ -32,7 +32,7 @@ export const updateSupplier = async (input: UpdateSupplierInput,ctx:TenantContex
     const { id, ...data } = input;
     return ctx.tx!.supplier.update({
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         },        
         data: { ...data }
     })
@@ -43,7 +43,7 @@ export const getUniqueSupplier = async (id: SupplierId,ctx:TenantContext) => {
 
     return ctx.tx!.supplier.findUnique({
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         }        
     })
 };
@@ -70,8 +70,10 @@ export const deleteManySupplier = async (ids: SupplierIds,ctx:TenantContext) => 
 };
 
 export const findManySupplier = async (input: Omit<Prisma.SupplierFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
-   
+   const {where,...rest}=input;
     return ctx.tx!.supplier.findMany(
-        input
+        {
+            ...rest, where:{...where,  recordStatus:RecordStatus.ACTIVE,}
+        }
     );
 }

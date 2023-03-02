@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "@/core/trpc";
 
 const productIncludes = {
@@ -26,6 +26,7 @@ export const productTopSellers = async (
     by: [Prisma.SaleDetailScalarFieldEnum.productId],
     where: {
       sale: {
+        recordStatus:RecordStatus.ACTIVE,
         status: { equals: "Completed" },
       },
       AND: [
@@ -57,7 +58,7 @@ export const productTopSellers = async (
 
   const products = await ctx.tx!.product.findMany({
     include: productIncludes,
-    where: { id: { in: ids } },
+    where: { id: { in: ids },recordStatus:RecordStatus.ACTIVE},
   });
   const productMap = products.reduce((p,v)=>p.set(v.id,v),new Map<number,typeof products[0]>())
   return stats.map((v) => {
@@ -73,7 +74,7 @@ export const topCustomers = async (
   const stats = await ctx.tx!.sale.groupBy({
     where: {
       status: { equals: "Completed" },
-
+      recordStatus:RecordStatus.ACTIVE,
       AND: [
         {
           date: {
@@ -102,7 +103,7 @@ export const topCustomers = async (
   const ids = stats.map((v) => v.customerId);
 
   const products = await ctx.tx!.customer.findMany({    
-    where: { id: { in: ids } },
+    where: { id: { in: ids },recordStatus:RecordStatus.ACTIVE },
   });
   return stats.map((v) => {
     const i = products.findIndex((e) => e.id === v.customerId);
@@ -117,6 +118,7 @@ export const sales = async (
    return ctx.tx!.sale.groupBy({
       where: {
         status: { equals: "Completed" },
+        recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -150,6 +152,7 @@ export const sales = async (
   ) => {
    return ctx.tx!.purchase.groupBy({
       where: {
+        recordStatus:RecordStatus.ACTIVE,
         status: { equals: "Received" },
         AND: [
           {
@@ -184,6 +187,7 @@ export const sales = async (
    return ctx.tx!.saleReturn.groupBy({
       where: {
         status: { equals: "Received" },
+        recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -217,6 +221,7 @@ export const sales = async (
    return ctx.tx!.purchaseReturn.groupBy({
       where: {
         status: { equals: "Received" },
+        recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -287,10 +292,10 @@ export const sales = async (
         }
         return false;
     })
-    const warehouses = (await ctx.tx!.warehouse.findMany())
+    const warehouses = (await ctx.tx!.warehouse.findMany({where:{  recordStatus:RecordStatus.ACTIVE,}}))
     const warehousesMap = warehouses.reduce((p,v)=>p.set(v.id,v),new Map<number,typeof warehouses[0]>);
     const products= await ctx.tx!.product.findMany({where:{
-      id:{in:alerts.map((stat)=>stat.productId)},
+      id:{in:alerts.map((stat)=>stat.productId),},recordStatus:RecordStatus.ACTIVE,
     },     
 
     include:productIncludes});
@@ -312,6 +317,7 @@ export const sales = async (
    return ctx.tx!.paymentSale.groupBy({
       where: {
        // status: { equals: "Received" },
+       recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -345,6 +351,7 @@ export const sales = async (
    return ctx.tx!.paymentSaleReturn.groupBy({
       where: {
        // status: { equals: "Received" },
+       recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -378,6 +385,7 @@ export const sales = async (
    return ctx.tx!.paymentPurchase.groupBy({
       where: {
        // status: { equals: "Received" },
+       recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {
@@ -412,6 +420,7 @@ export const sales = async (
    return ctx.tx!.paymentPurchase.groupBy({
       where: {
        // status: { equals: "Received" },
+       recordStatus:RecordStatus.ACTIVE,
         AND: [
           {
             date: {

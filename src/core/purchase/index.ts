@@ -18,7 +18,9 @@ const include = {
       unit: true,
     },
   },
-  paymentPurchases: true,
+  paymentPurchases: {
+    where:{recordStatus:RecordStatus.ACTIVE}
+  },
 };
 export type CreatePurchaseDetailsInput = {
   cost: number;
@@ -182,11 +184,8 @@ export const updatePurchase = async (
 ) => {
   const { tenantId, id, paymentPurchases, purchaseDetails, ...data } = input;
   const purchase = await ctx.tx!.purchase.findUnique({
-    where: { id },
-    include: {
-      purchaseDetails: true,
-      paymentPurchases: true,
-    },
+    where: { id ,recordStatus:RecordStatus.ACTIVE},
+    include
   });
   let details = {};
   if (purchaseDetails && purchase && purchaseDetails.length) {
@@ -296,7 +295,7 @@ await Promise.allSettled(updateProductWarehouse);
   return ctx.tx!.purchase.update({
     include,
     where: {
-      id: id,
+      id: id,recordStatus:RecordStatus.ACTIVE
     },
     data: { ...data, ...details, ...paymentDetails },
   });
@@ -340,8 +339,9 @@ export const findManyPurchase = async (
   input: Omit<Prisma.PurchaseFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {where,...rest} = input;
   return ctx.tx!.purchase.findMany({
-    include,
-    ...input,
+    where:{...where,recordStatus:RecordStatus.ACTIVE},
+    ...rest,
   });
 };

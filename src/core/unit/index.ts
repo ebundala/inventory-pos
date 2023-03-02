@@ -31,7 +31,7 @@ export const updateUnit = async (input:UpdateUnitInput,ctx:TenantContext)=>{
     const {id,...data}=input;
     return ctx.tx!.unit.update({
         where:{
-            id:id
+            id:id,  recordStatus:RecordStatus.ACTIVE,
         },
      include,
      data:{...data}
@@ -43,7 +43,7 @@ export const getUniqueUnit = async (id:UnitId,ctx:TenantContext)=>{
    
     return ctx.tx!.unit.findUnique({
         where:{
-            id:id
+            id:id,  recordStatus:RecordStatus.ACTIVE,
         },
      include  
     })
@@ -72,7 +72,8 @@ export const deleteManyUnit = async (ids:UnitIds,ctx:TenantContext)=>{
  };
  
 export const findManyUnit =async(input: Omit<Prisma.UnitFindManyArgs,"select"|"include">,ctx:TenantContext) => {
+    const {where,...rest}=input;
     return ctx.tx!.unit.findMany(
-        {...input,include}
+        {...rest,include,where:{...where,  recordStatus:RecordStatus.ACTIVE,}}
     );
 }

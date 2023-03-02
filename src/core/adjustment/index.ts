@@ -110,7 +110,7 @@ export const updateAdjustment = async (
   const { id, adjustmentDetails, ...data } = input;
   const { tenantId } = ctx;
   const adjustment = await ctx.tx!.adjustment.findUnique({
-    where: { id },
+    where: { id,recordStatus:RecordStatus.ACTIVE },
     include: {
       adjustmentDetails: {
         include: {
@@ -232,7 +232,7 @@ export const updateAdjustment = async (
   return ctx.tx!.adjustment.update({
     include,
     where: {
-      id: id,
+      id: id,recordStatus:RecordStatus.ACTIVE 
     },
     data: {
       ...data,
@@ -250,7 +250,7 @@ export const getUniqueAdjustment = async (
   return ctx.tx!.adjustment.findUnique({
     include,
     where: {
-      id: id,
+      id: id,recordStatus:RecordStatus.ACTIVE 
     },
   });
 };
@@ -286,9 +286,11 @@ export const findManyAdjustment = async (
   input: Omit<Prisma.AdjustmentFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {where,...rest} = input
   return ctx.tx!.adjustment.findMany({
+    where:{...where,recordStatus:RecordStatus.ACTIVE },
     include,
-    ...input,
+    ...rest,
   });
 };
 

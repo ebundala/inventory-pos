@@ -9,7 +9,9 @@ const include = {
   supplier: true,
   user: true,
   warehouse: true,
-  paymentPurchaseReturns: true,
+  paymentPurchaseReturns: {
+    where:{recordStatus:RecordStatus.ACTIVE}
+  },
   purchaseReturnDetails: {
     include: {
       product: {
@@ -197,11 +199,8 @@ export const updatePurchaseReturn = async (
     ...data
   } = input;
   const purchaseReturn = await ctx.tx!.purchaseReturn.findUnique({
-    where: { id },
-    include: {
-      purchaseReturnDetails: true,
-      paymentPurchaseReturns: true,
-    },
+    where: { id,recordStatus:RecordStatus.ACTIVE },
+    include
   });
   let details = {};
   if (purchaseReturnDetails && purchaseReturn && purchaseReturnDetails.length) {
@@ -300,7 +299,7 @@ export const updatePurchaseReturn = async (
   return ctx.tx!.purchaseReturn.update({
     include,
     where: {
-      id: id,
+      id: id,recordStatus:RecordStatus.ACTIVE
     },
     data: {
       ...data,
@@ -318,7 +317,7 @@ export const getUniquePurchaseReturn = async (
   return ctx.tx!.purchaseReturn.findUnique({
     include,
     where: {
-      id: id,
+      id: id,recordStatus:RecordStatus.ACTIVE
     },
   });
 };
@@ -354,8 +353,9 @@ export const findManyPurchaseReturn = async (
   input: Omit<Prisma.PurchaseReturnFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {where,...rest} = input;
   return ctx.tx!.purchaseReturn.findMany({
-    include,
-    ...input,
+    where:{...where,recordStatus:RecordStatus.ACTIVE},
+    ...rest,
   });
 };

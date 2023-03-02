@@ -23,7 +23,7 @@ export const updateCurrency = async (input: UpdateCurrencyInput,ctx:TenantContex
     const { id, ...data } = input;
     return ctx.tx!.currency.update({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         },        
         data: { ...data }
     })
@@ -33,7 +33,7 @@ export type CurrencyIds = Array<number>
 export const getUniqueCurrency = async (id: CurrencyId,ctx:TenantContext) => {
     return ctx.tx!.currency.findUnique({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         }        
     })
 };
@@ -60,8 +60,11 @@ export const deleteManyCurrency = async (ids: CurrencyIds,ctx:TenantContext) => 
 };
 
 export const findManyCurrency = async  (input: Omit<Prisma.CurrencyFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
-    
+    const {where,...rest}=input;
     return ctx.tx!.currency.findMany(
-       input
+       {
+        where:{...where,recordStatus:RecordStatus.ACTIVE },
+        ...rest
+       }
     );
 }

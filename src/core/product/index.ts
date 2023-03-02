@@ -1,14 +1,18 @@
 import { prisma } from "@/core";
 import { Prisma, Product, ProductVariant, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
-const include = {
-  productVariants: true,
+const include = {  
   productUnit: true,
   productPurchaseUnit: true,
   productsSaleUnit: true,
   category: true,
   brand: true,
-  productWarehouse:true
+  productVariants: {
+    where:{recordStatus:RecordStatus.ACTIVE}
+  },
+  productWarehouse:{
+    where:{recordStatus:RecordStatus.ACTIVE}
+  },
 };
 export type CreateProductVariantInput = {
   name?: string;
@@ -118,9 +122,11 @@ export const updateProduct = async (
 ) => {
   const { tenantId, id, productVariants, ...data } = input;
   const product = await ctx.tx!.product.findUnique({
-    where: { id },
+    where: { id ,recordStatus:{equals:RecordStatus.ACTIVE}},
     include: {
-      productVariants: true,
+      productVariants: {
+        where:{recordStatus:{equals:RecordStatus.ACTIVE}}
+      },
     },
   });
   let variants={},productWarehouse = {};
@@ -133,7 +139,7 @@ export const updateProduct = async (
     const savedVariants = product.productVariants.map((v) => v.id);
     const variantToDelete = product.productVariants
       .filter((v) => !productVariants.find((s) => s.id === v.id))
-      .map((v) => ({ id: v.id }));
+      .map((v) => ({where:{ id: v.id },data:{recordStatus:RecordStatus.DELETED}}));
 
     const variantToUpdate = product.productVariants
       .filter((v) => productVariants.find((s) => s.id === v.id))
@@ -154,8 +160,8 @@ export const updateProduct = async (
           skipDuplicates: true,
           data: variantsToCreate,
         },
-        deleteMany: variantToDelete,
-        updateMany: variantToUpdate,
+      //  deleteMany: variantToDelete,
+        updateMany: [...variantToDelete,...variantToUpdate],
       },
     };
     productWarehouse = {
@@ -165,9 +171,10 @@ export const updateProduct = async (
         //         warehouseId:0,productVariantId:v.,qty:0,tenantId
         //     }))
         // },
-        deleteMany:variantToDelete.map((v)=>({
-            productVariantId:{equals:v.id}
-        }))
+        updateMany:variantToDelete.map((v)=>({where:{productVariantId:v.where.id},data:v.data}))
+        // deleteMany:variantToDelete.map((v)=>({
+        //     productVariantId:{equals:v.id}
+        // }))
        }
     
   }
@@ -181,7 +188,7 @@ export const updateProduct = async (
   });
   const newVariantsNames = productVariants?.filter((v)=>v.id).map((v)=>v.name)
 if(newVariantsNames && newVariantsNames.length>0){
-  const warehouses = await ctx.tx!.warehouse.findMany();
+  const warehouses = await ctx.tx!.warehouse.findMany({where:{recordStatus:RecordStatus.ACTIVE}});
   const newVariants = updatedProduct.productVariants.filter((v)=>newVariantsNames?.includes(v.name!))
   //get new variants
  const productWarehouseData= warehouses.flatMap((v)=>{
@@ -195,7 +202,7 @@ if(newVariantsNames && newVariantsNames.length>0){
    await ctx.tx!.productWarehouse.createMany({data:productWarehouseData});
 }
 return await ctx.tx!.product.findUnique({
-    where: { id },
+    where: { id,recordStatus:RecordStatus.ACTIVE },
     include
   });
 };
@@ -206,7 +213,7 @@ export const getUniqueProduct = async (id: ProductId, ctx: TenantContext) => {
   return ctx.tx!.product.findUnique({
     include,
     where: {
-      id: id,
+      id,recordStatus:RecordStatus.ACTIVE
     },
   });
 };
@@ -239,8 +246,10 @@ export const findManyProduct = async (
   input: Omit<Prisma.ProductFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {where,...rest}=input
   return ctx.tx!.product.findMany({
+    where:{...where,recordStatus:RecordStatus.ACTIVE},
     include,
-    ...input,
+    ...rest,
   });
 };

@@ -12,7 +12,9 @@ const include = {
             productVariant:true
         }
     },
-    paymentSaleReturns: true,
+    paymentSaleReturns: {
+        where:{  recordStatus:RecordStatus.ACTIVE,}
+    },
     warehouse: true,
     user: true,
     customer: true
@@ -174,7 +176,7 @@ export type UpdateSaleReturnInput = {
 export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantContext) => {
     const { tenantId, id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
     const saleReturn = await ctx.tx!.saleReturn.findUnique({
-        where: { id }, include: {
+        where: { id,  recordStatus:RecordStatus.ACTIVE, }, include: {
             saleReturnDetails: true,
             paymentSaleReturns:true
         }
@@ -267,7 +269,7 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantCo
     return ctx.tx!.saleReturn.update({
         include,
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         },
         data: { 
             ...data, 
@@ -282,7 +284,7 @@ export const getUniqueSaleReturn = async (id: SaleReturnId,ctx:TenantContext) =>
     return ctx.tx!.saleReturn.findUnique({
         include,
         where: {
-            id: id
+            id: id,  recordStatus:RecordStatus.ACTIVE,
         }
     })
 };
@@ -291,7 +293,7 @@ export const deleteSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
     return ctx.tx!.saleReturn.update({
         include,
         where: {
-            id: id
+            id: id,
         },
         data: {
             recordStatus: RecordStatus.DELETED
@@ -310,10 +312,11 @@ export const deleteManySaleReturn = async (ids: SaleReturnIds,ctx:TenantContext)
 };
 
 export const findManySaleReturn =  (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-    
+    const {where,...rest} = input;
     return ctx.tx!.saleReturn.findMany({
+        where:{...where,  recordStatus:RecordStatus.ACTIVE,},
         include,
-        ...input
+        ...rest
      }
     );
 }

@@ -22,7 +22,7 @@ export const updateCategory = async (input: UpdateCategoryInput,ctx:TenantContex
     const { id, ...data } = input;
     return ctx.tx!.category.update({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         },        
         data: { ...data }
     })
@@ -32,7 +32,7 @@ export type CategoryIds = Array<number>
 export const getUniqueCategory = async (id: CategoryId,ctx:TenantContext) => {
     return ctx.tx!.category.findUnique({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         }        
     })
 };
@@ -59,8 +59,10 @@ export const deleteManyCategory = async (ids: CategoryIds,ctx:TenantContext) => 
 };
 
 export const findManyCategory = async  (input: Omit<Prisma.CategoryFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-   
-    return ctx.tx!.category.findMany(
-        input
+   const {where,...rest}=input;
+    return ctx.tx!.category.findMany({
+        where:{...where,recordStatus:RecordStatus.ACTIVE },
+        ...rest
+      }
     );
 }

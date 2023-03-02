@@ -32,7 +32,7 @@ export const updateCustomer = async (input: UpdateCustomerInput,ctx:TenantContex
     const { id, ...data } = input;
     return ctx.tx!.customer.update({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         },        
         data: { ...data }
     })
@@ -42,7 +42,7 @@ export type CustomerIds = Array<number>
 export const getUniqueCustomer = async (id: CustomerId,ctx:TenantContext) => {
     return ctx.tx!.customer.findUnique({
         where: {
-            id: id
+            id: id,recordStatus:RecordStatus.ACTIVE 
         }        
     })
 };
@@ -69,8 +69,11 @@ export const deleteManyCustomer = async (ids: CustomerIds,ctx:TenantContext) => 
 };
 
 export const findManyCustomer = async  (input: Omit<Prisma.CustomerFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
-    
+    const {where,...rest}=input;
     return ctx.tx!.customer.findMany(
-        input
+        {
+            where:{...where,recordStatus:RecordStatus.ACTIVE },
+            ...rest
+        }
     );
 }
