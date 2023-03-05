@@ -3,7 +3,7 @@ import { TenantContext } from "@/core/trpc";
 
 const productIncludes = {
   productVariants: {
-    where:{  recordStatus:RecordStatus.ACTIVE,}
+    where: { recordStatus: RecordStatus.ACTIVE },
   },
   productUnit: true,
   productPurchaseUnit: true,
@@ -27,22 +27,14 @@ export const productTopSellers = async (
   const stats = await ctx.tx!.saleDetail.groupBy({
     by: [Prisma.SaleDetailScalarFieldEnum.productId],
     where: {
+      date:{
+        lte:endDate,
+        gte:startDate
+       },
       sale: {
         recordStatus: RecordStatus.ACTIVE,
         status: { equals: "Completed" },
-      },
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+      }
     },
     _sum: {
       quantity: true,
@@ -259,10 +251,10 @@ export const stockAlerts = async (ctx: TenantContext) => {
   }, new Map<number, { id: number; stockAlert: number | null }>());
 
   const stats = await ctx.tx!.productWarehouse.groupBy({
-    where:{
-      product:{
-        recordStatus:RecordStatus.ACTIVE,
-      }
+    where: {
+      product: {
+        recordStatus: RecordStatus.ACTIVE,
+      },
     },
     by: [
       Prisma.ProductWarehouseScalarFieldEnum.productId,
@@ -318,22 +310,30 @@ export const stockAlerts = async (ctx: TenantContext) => {
     new Map<number, typeof products[0]>()
   );
 
-  return alerts.map((alert) => {
-    const product = prodMap.get(alert.productId)!;
-    const productVariant = product.productVariants.find(
-      (v) => alert.productVariantId === v.id
-    );
-    const warehouse = warehousesMap.get(alert.warehouseId)!;
-    return { ...alert, product, productVariant, warehouse };
-  }).filter((v)=>{
-    if(v.product.isVariant && !v.productVariant || !v.product.isVariant && v.productVariant ){
-      return false;
-    }
-    if(v.productVariant&& v.productVariant?.recordStatus!==RecordStatus.ACTIVE){
-      return false;
-    }
-    return true;
-  });
+  return alerts
+    .map((alert) => {
+      const product = prodMap.get(alert.productId)!;
+      const productVariant = product.productVariants.find(
+        (v) => alert.productVariantId === v.id
+      );
+      const warehouse = warehousesMap.get(alert.warehouseId)!;
+      return { ...alert, product, productVariant, warehouse };
+    })
+    .filter((v) => {
+      if (
+        (v.product.isVariant && !v.productVariant) ||
+        (!v.product.isVariant && v.productVariant)
+      ) {
+        return false;
+      }
+      if (
+        v.productVariant &&
+        v.productVariant?.recordStatus !== RecordStatus.ACTIVE
+      ) {
+        return false;
+      }
+      return true;
+    });
 };
 
 export const paymentSale = async (
