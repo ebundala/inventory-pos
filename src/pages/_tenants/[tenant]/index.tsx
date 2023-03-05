@@ -495,7 +495,7 @@ function StockAlerts() {
   
   return (
    
-       <div className="overflow-x-auto">
+       <div className="overflow-x-auto ">
         <table className="table w-full">
         <thead>
           <tr>
@@ -509,8 +509,8 @@ function StockAlerts() {
         <tbody>
         {result.isSuccess && result.data.map((v) => (
           <tr key={`${v.product.id}${v.productVariantId??""}`}>
-            <td>{v.product.code}</td>
-            <td >{getProductFormatedName(v)}</td>
+            <th>{v.product.code}</th>
+            <td>{getProductFormatedName(v)}</td>
             <td>{v.warehouse.name}</td>
             <td>{v.product.stockAlert}<span className="ml-1 text-sm text-orange-400">{v.product.productUnit?.shortName}</span></td>
             <td> {v._sum.qty}<span className=" ml-1 text-sm text-orange-400">{v.product.productUnit?.shortName}</span></td>
@@ -613,8 +613,7 @@ function TenantIndex() {
         </div>
         <div className="min-h-[340px] h-fit shadow-md rounded-xl md:col-span-2 p-3">
           <h2 className="font-bold text-lg mb-2">
-            Top selling product (
-            {new Date().toLocaleString("default", { month: "long" })})
+            Top selling product ({new Date().toLocaleString("default", { month: "long" })})
           </h2>
           <TopProducts startDate={mStartDate} endDate={mEndDate} />
         </div>
