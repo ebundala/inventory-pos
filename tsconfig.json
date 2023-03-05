@@ -16,7 +16,9 @@
       "@/lib/*": ["src/lib/*"],
       "@/styles/*": ["src/styles/*"],
       "@/types": ["src/types/index"],
-      "@/types/*": ["src/types/*"]
+      "@/types/*": ["src/types/*"],
+      "@prisma/client":["prisma/generated/client"],
+      "@prisma/schemas":["prisma/generated/schemas"]
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
