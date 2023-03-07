@@ -18,16 +18,25 @@ interface CloudinaryUploadWidgetProps {
   children: (props: ChildrenProps) => ReactNode;
 }
 
+type UploadOptions = {
+  multiple?:boolean
+  maxFiles?:number
+  clientAllowedFormats?:string[]
+}
+
 export default function CloudinaryUploadWidget({
   callback,
   children,
-}: CloudinaryUploadWidgetProps) {
+  ...options
+}: CloudinaryUploadWidgetProps&UploadOptions) {
   function showWidget() {
     const widget: CloudinaryWidget = window.cloudinary.createUploadWidget(
       {
-        cloudName: "vercel-platforms",
-        uploadPreset: "w0vnflc6",
+        cloudName: process.env.NEXT_PUBLIC_CLOUD_NAME!,
+        uploadPreset: process.env.NEXT_PUBLIC_CLOUD_PREFIX!,
         cropping: true,
+        clientAllowedFormats:["jpeg","jpg","png","gif","webp"],
+        ...options
       },
       (error: unknown | undefined, result: CloudinaryWidgetResult) => {
         if (!error && result && result.event === "success") {
@@ -50,10 +59,11 @@ export default function CloudinaryUploadWidget({
         // this is Next.js specific, but if you're using something like Create
         // React App, you could download the script in componentDidMount using
         // this method: https://stackoverflow.com/a/34425083/1424568
-        <script
+        {/* <script
           src="https://widget.cloudinary.com/v2.0/global/all.js"
           type="text/javascript"
-        />
+        /> */}
+        <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" />
       </Head>
       {children({ open })}
     </>

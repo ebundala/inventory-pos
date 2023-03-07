@@ -1,7 +1,10 @@
 import { FormInputField } from "@/components/FormInputField";
 import Loader from "@/components/sites/Loader";
-import { createBrandInputSchema, updateBrandInputSchema } from "@/core/brand/index.zod";
-import { getLayout } from "@/layouts/getLayout"
+import {
+  createBrandInputSchema,
+  updateBrandInputSchema,
+} from "@/core/brand/index.zod";
+import { getLayout } from "@/layouts/getLayout";
 import { useModal } from "@/lib/hooks/useModel";
 import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
@@ -18,208 +21,253 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 
-export function BrandIndex({brands,refetch}:BrandsIndexProps) {
-   
-    const [showModal, hide, data] = useModal();
-    const options = useMemo(()=>({
-        tenantId:{
-            hidden:true
-        },
-        id:{
-            hidden:true
-        },
-        name:{
-            label:"Brand name",
-            ordering:1
-        },
-        description:{
-            label:"Description",
-            ordering:2,
-            textArea:true
-        },
-        image:{
-            label:"Image",
-            ordering:3,
-          //  upload:true
-        },
-       
-    }),[]);
-    
-   const trpcWithHost = useTrpcTenant();
-   const {showProgress,callbacks} = useProgressFeedback()
+export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
+  const [showModal, hide, data] = useModal();
+  const options = useMemo(
+    () => ({
+      tenantId: {
+        hidden: true,
+      },
+      id: {
+        hidden: true,
+      },
+      name: {
+        label: "Brand name",
+        ordering: 1,
+      },
+      description: {
+        label: "Description",
+        ordering: 2,
+        textArea: true,
+      },
+      image: {
+        label: "Logo",
+        ordering: 3,
+        upload: true,
+      },
+    }),
+    []
+  );
 
-   const result1 = trpcWithHost.product.brand.create.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-   const result2 = trpcWithHost.product.brand.update.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-   
+  const trpcWithHost = useTrpcTenant();
+  const { showProgress, callbacks } = useProgressFeedback();
 
-    return <div className="flex flex-col justify-start">
-        <div className="flex flex-row justify-end ">
-            <button className="btn btn-success btn-sm btn-outline"
-                onClick={
-                    (e) => {
-                        
+  const result1 = trpcWithHost.product.brand.create.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      hide();
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
+  const result2 = trpcWithHost.product.brand.update.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      hide();
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
+
+  return (
+    <div className="flex flex-col justify-start">
+      <div className="flex flex-row justify-end ">
+        <button
+          className="btn btn-success btn-sm btn-outline"
+          onClick={(e) => {
+            showModal({
+              content: (props) => {
+                return (
+                  <BrandForm
+                    {...props}
+                    mutateAsync={(data) => {
+                      showProgress({ animated: true });
+                      return result1.mutateAsync(data);
+                    }}
+                    schema={createBrandInputSchema}
+                    fieldOptions={options}
+                    title={"Create Brand"}
+                  />
+                );
+              },
+            });
+          }}
+        >
+          create
+        </button>
+      </div>
+
+      <CustomTable
+        pageOptions={pageOptions}
+        rowsData={brands ?? []}
+        collumsData={() => {
+          return [
+            {
+              Header: () => (
+                <label>
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-primary checkbox-xs "
+                  />
+                </label>
+              ),
+              accessor: "id",
+              disableSortBy: true,
+              Cell: ({ row, value }: { row: any; value: any }) => {
+                return (
+                  <label>
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary checkbox-xs "
+                    />
+                  </label>
+                );
+              },
+            },
+            {
+              Header: "Brand name",
+              accessor: "name",
+            },
+            {
+              Header: "Description",
+              accessor: "description",
+            },
+            {
+              Header: "Logo",
+              accessor: "image",
+            },
+
+            {
+              Header: "Actions",
+              accessor: "tenantId",
+              disableSortBy: true,
+              Cell: ({ row, value }: { row: any; value: any }) => {
+                return (
+                  <div className="flex flex-row gap-2">
+                    <button
+                      onClick={(e) => {
+                        console.log(row);
                         showModal({
-                            content:(props) => {                       
-                       return <BrandForm 
-                       {...props} 
-                       mutateAsync={(data)=>{
-                        showProgress({animated:true});
-                        return result1.mutateAsync(data);
+                          content: (props) => {
+                            return (
+                              <BrandForm
+                                {...props}
+                                mutateAsync={(data) => {
+                                  showProgress({ animated: true });
+                                  return result2.mutateAsync(data);
+                                }}
+                                schema={updateBrandInputSchema}
+                                fieldOptions={options}
+                                defaultValues={row.original}
+                                title="Update brand"
+                              />
+                            );
+                          },
+                        });
                       }}
-                       schema={createBrandInputSchema} 
-                       fieldOptions={options} title={
-                        "Create Brand"
-                       }/>
-                            }
-                          
-                        })
-                    }
-                }
-            >create</button>
-        </div>
-
-        <CustomTable
-            pageOptions={pageOptions}
-            rowsData={brands ?? []}
-            collumsData={() => {
-
-                return [
-                    {
-                        Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
-                        ,
-                        accessor: "id",
-                        disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
-                            return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
-                        }
-                    },
-                    {
-                        Header: "Brand name",
-                        accessor: "name"
-                    },
-                    {
-                        Header: "Description",
-                        accessor: "description"
-                    },
-                    {
-                        Header: "Logo",
-                        accessor: "image"
-                    },
-                    
-                    {
-                        Header: "Actions",
-                        accessor: "tenantId",
-                        disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
-                            return <div className="flex flex-row gap-2">
-                                <button onClick={(e)=>{
-                                    console.log(row);
-                                    showModal({
-                                        content:(props) => {                       
-                                   return <BrandForm 
-                                   {...props} 
-                                   mutateAsync={(data)=>{
-                                    showProgress({animated:true});
-                                    return result2.mutateAsync(data);
-                                  }}
-                                   schema={updateBrandInputSchema} 
-                                   fieldOptions={options} 
-                                   defaultValues={row.original}
-                                   title="Update brand"/>
-                                   
-                                }})
-                            }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
-                            </div>
-                        }
-                    },
-
-                ]
-            }} />
+                      className="btn btn-info btn-sm rounded-md btn-outline"
+                    >
+                      Edit
+                    </button>
+                    <button className="btn btn-warning btn-sm rounded-md btn-outline">
+                      Delete
+                    </button>
+                  </div>
+                );
+              },
+            },
+          ];
+        }}
+      />
     </div>
-
+  );
 }
-function useRequiredBrandsData(){
-    const data = useBrands();
-    return { data, isLoading: data.result.isLoading };
+function useRequiredBrandsData() {
+  const data = useBrands();
+  return { data, isLoading: data.result.isLoading };
 }
-type BrandsIndexProps = ReturnType<typeof useRequiredBrandsData>["data"]
+type BrandsIndexProps = ReturnType<typeof useRequiredBrandsData>["data"];
 
 export default function Index() {
-    return (
-        <CollectRequiredDataWrapper useHooks={useRequiredBrandsData}>
-            {(props) =>
-                <BrandIndex {...props} />
-            }
-        </CollectRequiredDataWrapper>
-    );
+  return (
+    <CollectRequiredDataWrapper useHooks={useRequiredBrandsData}>
+      {(props) => <BrandIndex {...props} />}
+    </CollectRequiredDataWrapper>
+  );
 }
 Index.getLayout = getLayout;
 
-type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
-    show: (data: ModalData) => void;
-    hide: () => void;
-    ModalContainer: FC<ModalSectionProps>;
-    ModalContent: FC<ModalSectionProps>;
-    ModalAction: FC<ModalSectionProps>;
-    title?:ReactNode,
-    schema:T
-    defaultValues?: Partial<R>
-    fieldOptions?: Parameters<typeof useZodForm>[1]
-    mutateAsync:(data:any)=>Promise<unknown>
-}
+type ZodFormSchema<
+  R,
+  T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes
+> = {
+  show: (data: ModalData) => void;
+  hide: () => void;
+  ModalContainer: FC<ModalSectionProps>;
+  ModalContent: FC<ModalSectionProps>;
+  ModalAction: FC<ModalSectionProps>;
+  title?: ReactNode;
+  schema: T;
+  defaultValues?: Partial<R>;
+  fieldOptions?: Parameters<typeof useZodForm>[1];
+  mutateAsync: (data: any) => Promise<unknown>;
+};
 
-const BrandForm:FC<ZodFormSchema<Brand>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const {tenant} = useTenant();
-    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+const BrandForm: FC<ZodFormSchema<Brand>> = ({
+  show,
+  hide,
+  mutateAsync,
+  ModalContainer,
+  ModalContent,
+  ModalAction,
+  schema,
+  title,
+  defaultValues,
+  fieldOptions,
+}) => {
+  const { tenant } = useTenant();
+  const [config, form] = useZodForm(schema, fieldOptions, {
+    defaultValues: { tenantId: tenant?.tenantId, ...defaultValues },
+  });
 
-    return (
-
-        <ModalContainer>
-
-            <ModalContent>
-                <form onSubmit={form.handleSubmit(async (data) => {
-                  await mutateAsync(data as any);
-                }, (e) => {
-                    console.error(e)
-                })}>
-                    <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
-                    <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
-                        {config.map((i) => {
-                            return (<FormInputField key={i.name} {...i} />);
-                        })} 
-                    </div>
-                    <ModalAction >
-                        <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">
-                            cancel
-                        </button>
-                        <button type="submit" className="btn btn-primary btn-xs">
-                            save
-                        </button>
-                    </ModalAction>
-                </form>
-            </ModalContent>
-
-
-        </ModalContainer>
-
-    )
-}
+  return (
+    <ModalContainer>
+      <ModalContent>
+        <form
+          onSubmit={form.handleSubmit(
+            async (data) => {
+              await mutateAsync(data as any);
+            },
+            (e) => {
+              console.error(e);
+            }
+          )}
+        >
+          <div className="flex w-full text-center font-semibold">
+            <h2>{title}</h2>
+          </div>
+          <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
+            {config.map((i) => {
+              return <FormInputField key={i.name} {...i} />;
+            })}
+          </div>
+          <ModalAction>
+            <button
+              onClick={(e) => hide()}
+              className="btn btn-outline btn-error btn-xs"
+            >
+              cancel
+            </button>
+            <button type="submit" className="btn btn-primary btn-xs">
+              save
+            </button>
+          </ModalAction>
+        </form>
+      </ModalContent>
+    </ModalContainer>
+  );
+};

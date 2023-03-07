@@ -28,7 +28,7 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
     const options = useProductFormFieldOptions(product as any);
    
     const [config, form] = useZodForm(updateProductInputSchema, options, {
-        defaultValues: { ...(product ?? {}) }
+        defaultValues: { ...(product ?? {})}
     });
     const [noteField,config2] = useGetZodFormField(Prisma.ProductScalarFieldEnum.note,config);
     const [boolFields,config3] = useGetZodFormFields([
@@ -45,10 +45,8 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
     const trpcWithHost = useTrpcTenant();
     useEffect(()=>{
         if(product){
-            // set initial form state 
-        
-            form.reset(product);
-            
+            // set initial form state         
+            form.reset(product);            
         }
 
     },[product])
@@ -63,6 +61,7 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
     return (
         <FormContainer title={<h2>Update product</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {
+                
                 //submit here
                 showProgress({animated:true})
                 await result.mutateAsync(data as any);
@@ -103,8 +102,7 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
                                 <div className="flex-none">
                                     <button onClick={(e) => {
                                         e.preventDefault();
-                                        productVariantsForm.remove(i);
-                                       
+                                        productVariantsForm.remove(i);                                       
                                     }} className="btn btn-outline btn-accent btn-xs rounded-md"> remove</button>
                                 </div>
                             </div>

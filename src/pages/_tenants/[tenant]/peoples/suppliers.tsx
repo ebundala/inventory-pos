@@ -16,10 +16,10 @@ import { CustomTable } from "@/components/table";
 import { useSuppliers } from "@/lib/hooks/useSuppliers";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
 
-export default function SupplierIndex() {
-    const {suppliers, result:{isLoading:loading,isSuccess:success},refetch } = useSuppliers();
+function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -81,7 +81,6 @@ export default function SupplierIndex() {
         callbacks.onError(error);
     }
    });
-    if (loading) return <Loader />
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -181,7 +180,29 @@ export default function SupplierIndex() {
 
 }
 
-SupplierIndex.getLayout = getLayout
+function useSupplierRequiredData() {
+    const {
+     suppliers,
+      result: { isLoading, isSuccess },
+      refetch,
+    } = useSuppliers();
+  
+    return { data: { refetch,suppliers }, isLoading };
+  }
+  
+  type SupplierIndexProps = ReturnType<typeof useSupplierRequiredData>["data"];
+  
+  export default function Index() {
+    return (
+      <CollectRequiredDataWrapper useHooks={useSupplierRequiredData}>
+        {(props) => <SupplierIndex {...props} />}
+      </CollectRequiredDataWrapper>
+    );
+  }
+  
+  Index.getLayout = getLayout;
+
+
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;

@@ -194,7 +194,10 @@ type TRegisterOptiopns = Partial<RegisterOptions>
 type FormFieldOption = {
     label?: string,
     refine?: (value:any)=>string|null|undefined,
-    upload?: boolean,
+    upload?: {
+      maxFiles: number;
+      multiple:boolean
+} | boolean,
     textArea?: boolean,
     ordering?: number,
     hidden?: boolean,

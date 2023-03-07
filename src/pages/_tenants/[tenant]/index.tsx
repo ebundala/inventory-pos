@@ -26,6 +26,8 @@ import { useSales } from "@/lib/hooks/useSales";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { calculateStock } from "@/lib/util/calculateStock";
 import { useSetting } from "@/lib/hooks/useSetting";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { useSession } from "next-auth/react";
 
 function SalesStats({
   startDate,
@@ -376,7 +378,6 @@ function TopProducts({
   });
   const {setting} = useSetting();
   const fmt = new Intl.NumberFormat(undefined)
-  console.log(startDate,endDate);
   return (
     <div className="overflow-x-auto">
      <table className="table w-full">
@@ -570,16 +571,20 @@ function useGetDaysAgo(end: Date, days: number) {
   return [startDate, end];
 }
 
-function TenantIndex() {
+function useTenantIndexRequiredData(){
   const router = useRouter();
-  const session = useRequireAuth();
+  const {data,status} = useSession();
+  return {data,isLoading:router.isFallback||status === "loading"}
+}
+type TenantIndexProps = ReturnType<typeof useTenantIndexRequiredData>
+function TenantIndex({data,isLoading}:TenantIndexProps) {
+ 
 
   const [mStartDate, mEndDate] = useGetDaysAgo(new Date(), 30);
   const [dStart, dEnd] = useTodayDateRange();
   const [yStart, yEnd] = useThisYearDateRange();
   const [wStart, wEnd] = useGetDaysAgo(new Date(), 7);
 
-  if (router.isFallback /* || loading */) return <Loader />;
   return (
     <div className="flex flex-col h-fit w-full gap-8">
       {/* stats section */}
@@ -640,5 +645,15 @@ function TenantIndex() {
   );
 }
 
-export default TenantIndex;
-TenantIndex.getLayout = getLayout;
+
+
+export default function Index() {
+
+  return (
+   
+      <CollectRequiredDataWrapper useHooks={useTenantIndexRequiredData}>
+          {(props) => <TenantIndex {...props} />}
+      </CollectRequiredDataWrapper>
+  );
+}
+Index.getLayout = getLayout;
