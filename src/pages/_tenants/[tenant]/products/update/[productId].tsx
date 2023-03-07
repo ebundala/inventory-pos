@@ -48,8 +48,8 @@ export function UpdateProduct({tenant,product,refetch}:ProductRequiredDataReturn
             // set initial form state         
             form.reset(product);            
         }
+    },[])
 
-    },[product])
    const {showProgress,callbacks} = useProgressFeedback("/products")
     
     const result = trpcWithHost.product.update.useMutation(callbacks);

@@ -20,6 +20,8 @@ import { useBrands } from "@/lib/hooks/useBrands";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
+import Image from "next/image";
+import { getImageUrls } from "@/core/util/getImageUrls";
 
 export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
   const [showModal, hide, data] = useModal();
@@ -129,6 +131,14 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
               },
             },
             {
+                Header: "Logo",
+                accessor: "image",
+                Cell: ({ row, value }: { row: any, value: string }) => {
+                  const urls = getImageUrls(value)
+                  return <Image src={urls[0]} height={40} width={40} alt="product picture"/>
+                }
+              },
+            {
               Header: "Brand name",
               accessor: "name",
             },
@@ -136,10 +146,7 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
               Header: "Description",
               accessor: "description",
             },
-            {
-              Header: "Logo",
-              accessor: "image",
-            },
+            
 
             {
               Header: "Actions",

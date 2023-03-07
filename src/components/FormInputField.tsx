@@ -1,5 +1,5 @@
 import { getPath, getValue, ZodFormFieldConfig } from "@/lib/util/form-gen";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 import { Controller, useWatch } from "react-hook-form";
 import { FormComboBox } from "./combobox";
 import Image from "next/image";
@@ -7,6 +7,7 @@ import CloudinaryUploadWidget from "./Cloudinary";
 import { BsTrash } from "react-icons/bs";
 import { json } from "stream/consumers";
 import { tryJsonParse } from "../core/util/tryJsonParse";
+import { CloudinaryCallbackImage } from "@/types";
 
 export function FormInputField({
   label,
@@ -121,7 +122,7 @@ export function FormInputField({
                 hidden={hidden}
                 onChange={(value) => {
                   console.log("files", value);
-
+                  
                   field.onChange({ target: { value } });
                 }}
               />
@@ -255,19 +256,24 @@ function UploadWidget({
   value,
   onChange,
 }: UploadWidgetProps) {
+
+   const callback = useCallback((image: CloudinaryCallbackImage) => {
+        console.log("onChange",tryJsonParse(value,"[]"))
+    if (isMultiple) {
+      const v = tryJsonParse<string[]>(value, "[]");
+      const str =JSON.stringify([...v, image.secure_url]);
+      onChange(str);
+    } else {
+      onChange(JSON.stringify([image.secure_url]));
+    }
+  },[isMultiple,onChange,value]);
+  
+  console.log("onRerender",tryJsonParse(value,"[]"))
   return (
     <CloudinaryUploadWidget
       multiple={isMultiple}
       maxFiles={maxFiles}
-      callback={(image) => {
-        
-        if (isMultiple) {
-          const v = tryJsonParse<string[]>(value, "[]");
-          onChange(JSON.stringify([...v, image.secure_url]));
-        } else {
-          onChange(JSON.stringify([image.secure_url]));
-        }
-      }}
+      callback={callback}
     >
       {({ open }) => {
         const files: string[] = tryJsonParse<string[]>(value, "[]")
@@ -303,11 +309,14 @@ function UploadWidget({
 
             <div
               onClick={(e) => {
-                e.preventDefault();
+               // e.preventDefault();
                 if (
                   (isMultiple && files.length < maxFiles) ||
                   files.length === 0
                 ) {
+                  open(e);
+                }
+                if(!isMultiple){
                   open(e);
                 }
               }}

@@ -6,8 +6,8 @@ import { useProducts } from "@/lib/hooks/useProducts";
 import { ProductWarehouse } from "@prisma/client";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
-
-
+import {getImageUrls} from "@/core/util/getImageUrls"
+import Image from "next/image";
 export function Products({products,refetch}:ProductListProps) {
     const router = useRouter();   
 
@@ -40,10 +40,11 @@ export function Products({products,refetch}:ProductListProps) {
                         }
                     },
                     {
-                        Header: "Image",
+                        Header: "Picture",
                         accessor: "image",
-                        Cell: ({ row, value }: { row: any, value: any }) => {
-                            return row?.original?.image;
+                        Cell: ({ row, value }: { row: any, value: string }) => {
+                            const urls = getImageUrls(value)
+                            return <Image src={urls[0]} height={40} width={40} alt="product picture"/>
                         }
                     },
                     {
