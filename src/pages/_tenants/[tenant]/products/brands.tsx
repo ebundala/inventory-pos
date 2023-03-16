@@ -22,6 +22,7 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import Image from "next/image";
 import { getImageUrls } from "@/core/util/getImageUrls";
+import { FormContainer } from "@/components/FormContainer";
 
 export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
   const [showModal, hide, data] = useModal();
@@ -76,6 +77,7 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
   });
 
   return (
+    <FormContainer title={<h2>All Brands</h2>}>
     <div className="flex flex-col justify-start">
       <div className="flex flex-row justify-end ">
         <button
@@ -191,6 +193,7 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
         }}
       />
     </div>
+    </FormContainer>
   );
 }
 function useRequiredBrandsData() {

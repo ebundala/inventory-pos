@@ -16,6 +16,7 @@ import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { FormContainer } from "@/components/FormContainer";
 
 export function CurrencyIndex({currencies,refetch}:CurrencyIndexProps) {
     const [showModal, hide, data] = useModal();
@@ -65,7 +66,9 @@ export function CurrencyIndex({currencies,refetch}:CurrencyIndexProps) {
    });
    
 
-    return <div className="flex flex-col justify-start">
+    return <FormContainer title={<h2>Currency</h2>}>
+
+     <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -161,7 +164,7 @@ export function CurrencyIndex({currencies,refetch}:CurrencyIndexProps) {
 
                 ]
             }} />
-    </div>
+    </div></FormContainer>
 
 }
 

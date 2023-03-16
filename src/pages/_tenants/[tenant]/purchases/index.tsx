@@ -5,6 +5,7 @@ import { usePurchases } from "@/lib/hooks/usePurchases";
 import { Purchase } from "@prisma/client";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { FormContainer } from "@/components/FormContainer";
 
 
 export function Purchases({purchases,refetch}:QuitationListProps) {
@@ -13,14 +14,14 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
     
 
 
-    return <div className="flex flex-col justify-start">
+    return (
+        <FormContainer title={<h2>All Purchases</h2>}>
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
                         router.push("/purchases/create");
-
-
                     }
                 }
             >create</button>
@@ -112,6 +113,8 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                 ]
             }} />
     </div>
+    </FormContainer>
+    )
 }
 
 type QuitationListProps = ReturnType<typeof usePurchases>

@@ -20,6 +20,7 @@ import { useCustomers } from "@/lib/hooks/useCustomers";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { FormContainer } from "@/components/FormContainer";
 
  function CustomerIndex({
   customers,
@@ -91,6 +92,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
   });
 
   return (
+    <FormContainer title={<h2>All Customers</h2>}>
     <div className="flex flex-col justify-start">
       <div className="flex flex-row justify-end ">
         <button
@@ -212,6 +214,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
         }}
       />
     </div>
+    </FormContainer>
   );
 }
 

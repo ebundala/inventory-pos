@@ -41,7 +41,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Print Barcode",
-                link: '/product/barcode',
+                link: '/products/barcode',
                 icon: <FaBarcode />,
                 subMenus: []
             },

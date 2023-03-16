@@ -15,6 +15,7 @@ import { useCategories } from "@/lib/hooks/useCategories";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { FormContainer } from "@/components/FormContainer";
 
 export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     const [showModal, hide, data] = useModal();
@@ -45,7 +46,8 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     }
    });
 
-    return <div className="flex flex-col justify-start">
+    return  <FormContainer title={<h2>All Category</h2>}>
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -125,6 +127,7 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                 ]
             }} />
     </div>
+    </FormContainer>
 
 }
 

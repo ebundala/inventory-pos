@@ -17,6 +17,7 @@ import { useSuppliers } from "@/lib/hooks/useSuppliers";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
+import { FormContainer } from "@/components/FormContainer";
 
 
 function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
@@ -82,7 +83,10 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
     }
    });
 
-    return <div className="flex flex-col justify-start">
+    return (
+        <FormContainer title={<h2>All Suppliers</h2>}>
+    
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -177,6 +181,8 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
                 ]
             }} />
     </div>
+    </FormContainer>
+    )
 
 }
 

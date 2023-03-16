@@ -5,6 +5,7 @@ import { useTransfers } from "@/lib/hooks/useTransfers";
 //import { useTransfers } from "@/lib/hooks/useTransfers";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { FormContainer } from "@/components/FormContainer";
 
 
 export function Transfers({ transfers, refetch }: TransferListProps) {
@@ -12,7 +13,7 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
     const dateFm = new Intl.DateTimeFormat()
     const currencyFormat = new Intl.NumberFormat()
 
-    return <div className="flex flex-col justify-start">
+    return  <FormContainer title={<h2>All Transfers</h2>}><div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -108,6 +109,7 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                 }} />
         </div>
     </div>
+    </FormContainer>
 }
 
 type TransferListProps = ReturnType<typeof useTransfers>

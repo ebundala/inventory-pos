@@ -8,11 +8,13 @@ import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import {getImageUrls} from "@/core/util/getImageUrls"
 import Image from "next/image";
+import { FormContainer } from "@/components/FormContainer";
 export function Products({products,refetch}:ProductListProps) {
     const router = useRouter();   
 
 
-    return <div className="flex flex-col justify-start">
+    return  <FormContainer title={<h2>All Products</h2>}>
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -33,7 +35,7 @@ export function Products({products,refetch}:ProductListProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -79,21 +81,23 @@ export function Products({products,refetch}:ProductListProps) {
                     },
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row, value }: { row: any, value: number }) => {
                             return <div className="flex flex-row gap-2">
                                  <button onClick={(e) => {
-                                    console.log(row);
+                                   router.push(`/products/view/${value}`)
 
                                 }} className="btn btn-success btn-xs rounded-md btn-outline">View</button>
                  
-                                <button onClick={(e) => {
-                                    const id = row.original.id;
-                                    //console.log(row);
-                                     router.push(`/products/update/${id}`);
+                                <button onClick={(e) => {                                  
+                                     router.push(`/products/update/${value}`);
                                 }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
+                                <button 
+                                onClick={(e) => {                                  
+                                    //delete here;
+                               }}
+                                className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
@@ -101,6 +105,7 @@ export function Products({products,refetch}:ProductListProps) {
                 ]
             }} />
     </div>
+    </FormContainer>
 }
 
 type ProductListProps = ReturnType<typeof useProducts>

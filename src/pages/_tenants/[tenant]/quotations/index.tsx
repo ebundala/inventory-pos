@@ -4,6 +4,7 @@ import { getLayout } from "@/layouts/getLayout"
 import { useQuotations } from "@/lib/hooks/useQuotations";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { FormContainer } from "@/components/FormContainer";
 
 
 export function Quotations({quotations,refetch}:QuitationListProps) {
@@ -12,13 +13,15 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
     
 
 
-    return <div className="flex flex-col justify-start">
+    return (
+        <FormContainer title={<h2>All Quotations</h2>}>
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
 
-
+                  router.push("/quotation/create")
                     }
                 }
             >create</button>
@@ -94,6 +97,8 @@ export function Quotations({quotations,refetch}:QuitationListProps) {
                 ]
             }} />
     </div>
+    </FormContainer>
+    )
 }
 
 type QuitationListProps = ReturnType<typeof useQuotations>
