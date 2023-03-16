@@ -15,9 +15,9 @@ import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
-export default function CurrencyIndex() {
-    const {currencies, result:{isLoading:loading, isSuccess:success},refetch} = useCurrencies();
+export function CurrencyIndex({currencies,refetch}:CurrencyIndexProps) {
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -63,7 +63,7 @@ export default function CurrencyIndex() {
         callbacks.onError(error);
     }
    });
-    if (loading) return <Loader />
+   
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -165,7 +165,19 @@ export default function CurrencyIndex() {
 
 }
 
-CurrencyIndex.getLayout = getLayout
+export default function Index(){
+    return (<CollectRequiredDataWrapper useHooks={useCurrencyRequiredData}>
+         {(props)=><CurrencyIndex {...props}/>}
+        </CollectRequiredDataWrapper>)
+}
+
+Index.getLayout = getLayout
+
+function useCurrencyRequiredData(){
+    const {currencies, result:{isLoading, isSuccess},refetch} = useCurrencies();
+return {isLoading,data:{currencies,refetch}}
+}
+type CurrencyIndexProps = ReturnType<typeof useCurrencyRequiredData>['data']
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;

@@ -1,13 +1,15 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["filteredRelationCount","extendedWhereUnique","metrics"]
-  //"referentialIntegrity","interactiveTransactions"
-  output   = "../prisma/generated/client"
-}
 
 generator zod {
   provider = "prisma-zod-generator"
 }
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["filteredRelationCount","extendedWhereUnique","metrics","referentialIntegrity"]
+  //"referentialIntegrity","interactiveTransactions"
+  output   = "./generated/client"
+}
+
 
 datasource db {
   provider             = "postgresql"

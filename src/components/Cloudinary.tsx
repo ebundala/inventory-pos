@@ -63,7 +63,7 @@ export default function CloudinaryUploadWidget({
           src="https://widget.cloudinary.com/v2.0/global/all.js"
           type="text/javascript"
         /> */}
-        <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" />
+        <script key={"uploader"} src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" />
       </Head>
       {children({ open })}
     </>

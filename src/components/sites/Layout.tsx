@@ -77,7 +77,7 @@ export default function Layout({ meta, children, subdomain }: LayoutProps) {
               {meta?.logo && (
                 <div className="h-8 w-8 inline-block rounded-full overflow-hidden align-middle">
                   <Image
-                    alt={meta?.title}
+                    alt={meta?.title!}
                     height={40}
                     src={meta?.logo}
                     width={40}

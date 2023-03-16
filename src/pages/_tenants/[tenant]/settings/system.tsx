@@ -105,7 +105,7 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
           useGetDataHook:useWarehouseSearch
         },
       },
-      logo: { label: "Change logo", ordering: 8, upload: true },
+      logo: { label: "Change logo", ordering: 18, upload: true },
       footer: { label: "footer", ordering: 9 },
       developedBy: { label: "Developed by", ordering: 10 },
       tenantId: { label: "tenantId", hidden: true, ordering: 11 },
@@ -120,12 +120,13 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
     if(setting){
       form.reset(setting);
     }
-   },[setting])
+   },[])
 
   return (
     <FormContainer title={<h1>System settings </h1>}>
       <form onSubmit={form.handleSubmit(async (data) => {
-        showProgress({animated:true});
+       
+       showProgress({animated:true});
         await (setting?.id ? updateSetting.mutateAsync(data as any) : createSetting.mutateAsync(data as any));
 
       }, (e) => {
@@ -138,7 +139,7 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
         </div>
         <div className="flex flex-row py-3 justify-start">
 
-          <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+          <button type="submit" className=" btn btn-primary rounded-md" >Submit </button>
         </div>
       </form>
     </FormContainer>
@@ -221,8 +222,7 @@ function PosSettings({tenant,posSetting,refetchPosSettings}:PosSettingProps) {
           })}
         </div>
         <div className="flex flex-row py-3 justify-start">
-
-          <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+          <button type="submit" className=" btn btn-primary rounded-md" >Submit </button>
         </div>
       </form>
     </FormContainer>

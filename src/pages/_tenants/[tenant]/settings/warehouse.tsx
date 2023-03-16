@@ -1,5 +1,4 @@
 import { FormInputField } from "@/components/FormInputField";
-import Loader from "@/components/sites/Loader";
 import { createWarehouseInputSchema, updateWarehouseInputSchema } from "@/core/warehouse/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useModal } from "@/lib/hooks/useModel";
@@ -9,15 +8,15 @@ import { useZodForm } from "@/lib/util/form-gen";
 import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
 import { Warehouse } from "@prisma/client";
-import { UseMutationResult } from "@tanstack/react-query";
 import { FC, ReactNode, useMemo } from "react";
-import { z, ZodFirstPartySchemaTypes } from "zod";
+import { ZodFirstPartySchemaTypes } from "zod";
 import { CustomTable } from "@/components/table";
 import { useWarehouses } from "@/lib/hooks/useWarehouses";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 
-export default function CurrencyIndex() {
-    const {warehouses, result:{isLoading:loading, isSuccess:success},refetch} = useWarehouses();
+export function WarehouseIndex({warehouses,refetch}:WarehouseIndexProps) {
+  
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
         tenantId:{
@@ -75,7 +74,7 @@ export default function CurrencyIndex() {
         callbacks.onError(error);
     }
    });
-    if (loading) return <Loader />
+  
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -185,7 +184,16 @@ export default function CurrencyIndex() {
 
 }
 
-CurrencyIndex.getLayout = getLayout
+
+export default function Index(){
+return (
+    <CollectRequiredDataWrapper useHooks={useWarehouseRequiredData}>
+    {(props)=><WarehouseIndex {...props} />}
+    </CollectRequiredDataWrapper>
+);
+}
+
+Index.getLayout = getLayout
 
 type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
     show: (data: ModalData) => void;
@@ -234,3 +242,13 @@ const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,mutateAsync, Mod
 
     )
 }
+
+function useWarehouseRequiredData() {
+    
+        const { warehouses, result: { isLoading, isSuccess }, refetch } = useWarehouses();
+
+        return { isLoading, data: { warehouses, refetch } };
+    
+}
+
+type WarehouseIndexProps = ReturnType<typeof useWarehouseRequiredData>['data']

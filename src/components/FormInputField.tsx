@@ -258,7 +258,7 @@ function UploadWidget({
 }: UploadWidgetProps) {
 
    const callback = useCallback((image: CloudinaryCallbackImage) => {
-        console.log("onChange",tryJsonParse(value,"[]"))
+      
     if (isMultiple) {
       const v = tryJsonParse<string[]>(value, "[]");
       const str =JSON.stringify([...v, image.secure_url]);
@@ -268,7 +268,7 @@ function UploadWidget({
     }
   },[isMultiple,onChange,value]);
   
-  console.log("onRerender",tryJsonParse(value,"[]"))
+  
   return (
     <CloudinaryUploadWidget
       multiple={isMultiple}
@@ -285,7 +285,7 @@ function UploadWidget({
               <div key={v} className="relative w-[80px] h-[80px]">
                 <BsTrash
                   size={28}
-                  className="absolute right-1 top-1 z-10 text-white"
+                  className="absolute right-1 top-1 z-10 text-primary"
                   onClick={() => {
                     const filtered = files.filter((e) => e !== v);
                     onChange(JSON.stringify(filtered));

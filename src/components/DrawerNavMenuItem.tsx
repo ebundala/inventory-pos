@@ -34,10 +34,8 @@ export function DrawerNavMenuItem({ menu }: { menu: LinkMenuData; }) {
                 {menu.subMenus!.map((submenu) => {
                     return (
                         <li key={submenu.name}>
-                            <Link href={submenu.link}>
-                                <a>
-                                    {submenu.icon}{submenu.name}
-                                </a>
+                            <Link href={submenu.link}>                                
+                                    {submenu.icon}{submenu.name}                                
                             </Link>
                         </li>);
                 })}

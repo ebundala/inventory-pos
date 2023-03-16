@@ -17,7 +17,7 @@ export function Products({products,refetch}:ProductListProps) {
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
-
+                     router.push("/products/create")
 
                     }
                 }
