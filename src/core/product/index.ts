@@ -11,7 +11,10 @@ const include = {
     where:{recordStatus:RecordStatus.ACTIVE}
   },
   productWarehouse:{
-    where:{recordStatus:RecordStatus.ACTIVE}
+    where:{recordStatus:RecordStatus.ACTIVE},
+    include:{
+      warehouse:true
+    }
   },
 };
 export type CreateProductVariantInput = {

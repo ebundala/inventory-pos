@@ -5,7 +5,7 @@ import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 import { ToastMessage } from "@/types/ToastMessage";
 import { WithShow } from "@/types/WithShow";
 import { TenantProp } from "@/types/TenantProp";
-import { Adjustment, Brand, Category, Currency, Customer, PosSetting, Product, Purchase, PurchaseReturn, Quotation, Sale, SaleReturn, Setting, Supplier, Transfer, Unit, Warehouse } from "@prisma/client";
+import { Adjustment, Brand, Category, Currency, Customer, PosSetting, Product, ProductVariant, ProductWarehouse, Purchase, PurchaseReturn, Quotation, Sale, SaleReturn, Setting, Supplier, Transfer, Unit, Warehouse } from "@prisma/client";
 
 export interface AppState {
    //
@@ -30,8 +30,26 @@ export interface AppState {
     editingAdjustment: Adjustment | null,
     adjustments: Adjustment[] | null;
     //
-    editingProduct: Product | null,
-    products:Product[]|null,
+    editingProduct:Product & {
+        brand: Brand | null;
+        category: Category;
+        productWarehouse: (ProductWarehouse & {
+            warehouse: Warehouse;
+        })[];
+        productUnit: Unit | null;
+        productPurchaseUnit: Unit | null;
+        productsSaleUnit: Unit | null;
+        productVariants: ProductVariant[];
+    } | null,
+    products:Product& {
+        brand: Brand | null;
+        category: Category;
+        productWarehouse: ProductWarehouse[];
+        productUnit: Unit | null;
+        productPurchaseUnit: Unit | null;
+        productsSaleUnit: Unit | null;
+        productVariants: ProductVariant[];
+    }[]|null,
 
     //data single
     defaultCustomer: Customer | null;
