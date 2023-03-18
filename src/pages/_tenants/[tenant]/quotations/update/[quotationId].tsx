@@ -286,21 +286,8 @@ export function UpdateQuotation({
     },
   });
   useSetComputedValues(form,data);
-  // useMemo(() => {
-  //   // console.log(data);
-  //   const values = form.getValues();
-  //   for (let v of data) {
-  //     // Todo find better way to detect changes
-  //     if (v.value !== getValue(v.path, values)) {
-  //       // console.log("changed ",v.value,getValue(v.path,values))
-  //       if (!v.value) {
-  //         form.setValue(v.path.join("."), v.default);
-  //       } else {
-  //         form.setValue(v.path.join("."), v.value);
-  //       }
-  //     }
-  //   }
-  // }, [data]);
+ 
+  
 
   const [taxRate, taxNet, discount, shipping, grandTotal, warehouseId] =
     form.watch([

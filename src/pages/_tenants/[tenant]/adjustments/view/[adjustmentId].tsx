@@ -1,38 +1,9 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable react-hooks/exhaustive-deps */
+
 import { FormContainer } from "@/components/FormContainer";
-import { FormInputField } from "@/components/FormInputField";
-import { updateAdjustmentInputSchema } from "@/core/adjustment/index.zod";
 import { getLayout } from "@/layouts/getLayout";
-import { useZodForm } from "@/lib/util/form-gen";
-import { ParsedUrlQuery } from "querystring";
-import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
-import { useEffect, useMemo } from "react";
-import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
-import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
-import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import {
-  AdjustmentDetail,
-  Prisma,
-  Product,
-  ProductVariant,
-  ProductWarehouse,
-} from "@prisma/client";
-import { CustomTable } from "@/components/table";
-import { FormComboBox } from "@/components/combobox";
-import { useProductSearch } from "@/lib/hooks/useProductSearch";
-import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
-import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
-import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
-import { calculateStock } from "@/lib/util/calculateStock";
-import { TStockDataInput } from "@/types/TStockDataInput";
-import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
-import { useAdjustmentStockConstraints } from "@/lib/hooks/useAdjustmentStockConstraints";
+import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 
 export function ViewAdjustment({
   adjustment,
@@ -40,7 +11,7 @@ export function ViewAdjustment({
   refetch,
 }: UpdateAdjustmentProps) {
   
-
+const fmt = new Intl.DateTimeFormat();
   if ((!adjustment || !adjustment?.id) && !loading)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
@@ -50,7 +21,44 @@ export function ViewAdjustment({
 
   return (
     <FormContainer title={<h2>Adjustment ref# {adjustment?.ref}</h2>}>
-      
+      <div className="flex flex-row pt-4">
+        <table className="table xs:w-full w-1/3">
+          <tbody>
+            <tr>
+              <td>Date</td>
+              <td>{fmt.format(adjustment?.date)}</td>
+            </tr>
+            <tr>
+              <td>Reference</td>
+              <td>{adjustment?.ref}</td>
+            </tr>
+            <tr>
+              <td>Warehouse</td>
+              <td>{adjustment?.warehouse.name}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div className="flex flex-row pt-4">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Code</th>
+              <th>Quantity</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {adjustment?.adjustmentDetails.map((v)=>(<tr key={v.id}>
+              <td>{getProductFormatedName(v as any)}</td>
+              <td>{v.product.code}</td>
+              <td>{v.quantity}</td>
+              <td>{v.type}</td>
+            </tr>))}
+          </tbody>
+        </table>
+      </div>
     </FormContainer>
   );
 }

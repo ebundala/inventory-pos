@@ -4,72 +4,54 @@ import { ModalData } from "@/types/ModalData";
 import { ProgressIndicatorData } from "@/types/ProgressIndicatorData";
 import { ToastMessage } from "@/types/ToastMessage";
 import { WithShow } from "@/types/WithShow";
-import { TenantProp } from "@/types/TenantProp";
-import { Adjustment, Brand, Category, Currency, Customer, PosSetting, Product, ProductVariant, ProductWarehouse, Purchase, PurchaseReturn, Quotation, Sale, SaleReturn, Setting, Supplier, Transfer, Unit, Warehouse } from "@prisma/client";
+import { RouterOutput } from "@/lib/routers";
+
+
 
 export interface AppState {
+    
    //
-    editingPurchase: Purchase | null
-    purchases: Purchase[]|null
+    editingPurchase: RouterOutput['purchase']['get'],
+    purchases: RouterOutput['purchase']['search'],
     //
-    editingSale: Sale | null,
-    sales: Sale [] | null,
+    editingSale: RouterOutput['sale']['get']
+    sales: RouterOutput['sale']['search']
    //
-    editingSaleReturn: SaleReturn | null,
-    saleReturns: SaleReturn [] | null,
+    editingSaleReturn: RouterOutput['sale_return']['get']
+    saleReturns: RouterOutput['sale_return']['search']
     //
-    editingPurchaseReturn: PurchaseReturn | null,
-    purchaseReturns: PurchaseReturn [] | null,
+    editingPurchaseReturn: RouterOutput['purchase_return']['get']
+    purchaseReturns:  RouterOutput['purchase_return']['search']
     //
-    editingTransfer: Transfer | null,
-    transfers: Transfer[] | null,
+    editingTransfer:  RouterOutput['transfer']['get']
+    transfers:  RouterOutput['transfer']['search']
     //
-    editingQuotation: Quotation | null,
-    quotations: Quotation[] | null,
+    editingQuotation: RouterOutput['quotation']['get'],
+    quotations:  RouterOutput['quotation']['search']
     //
-    editingAdjustment: Adjustment | null,
-    adjustments: Adjustment[] | null;
+    editingAdjustment:  RouterOutput['adjustment']['get']
+    adjustments:  RouterOutput['adjustment']['search']
     //
-    editingProduct:Product & {
-        brand: Brand | null;
-        category: Category;
-        productWarehouse: (ProductWarehouse & {
-            warehouse: Warehouse;
-        })[];
-        productUnit: Unit | null;
-        productPurchaseUnit: Unit | null;
-        productsSaleUnit: Unit | null;
-        productVariants: ProductVariant[];
-    } | null,
-    products:Product& {
-        brand: Brand | null;
-        category: Category;
-        productWarehouse: ProductWarehouse[];
-        productUnit: Unit | null;
-        productPurchaseUnit: Unit | null;
-        productsSaleUnit: Unit | null;
-        productVariants: ProductVariant[];
-    }[]|null,
+    editingProduct: RouterOutput['product']['get'],
+    products: RouterOutput['product']['search'],
 
     //data single
-    defaultCustomer: Customer | null;
-    defaultCurrency: Currency | null;
-    defaultWarehouse: Warehouse | null,
-    tenant: TenantProp;
+    defaultCustomer:  RouterOutput['people']['get']
+    defaultCurrency:  RouterOutput['setting']['currency']['get']
+    defaultWarehouse:  RouterOutput['setting']['warehouse']['get'],
+    tenant:  RouterOutput['tenant']['get'];
 
     //data lists
-    suppliers: Supplier[] | null;
-    currencies: Currency[] | null;
-    units: Unit[] | null;
-    brands: Brand[] | null;
-    categories: Category[] | null
-    customers: Customer[] | null;
-    warehouses: Warehouse[] | null;
+    suppliers:  RouterOutput['people']['supplier']['search'];
+    currencies:  RouterOutput['setting']['currency']['search'];
+    units: RouterOutput['product']['unit']['search'];
+    brands: RouterOutput['product']['brand']['search'];
+    categories: RouterOutput['product']['category']['search'];
+    customers: RouterOutput['people']['search'];
+    warehouses: RouterOutput['setting']['warehouse']['search'];
     //Settings
-    posSetting: PosSetting | null;
-    tenantSetting: Setting&{
-        warehouse?:Warehouse | null,customer?:Customer|null,currency?:Currency|null
-    } | null;
+    posSetting: RouterOutput['setting']['pos']['get'];
+    tenantSetting: RouterOutput['setting']['get'];
     host: string | null;
     themes: string[];
     

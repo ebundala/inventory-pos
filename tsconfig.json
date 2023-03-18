@@ -29,6 +29,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".vscode/deleted/login.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ],
   "exclude": ["node_modules",".vscode"]
 }

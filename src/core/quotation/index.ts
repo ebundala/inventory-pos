@@ -9,6 +9,9 @@ const include = {
             product: {
                 include: {
                   productWarehouse: true,
+                  purchaseUnit:true,
+                  saleUnit:true,
+                  unit:true
                 },
               },
              productVariant: true, unit: true,
@@ -175,7 +178,7 @@ export const deleteManyQuotation = async (ids: QuotationIds, ctx: TenantContext)
 export const findManyQuotation = async (input: Omit<Prisma.QuotationFindManyArgs, "select" | "include">, ctx: TenantContext) => {
 const {where,...rest}=input;
     return ctx.tx!.quotation.findMany(
-        {
+        { include,
             where:{...where,recordStatus:RecordStatus.ACTIVE},
             ...rest
         }

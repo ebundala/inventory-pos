@@ -55,6 +55,7 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
         form.setValue(Prisma.QuotationScalarFieldEnum.date, new Date())
         form.setValue(Prisma.QuotationScalarFieldEnum.ref, Date.now().toString())
         form.setValue(Prisma.QuotationScalarFieldEnum.taxRate, 0)
+        form.setValue(Prisma.QuotationScalarFieldEnum.taxNet, 0)
         form.setValue(Prisma.QuotationScalarFieldEnum.discount, 0)
         form.setValue(Prisma.QuotationScalarFieldEnum.shipping, 0)
 
@@ -152,22 +153,7 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
         }
     })
     useSetComputedValues(form,data)
-    // useMemo(() => {
-    //     // console.log(data);
-    //     const values = form.getValues();
-    //     for (let v of data) {
-    //         // Todo find better way to detect changes 
-    //         if (v.value !== getValue(v.path, values)) {
-    //             // console.log("changed ",v.value,getValue(v.path,values))
-    //             if (!v.value) {
-    //                 form.setValue(v.path.join('.'), v.default);
-    //             } else {
-    //                 form.setValue(v.path.join('.'), v.value);
-
-    //             }
-    //         }
-    //     }
-    // }, [data]);
+   
 
     const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
         Prisma.QuotationScalarFieldEnum.taxRate,
