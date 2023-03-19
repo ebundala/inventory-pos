@@ -26,7 +26,7 @@ export function usePurchases(args?: z.infer<typeof PurchaseFindManySchema>) {
     const refetch = useCallback(async () => {
         const rResult = await result.refetch();
         if (result.isSuccess) {
-            setValue({ purchases: rResult.data ?? null });
+            setValue({ purchases: rResult.data });
         }
     }, [result.refetch]);
 

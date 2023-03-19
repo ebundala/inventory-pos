@@ -1,10 +1,10 @@
-/* eslint-disable react/jsx-key */
 import {
   useTable,
   useGlobalFilter,
   useSortBy,
   usePagination,
 } from "react-table";
+
 import { useMemo, Fragment, useCallback, ReactNode } from "react";
 import {
   FaSearch,
@@ -388,7 +388,7 @@ type THeaders = () => {
   Cell?: any;
 }[];
 
-type TableProps<T extends any = any> = {
+type TableProps<T> = {
   rowsData: T[];
   collumsData: THeaders;
   pageOptions?: TPageOptions;
@@ -396,15 +396,15 @@ type TableProps<T extends any = any> = {
   pagenation?: boolean;
  colDeps?:any[]
 };
-export function CustomTable({
+export function CustomTable<T extends object = any>({
   rowsData,
   collumsData,
   pageOptions,
   search = true,
   pagenation = true,
   colDeps=[]
-}: TableProps) {
-  const data = useMemo(() => rowsData, [rowsData]);
+}: TableProps<T>) {
+  const data:T[] = useMemo(() => rowsData, [rowsData]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const columns = useMemo(collumsData, colDeps);
   const {
@@ -421,7 +421,7 @@ export function CustomTable({
     gotoPage,
     setPageSize,
     state: { pageIndex, pageSize },
-  } = useTable(
+  } = useTable<T>(
     {
       columns,
       data,

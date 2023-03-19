@@ -4,6 +4,7 @@ import { getLayout } from "@/layouts/getLayout";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { numberFormat } from "@/lib/util";
 
 export function ViewAdjustment({
   adjustment,
@@ -53,7 +54,7 @@ const fmt = new Intl.DateTimeFormat();
             {adjustment?.adjustmentDetails.map((v)=>(<tr key={v.id}>
               <td>{getProductFormatedName(v as any)}</td>
               <td>{v.product.code}</td>
-              <td>{v.quantity}</td>
+              <td>{numberFormat()({value:v.quantity})}<span className="text-primary pl-2 text-sm">{v.product?.productUnit?.shortName}</span></td>
               <td>{v.type}</td>
             </tr>))}
           </tbody>

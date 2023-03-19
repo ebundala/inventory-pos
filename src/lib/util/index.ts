@@ -25,6 +25,18 @@ export const truncate = (str: string, num: number) => {
 //   return `data:image/png;base64,${base64}`;
 // };
 
-export const APP_HOST = (new URL(process.env.NEXTAUTH_URL!)).host;
+export const APP_HOST = (new URL(process.env.NEXT_PUBLIC_HOST!)).host;
 
 
+export function numberFormat(locales?: string | string[],options?:Intl.NumberFormatOptions): any {
+  const f = new Intl.NumberFormat(locales, options);
+  return ({ value }: { value: number; }) => {
+    return f.format(value);
+  };
+}
+export function dateFormat(locales?: string | string[],options?:Intl.DateTimeFormatOptions): any {
+  const f = new Intl.DateTimeFormat(locales, options);
+  return ({ value }: { value: number; }) => {
+    return f.format(value);
+  };
+}

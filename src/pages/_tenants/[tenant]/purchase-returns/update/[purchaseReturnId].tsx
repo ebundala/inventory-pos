@@ -5,14 +5,13 @@ import { FormInputField } from "@/components/FormInputField";
 import { updatePurchaseReturnInputSchema } from "@/core/purchase_return/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTenant } from "@/lib/hooks/useTenant";
-import { getValue, useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
+import { getValue, useZodForm } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
 import { usePurchaseReturn } from "@/lib/hooks/usePurchaseReturn";
 import { useEffect, useMemo } from 'react';
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { renderFieldArrayForm } from "@/lib/util/renderFieldArrayForm";
 import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
@@ -201,16 +200,7 @@ export function UpdatePurchaseReturn({tenant,purchaseReturn,defaultCurrency,refe
         }
     })
 useSetComputedValues(form,data);
-    // useEffect(() => {
-    //     // console.log(data);
-    //     const values = form.getValues();
-    //     for (let v of data) {
-    //         if (getValue(['value'], v) !== getValue(v.path, values)) {
-    //             console.log("changed ", v.value, getValue(v.path, values))
-    //             form.setValue(v.path.join('.'), v.value);
-    //         }
-    //     }
-    // }, [data]);
+   
 
     const [taxRate, taxNet, discount, shipping, grandTotal] = form.watch([
         Prisma.PurchaseReturnScalarFieldEnum.taxRate,
@@ -256,6 +246,13 @@ useSetComputedValues(form,data);
         const constraints = usePurchaseReturnConstraints(form.control);
         useSetComputedValues(form,constraints);
         
+
+
+        if (!purchaseReturn || !purchaseReturn?.id) return (
+            <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
+                <span className="m-auto">Invalid record</span>
+            </div>)
+            
     return (
         <FormContainer title={<h2>Update Purchase Return</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {

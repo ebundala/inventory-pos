@@ -341,6 +341,7 @@ export const findManyPurchase = async (
 ) => {
   const {where,...rest} = input;
   return ctx.tx!.purchase.findMany({
+    include,
     where:{...where,recordStatus:RecordStatus.ACTIVE},
     ...rest,
   });

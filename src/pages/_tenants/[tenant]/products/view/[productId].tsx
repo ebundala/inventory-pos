@@ -10,11 +10,13 @@ import JsBarcode from "jsbarcode";
 import { getImageUrls } from "@/core/util/getImageUrls";
 import Image from "next/image";
 import { BsArrow90DegLeft, BsArrow90DegRight, BsArrowBarLeft, BsArrowBarRight, BsArrowDown, BsArrowLeft, BsArrowRight } from "react-icons/bs";
+import { numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 interface ProductPathProps extends ParsedUrlQuery {
     productId: string;
 }
-export function ViewProduct({ tenant, product, refetch }: ProductRequiredDataReturnType['data']) {
+export function ViewProduct({ defaultCurrency, product, refetch }: ProductRequiredDataReturnType['data']) {
 
    useEffect(()=>{
     JsBarcode("#barcode").init();
@@ -61,19 +63,27 @@ export function ViewProduct({ tenant, product, refetch }: ProductRequiredDataRet
                             </tr>
                             <tr>
                                 <td>Cost</td>
-                                <td>{product.cost}</td>
+                                <td>{numberFormat(undefined,{currency:defaultCurrency?.code, style: 'currency',})({value:product.cost})}</td>
                             </tr>
                             <tr>
                                 <td>Price</td>
-                                <td>{product.price}</td>
+                                <td>{numberFormat(undefined,{currency:defaultCurrency?.code, style: 'currency',})({value:product.price})}</td>
                             </tr>
                             <tr>
-                                <td>Unit</td>
+                                <td>Stock Unit</td>
                                 <td>{product.productUnit?.name}</td>
                             </tr>
                             <tr>
+                                <td>Purchasing Unit</td>
+                                <td>{product.productPurchaseUnit?.name}</td>
+                            </tr>
+                            <tr>
+                                <td>Selling Unit</td>
+                                <td>{product.productsSaleUnit?.name}</td>
+                            </tr>
+                            <tr>
                                 <td>Tax</td>
-                                <td>{product.taxNet}</td>
+                                <td>{numberFormat(undefined,{style:"percent"})({value:(product.taxNet??0)/100})}</td>
                             </tr>
                             <tr>
                                 <td>Tax type</td>
@@ -81,7 +91,7 @@ export function ViewProduct({ tenant, product, refetch }: ProductRequiredDataRet
                             </tr>
                             <tr>
                                 <td>Stock alert</td>
-                                <td>{product.stockAlert}</td>
+                                <td>{numberFormat()({value:product.stockAlert})}<span className="text-primary text-sm pl-2">{product.productUnit?.shortName}</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -90,12 +100,13 @@ export function ViewProduct({ tenant, product, refetch }: ProductRequiredDataRet
                     <div className="shadow-md rounded-md h-[440px]  mx-2 bg-slate-400">
                          <Image width={440} height={240} src={urls[index]} className="w-full h-full" alt="prouduct"/>
                     </div>
-                    {urls.length&&<div className="flex flex-row justify-evenly p-4">
+                    {urls.length&&<div className="flex flex-row justify-center p-4">
                         {index!=0&&<BsArrowLeft onClick={()=>{
                             if(index-1>=0){
                              setUrlIndex(index-1);
                             }
                         }} size={32}/>}
+                        <span className="text-info text-lg mx-4">{index+1}/{urls.length}</span>
                         {(index+1<urls.length)&&<BsArrowRight onClick={()=>{
                             if(index+1<urls.length){
                              setUrlIndex(index+1);
@@ -121,7 +132,7 @@ export function ViewProduct({ tenant, product, refetch }: ProductRequiredDataRet
                    {product.productWarehouse.map((v)=> (<tr>
                         <td>{v.warehouse.name}</td>
                        {product.isVariant&&<td>{product.productVariants.find((e)=>e.id===v.productVariantId)?.name}</td>}
-                        <td>{v.qty} <span className="text text-primary">{product.productUnit?.shortName}</span></td>
+                        <td>{numberFormat()({value:v.qty})} <span className="text text-primary">{product.productUnit?.shortName}</span></td>
                     </tr>))}
                 </tbody>
               </table>
@@ -150,8 +161,8 @@ function useProductRequiredData() {
     const router = useRouter();
     const productId = parseInt((router.query as ProductPathProps).productId ?? "");
     const { product, result: { isLoading: loading, }, refetch } = useProduct(productId);
-    const { tenant, result: { isLoading: tenantLoading } } = useTenant();
-    return { data: { tenant, product, refetch }, isLoading: tenantLoading || loading };
+    const {data,isLoading} = useAppConfig()
+    return { data: { ...data, product, refetch }, isLoading: isLoading || loading };
 }
 type ProductRequiredDataReturnType = ReturnType<typeof useProductRequiredData>
 

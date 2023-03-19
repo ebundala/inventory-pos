@@ -3,12 +3,13 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { CustomTable } from "@/components/table"
 import { getLayout } from "@/layouts/getLayout"
 import { useProducts } from "@/lib/hooks/useProducts";
-import { ProductWarehouse } from "@prisma/client";
+import { ProductWarehouse, Unit } from "@prisma/client";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import {getImageUrls} from "@/core/util/getImageUrls"
 import Image from "next/image";
 import { FormContainer } from "@/components/FormContainer";
+import { numberFormat } from "@/lib/util";
 export function Products({products,refetch}:ProductListProps) {
     const router = useRouter();   
 
@@ -66,17 +67,18 @@ export function Products({products,refetch}:ProductListProps) {
                     {
                         Header: "Price",
                         accessor: "price",
+                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
 
                     },
-                    {
-                        Header: "Unit",
-                        accessor: "productUnit.name"
-                    },
+                   
                     {
                         Header: "Quantity",
                         accessor: "productWarehouse",
                         Cell: ({ row, value }: { row: any, value: ProductWarehouse[] }) => {
-                           return value.reduce((p,c,i,arr)=>p+c.qty,0)
+                           const total = value.reduce((p,c,i,arr)=>p+c.qty,0)
+                          const v=  numberFormat(undefined,{maximumFractionDigits:2})({value:total})
+                          const unit = row.original?.productUnit as Unit;
+                          return <span>{v}<span className="text-primary text-sm pl-2">{unit?.shortName}</span></span>
                         }
                     },
                     {

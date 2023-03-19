@@ -17,6 +17,9 @@ const include = {
       product: {
         include: {
           productWarehouse: true,
+          productUnit:true,
+          productsSaleUnit:true,
+          productPurchaseUnit:true
         },
       },
       productVariant: true,
@@ -355,6 +358,7 @@ export const findManyPurchaseReturn = async (
 ) => {
   const {where,...rest} = input;
   return ctx.tx!.purchaseReturn.findMany({
+    include,
     where:{...where,recordStatus:RecordStatus.ACTIVE},
     ...rest,
   });

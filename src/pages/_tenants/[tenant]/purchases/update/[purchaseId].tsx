@@ -204,6 +204,13 @@ export function UpdatePurchase({tenant,purchase,defaultCurrency,refetch}:Purchas
     const checkDuplicates = useEnforceUniqueProduct(purchaseDetailsForm as any);
    const constraints = usePurchaseConstraints(form.control);
     useSetComputedValues(form,constraints);
+
+
+    if (!purchase || !purchase?.id) return (
+        <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
+            <span className="m-auto">Invalid record</span>
+        </div>)
+
     return (
         <FormContainer title={<h2>Update Purchase</h2>}>
             <form onSubmit={form.handleSubmit(async (data) => {

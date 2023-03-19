@@ -12,6 +12,7 @@ import {
 import { OrderSummary } from "@/components/OrderSummary";
 import { CustomTable } from "@/components/table";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { numberFormat } from "@/lib/util";
 
 interface QuotationPathProps extends ParsedUrlQuery {
   quotationId: string;
@@ -28,7 +29,7 @@ export function ViewQuotation({
   if (!quotation || !quotation?.id)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-        <span className="m-auto">Invalid quotation</span>
+        <span className="m-auto">Invalid record</span>
       </div>
     );
   return (
@@ -94,6 +95,8 @@ export function ViewQuotation({
                 Header: `Unit price (${symbol})`,
                 accessor: "price",
                 disableSortBy: true,
+                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+
               },
               
               {
@@ -101,24 +104,28 @@ export function ViewQuotation({
                 accessor: "quantity",
                 disableSortBy: true,
                 Cell:({row,value}:{row:any,value:number})=>{
-                    const unit = row.original?.product?.saleUnit as Unit;
-                    return <span>{value}<span className=" text-sm text-primary pl-2">{unit?.shortName}</span></span>
+                    const unit = row.original?.product?.productsSaleUnit as Unit;
+                    const v =numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})({value});
+                    return <span>{v}<span className=" text-sm text-primary pl-2">{unit?.shortName}</span></span>
                 }
               },
               {
                   Header: `Discount (${symbol})`,
                   accessor: "discount",
-                  disableSortBy: true
+                  disableSortBy: true,
+                  Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
               },
               {
                 Header: `Tax (${symbol})`,
-                accessor: "tax",
+                accessor: "taxNet",
                 disableSortBy: true,
+                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
               },
               {
                 Header: `Subtotal (${symbol})`,
                 accessor: "total",
                 disableSortBy: true,
+                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
               }
              
             ]}
@@ -139,6 +146,7 @@ export function ViewQuotation({
     </FormContainer>
   );
 }
+
 
 export default function Index() {
   return (

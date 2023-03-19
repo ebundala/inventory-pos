@@ -6,13 +6,11 @@ import { Purchase } from "@prisma/client";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { dateFormat, numberFormat } from "@/lib/util";
 
 
 export function Purchases({purchases,refetch}:QuitationListProps) {
     const router = useRouter();
-    const dateFm = new Intl.DateTimeFormat()
-    
-
 
     return (
         <FormContainer title={<h2>All Purchases</h2>}>
@@ -36,7 +34,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -45,9 +43,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     {
                         Header: "Date",
                         accessor: "date",
-                        Cell: ({ row, value }: { row: any, value: any }) => {
-                            return dateFm.format(value);                            
-                        }
+                        Cell:dateFormat()
                     },
                     {
                         Header: "Reference",
@@ -70,11 +66,13 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     },
                     {
                         Header: "Grand Total",
-                        accessor: "grandTotal"
+                        accessor: "grandTotal",
+                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
                     },
                     {
                         Header: "Paid",
-                        accessor: "paidAmount"
+                        accessor: "paidAmount",
+                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
                     },
                     {
                         Header: "Due",
@@ -82,7 +80,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                         Cell:({row}:{row:any})=>{
                             const v= row.original as Purchase;
                             const due = v.grandTotal-v.paidAmount;
-                            return due;
+                            return numberFormat()({value:due});
                         }
                     },
                     {
@@ -91,21 +89,25 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     },
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ value }: {value: number }) => {
                             return <div className="flex flex-row gap-2">
                                  <button onClick={(e) => {
-                                    console.log(row);
+                                    router.push(`/purchases/view/${value}`)
 
                                 }} className="btn btn-success btn-xs rounded-md btn-outline">View</button>
                  
                                 <button onClick={(e) => {
-                                    const id = row.original.id;
-                                    //console.log(row);
-                                     router.push(`/purchases/update/${id}`);
+                                    
+                                     router.push(`/purchases/update/${value}`);
                                 }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
+                                <button 
+                                onClick={(e) => {
+                                    
+
+                                }}
+                                className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
