@@ -7,6 +7,9 @@ const include = {
             product:{
                 include: {
                   productWarehouse: true,
+                  productUnit:true,
+                  productsSaleUnit:true,
+                  productPurchaseUnit:true,
                 },
               },
             productVariant:true

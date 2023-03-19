@@ -422,7 +422,7 @@ useSetComputedValues(form,data);
   if (!saleReturn || !saleReturn?.id)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-        <span className="m-auto">Invalid saleReturn</span>
+        <span className="m-auto">Invalid record</span>
       </div>
     );
   return (

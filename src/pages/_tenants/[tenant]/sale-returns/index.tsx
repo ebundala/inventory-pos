@@ -6,6 +6,7 @@ import { PaymentSaleReturn, SaleReturn } from "@prisma/client";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { dateFormat, numberFormat } from "@/lib/util";
 
 
 export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
@@ -36,7 +37,7 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                         {
                             Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                             ,
-                            accessor: "id",
+                            accessor: "tenantId",
                             width: 24,
                             disableSortBy: true,
                             Cell: ({ row, value }: { row: any, value: any }) => {
@@ -46,9 +47,7 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                         {
                             Header: "Date",
                             accessor: "date",
-                            Cell: ({ row, value }: { row: any, value: any }) => {
-                                return dateFm.format(value);
-                            }
+                            Cell: dateFormat()
                         },
                         {
                             Header: "Reference",
@@ -81,13 +80,13 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                         {
                             Header: "Grand total",
                             accessor: "grandTotal",
-                            Cell: ({ value }: { value: number }) => currencyFormat.format(value ?? 0)
+                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
 
                         },
                         {
                             Header: "Paid",
                             accessor: "paidAmount",
-                            Cell: ({ value }: { value: number }) => currencyFormat.format(value ?? 0)
+                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
                         },
                         {
                             Header: "Due",
@@ -98,7 +97,8 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                                 }
                                 const payments = saleReturn.paymentSaleReturns.map((v) => v.amount - v.change).reduce((v, cv, i, arr) => v + cv, 0)
                                 const due = saleReturn.grandTotal - payments;
-                                return currencyFormat.format(due ?? 0);
+                                return numberFormat(undefined,{maximumFractionDigits:2})({value:due});
+
                             }
                         }, {
                             Header: "Payment status",
@@ -106,21 +106,24 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                         },
                         {
                             Header: "Actions",
-                            accessor: "tenantId",
+                            accessor: "id",
                             disableSortBy: true,
                             Cell: ({ row, value }: { row: any, value: any }) => {
                                 return <div className="flex flex-row gap-2">
                                     <button onClick={(e) => {
-                                        console.log(row);
+                                        router.push(`/sale-returns/view/${value}`);
 
                                     }} className="btn btn-success btn-xs rounded-md btn-outline">View</button>
 
                                     <button onClick={(e) => {
-                                        const id = row.original.id;
-                                        //console.log(row);
-                                        router.push(`/sale-returns/update/${id}`);
+                                        
+                                        router.push(`/sale-returns/update/${value}`);
                                     }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
-                                    <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
+                                    <button
+                                    onClick={()=>{
+
+                                    }} 
+                                    className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                                 </div>
                             }
                         },

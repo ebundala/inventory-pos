@@ -6,6 +6,7 @@ import { useTransfers } from "@/lib/hooks/useTransfers";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { dateFormat, numberFormat } from "@/lib/util";
 
 
 export function Transfers({ transfers, refetch }: TransferListProps) {
@@ -34,7 +35,7 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                         {
                             Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                             ,
-                            accessor: "id",                           
+                            accessor: "tenantId",                           
                             disableSortBy: true,
                             Cell: ({ row, value }: { row: any, value: any }) => {
                                 return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -43,9 +44,7 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                         {
                             Header: "Date",
                             accessor: "date",
-                            Cell: ({ row, value }: { row: any, value: any }) => {
-                                return dateFm.format(value);
-                            }
+                            Cell: dateFormat()
                         },
                         {
                             Header: "Reference",
@@ -68,13 +67,13 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                         {
                             Header: "Items",
                             accessor: "items",
-
+                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
 
                         },
                         {
                             Header: "Grand total",
                             accessor: "grandTotal",
-                            Cell: ({ value }: { value: number }) => currencyFormat.format(value ?? 0)
+                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
 
                         },
                         {
@@ -86,21 +85,22 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                         
                         {
                             Header: "Actions",
-                            accessor: "tenantId",
+                            accessor: "id",
                             disableSortBy: true,
                             Cell: ({ row, value }: { row: any, value: any }) => {
                                 return <div className="flex flex-row gap-2">
                                     <button onClick={(e) => {
-                                        console.log(row);
+                                        router.push(`/transfers/view/${value}`)
 
                                     }} className="btn btn-success btn-xs rounded-md btn-outline">View</button>
 
                                     <button onClick={(e) => {
-                                        const id = row.original.id;
-                                        //console.log(row);
-                                        router.push(`/transfers/update/${id}`);
+                                        
+                                        router.push(`/transfers/update/${value}`);
                                     }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
-                                    <button className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
+                                    <button 
+                                    onClick={()=>{}}
+                                    className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                                 </div>
                             }
                         },
