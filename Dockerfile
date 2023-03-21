@@ -19,6 +19,8 @@ COPY . .
 # RUN yarn run prisma:generate
 #RUN rm -rf node_modules && yarn install --frozen-lockfile
 ARG NEXT_PUBLIC_HOST=https://iniswap.finance
+ARG NEXT_PUBLIC_CLOUD_NAME=ddbqbk80e
+ARG NEXT_PUBLIC_CLOUD_PREFIX=exinhn0j
 RUN yarn run build
 #attach static files volume here
 VOLUME [ "/usr/src/app/public" ] 

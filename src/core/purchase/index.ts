@@ -12,6 +12,9 @@ const include = {
       product: {
         include: {
           productWarehouse: true,
+          productUnit: true,
+          productPurchaseUnit: true,
+          productsSaleUnit: true,
         },
       },
       productVariant: true,
@@ -19,7 +22,7 @@ const include = {
     },
   },
   paymentPurchases: {
-    where:{recordStatus:RecordStatus.ACTIVE}
+    where: { recordStatus: RecordStatus.ACTIVE }
   },
 };
 export type CreatePurchaseDetailsInput = {
@@ -72,23 +75,24 @@ export const createPurchase = async (
     input;
   let purchaseData = {};
   if (purchaseDetails && purchaseDetails.length) {
-    const productWarehouse = await getProductWarehouse(ctx,purchaseDetails,data.warehouseId);
-   if(data.status === "Received"){
-   const updatePw = purchaseDetails.map((v)=>{   
-      const pw = getOneProductWarehouse(productWarehouse,{
-        productId:v.productId,
-        productVariantId:v.productVariantId,
-        warehouseId:data.warehouseId!});
-       
-      if(!pw) return null;
-      return ctx.tx!.productWarehouse.update({
-        where:{id:pw!.id},data:{
-          qty:pw!.qty+v.quantity
-        }
-      });
-    }).filter((v)=>v)
-    await Promise.allSettled(updatePw);
-  }
+    const productWarehouse = await getProductWarehouse(ctx, purchaseDetails, data.warehouseId);
+    if (data.status === "Received") {
+      const updatePw = purchaseDetails.map((v) => {
+        const pw = getOneProductWarehouse(productWarehouse, {
+          productId: v.productId,
+          productVariantId: v.productVariantId,
+          warehouseId: data.warehouseId!
+        });
+
+        if (!pw) return null;
+        return ctx.tx!.productWarehouse.update({
+          where: { id: pw!.id }, data: {
+            qty: pw!.qty + v.quantity
+          }
+        });
+      }).filter((v) => v)
+      await Promise.allSettled(updatePw);
+    }
     purchaseData = {
       purchaseDetails: {
         createMany: {
@@ -184,42 +188,42 @@ export const updatePurchase = async (
 ) => {
   const { tenantId, id, paymentPurchases, purchaseDetails, ...data } = input;
   const purchase = await ctx.tx!.purchase.findUnique({
-    where: { id ,recordStatus:RecordStatus.ACTIVE},
+    where: { id, recordStatus: RecordStatus.ACTIVE },
     include
   });
   let details = {};
   if (purchaseDetails && purchase && purchaseDetails.length) {
-   
-   
+
+
     const productWarehouse = await getProductWarehouse(
       ctx,
       purchaseDetails,
       data.warehouseId!
     );
-   //revert old details
-   const updateProductWarehouse = purchase.purchaseDetails.map((v)=>{
-    const productId = v.productId;
-    const productVariantId = v.productVariantId;
-    const warehouseId = purchase.warehouseId;
-    const pw = getOneProductWarehouse(productWarehouse,{warehouseId:warehouseId,productId,productVariantId});
-        if (!pw || purchase.status !== "Received") return null;
-        
-          return ctx.tx!.productWarehouse.update({
-            where:{id:pw!.id},data:{
-              qty:pw.qty - v.quantity
-            }
-          })
-        
-   }).filter(v=>v!==null);
-await Promise.allSettled(updateProductWarehouse);
+    //revert old details
+    const updateProductWarehouse = purchase.purchaseDetails.map((v) => {
+      const productId = v.productId;
+      const productVariantId = v.productVariantId;
+      const warehouseId = purchase.warehouseId;
+      const pw = getOneProductWarehouse(productWarehouse, { warehouseId: warehouseId, productId, productVariantId });
+      if (!pw || purchase.status !== "Received") return null;
 
-   // const savedDetails = purchase.purchaseDetails.map((v) => v.id);
+      return ctx.tx!.productWarehouse.update({
+        where: { id: pw!.id }, data: {
+          qty: pw.qty - v.quantity
+        }
+      })
+
+    }).filter(v => v !== null);
+    await Promise.allSettled(updateProductWarehouse);
+
+    // const savedDetails = purchase.purchaseDetails.map((v) => v.id);
     const detailsToDelete = purchase.purchaseDetails
-     // .filter((v) => !purchaseDetails.find((s) => (s.id = v.id)))
+      // .filter((v) => !purchaseDetails.find((s) => (s.id = v.id)))
       .map((v) => ({ id: v.id }));
 
     const detailsToCreate = purchaseDetails
-     // .filter((v) => !savedDetails.find((s) => v.id === s))
+      // .filter((v) => !savedDetails.find((s) => v.id === s))
       .map((v) => {
         const { id, ...rest } = v;
         return { ...rest, tenantId };
@@ -236,7 +240,7 @@ await Promise.allSettled(updateProductWarehouse);
       purchaseDetails: {
         createMany: { data: detailsToCreate },
         deleteMany: detailsToDelete,
-       // updateMany: detailsToUpdate,
+        // updateMany: detailsToUpdate,
       },
     };
 
@@ -248,19 +252,19 @@ await Promise.allSettled(updateProductWarehouse);
 
     //update prod warehouse with new details
     const updateProductWarehouse2 = detailsToCreate
-    .map((v) => {
-      const productId = v.productId!;
-      const productVariantId = v.productVariantId;
-      const warehouseId = purchase.warehouseId!;
-      const pw = getOneProductWarehouse(productWarehouse2,{warehouseId,productId,productVariantId});
-      if (!pw || data.status !== "Received") return null;
+      .map((v) => {
+        const productId = v.productId!;
+        const productVariantId = v.productVariantId;
+        const warehouseId = purchase.warehouseId!;
+        const pw = getOneProductWarehouse(productWarehouse2, { warehouseId, productId, productVariantId });
+        if (!pw || data.status !== "Received") return null;
 
-      return ctx.tx!.productWarehouse.update({
-        where:{id:pw!.id},data:{
-          qty:pw!.qty+v!.quantity!
-        }
-      })
-    });
+        return ctx.tx!.productWarehouse.update({
+          where: { id: pw!.id }, data: {
+            qty: pw!.qty + v!.quantity!
+          }
+        })
+      });
     await Promise.allSettled(updateProductWarehouse2);
   }
 
@@ -295,7 +299,7 @@ await Promise.allSettled(updateProductWarehouse);
   return ctx.tx!.purchase.update({
     include,
     where: {
-      id: id,recordStatus:RecordStatus.ACTIVE
+      id: id, recordStatus: RecordStatus.ACTIVE
     },
     data: { ...data, ...details, ...paymentDetails },
   });
@@ -339,10 +343,10 @@ export const findManyPurchase = async (
   input: Omit<Prisma.PurchaseFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
-  const {where,...rest} = input;
+  const { where, ...rest } = input;
   return ctx.tx!.purchase.findMany({
     include,
-    where:{...where,recordStatus:RecordStatus.ACTIVE},
+    where: { ...where, recordStatus: RecordStatus.ACTIVE },
     ...rest,
   });
 };
