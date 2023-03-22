@@ -45,6 +45,7 @@ services:
     image: ghcr.io/ebundala/inventory-pos/server:main       
     environment:
        NODE_ENV: ${NODE_ENV}
+       APP_PORT: ${APP_PORT}
        NEXT_PUBLIC_HOST: ${NEXT_PUBLIC_HOST}
        NEXT_PUBLIC_CLOUD_NAME: ${NEXT_PUBLIC_CLOUD_NAME}
        NEXT_PUBLIC_CLOUD_PREFIX: ${NEXT_PUBLIC_CLOUD_PREFIX}
