@@ -7,8 +7,10 @@ import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 import { useModal } from "@/lib/hooks/useModel";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import useRequireAuth from "@/lib/useRequireAuth";
-import { useZodForm } from "@/lib/util/form-gen";
+import { useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
+import { Prisma } from "@prisma/client";
 import { Session } from "next-auth";
+import { TenantScalarFieldEnumSchema } from "prisma/generated/schemas/enums/TenantScalarFieldEnum.schema";
 import { FC, ReactNode, useState } from "react";
 
 export default function Index() {
@@ -84,7 +86,9 @@ function TenantForm({
       ordering:2,
     },
     logo:{
-      hidden:true
+      label:"Logo",
+      upload:true,
+      ordering:4
     },
     description:{
       label:"Description",
@@ -108,12 +112,40 @@ function TenantForm({
       setError("Failed to create ")
     }
   })
+
+  const subdomain = form.watch(Prisma.TenantScalarFieldEnum.subdomain,"");
+
+  const checkResult = trpc.tenant.checkSubDomain.useQuery(subdomain,{
+    onSuccess:(data)=>{
+      if(data?.subdomain){
+        form.setError(Prisma.TenantScalarFieldEnum.subdomain,{
+          message:"Subdomain is not available",
+          type:"deps"
+        },{shouldFocus:true})
+      }else{
+        const error = form.getFieldState(Prisma.TenantScalarFieldEnum.subdomain).error;
+         if(error?.type==="deps"){
+        form.clearErrors(Prisma.TenantScalarFieldEnum.subdomain)
+         }
+      }
+    }
+  });
+
+  const url = new URL(process.env.NEXT_PUBLIC_HOST!);
+
   return (
 
     <form
       onSubmit={form.handleSubmit(
         async (data) => {
-          //submit here
+          //submit here   
+          if(checkResult.data?.subdomain){
+            form.setError(Prisma.TenantScalarFieldEnum.subdomain,{
+              message:"Subdomain is not available",
+              type:"deps"
+            },{shouldFocus:true})
+            return;
+          }
           await result.mutateAsync(data as any);
         },
         (e) => {
@@ -122,8 +154,16 @@ function TenantForm({
       )}
     >
       <div className="w-full font-semibold text-base"> Create Business</div>
-      <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
+      <div className="grid grid-flow-row grid-cols-1   gap-3">
         {config.map((i) => {
+          if(i.name === "subdomain")
+          {
+            return <div className="flex flex-row item-center"> 
+            <FormInputField key={i.name} {...i} />
+            <div className="flex flex-col justify-start"><span className="text-info text-xl pl-2 mt-10 text-center ml-1  ">.{url.hostname}</span></div>
+            </div>;
+
+          }
           return <FormInputField key={i.name} {...i} />;
         })}
       </div>
@@ -137,8 +177,8 @@ function TenantForm({
         >
           Cancel
         </button>
-        <button type="submit" className="btn btn-sm btn-success">
-          Save
+        <button type="submit" disabled={checkResult.isLoading} className="btn btn-sm btn-success">
+          {checkResult.isLoading?"Validating..":"Save"}
         </button>
       </ModalAction>
       {error&& <div className="w-full text-center text-error">
@@ -157,3 +197,15 @@ function TenantForm({
 Index.getLayout = (Page: ReactNode) => {
   return <AppLayout>{Page}</AppLayout>;
 };
+
+
+
+function SubdomainField({hostname,subdomain,config}:{hostname:string,subdomain:string,config:ZodFormFieldConfig}){
+  const trpc = useTrpcTenant();
+  const result = trpc.tenant.checkSubDomain.useQuery(subdomain);
+
+  return <div className="flex flex-row item-center"> 
+            <FormInputField {...config} />
+            <div className="flex flex-col justify-start"><span className="text-info text-xl pl-2 mt-10 text-center ml-1  ">.{hostname}</span></div>
+            </div>;
+}

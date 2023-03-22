@@ -7,7 +7,8 @@ import React, { ReactNode } from "react";
 import { NextComponentType, NextPageContext } from "next/types";
 import { useHost } from "@/lib/hooks/useHost";
 import { useChangeTheme } from "./useChangeTheme";
-import Loader from "@/components/app/Loader";
+import Loader from "@/components/sites/Loader";
+//import Loader from "@/components/app/Loader";
 
 export function useAppProviders() {
  

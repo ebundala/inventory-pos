@@ -9,7 +9,11 @@ export const tenantCreateInputSchema = z.object({
   imageBlurhash: z.string().optional(),
   customDomain: z.string().optional(),
   userId: z.string(),
-  subdomain: z.string().min(2).max(50),
+  subdomain: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[A-Za-z0-9]*$/),
 });
 
 export const tenantUpdateInputSchema = z.object({

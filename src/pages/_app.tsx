@@ -4,7 +4,6 @@ import type { AppProps } from "next/app";
 import React from "react";
 import { useAppProviders } from "@/lib/hooks/useAppProviders";
 import { Provider as AppContextProvider } from "@/lib/context";
-import { useChangeTheme } from "@/lib/hooks/useChangeTheme";
 
 export default function Index({ pageProps, ...rest }: AppProps<{ session: Session, }>) {
   

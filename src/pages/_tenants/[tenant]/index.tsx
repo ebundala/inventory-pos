@@ -1,6 +1,4 @@
 import { useRouter } from "next/router";
-import Loader from "@/components/sites/Loader";
-import useRequireAuth from "@/lib/useRequireAuth";
 import { getLayout } from "@/layouts/getLayout";
 import {
   BsArrowBarLeft,
@@ -9,7 +7,6 @@ import {
   BsGraphUp,
 } from "react-icons/bs";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
-import LoadingDots from "@/components/app/loading-dots";
 import { useMemo } from "react";
 import { Prisma } from "@prisma/client";
 import {
@@ -24,7 +21,6 @@ import {
 } from "recharts";
 import { useSales } from "@/lib/hooks/useSales";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { calculateStock } from "@/lib/util/calculateStock";
 import { useSetting } from "@/lib/hooks/useSetting";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useSession } from "next-auth/react";
