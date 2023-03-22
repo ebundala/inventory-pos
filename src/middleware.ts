@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { APP_HOST } from "@/lib/util";
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { AppRouter } from "./lib/routers";
+import superjson from "superjson";
+ 
+// Notice the <AppRouter> generic here.
+const trpc = createTRPCProxyClient<AppRouter>({
+  transformer:superjson,
+  links: [
+    httpBatchLink({
+      url: `http://localhost:${process.env.APP_PORT}/api/trpc`,
+    }),
+  ],
+});
 
 export const config = {
   matcher: [
@@ -15,7 +28,7 @@ export const config = {
   ],
 };
 
-export default function middleware(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   debugger;
   const url = req.nextUrl;
   // Get hostname of request (e.g. demo.vercel.pub, demo.localhost:3000)
@@ -59,9 +72,15 @@ export default function middleware(req: NextRequest) {
     url.pathname = `/home${url.pathname}`;
     return NextResponse.rewrite(url);
   }
+  
 
-  // rewrite everything else to `/_sites/[site] dynamic route
- // url.pathname = `/_sites/${currentHost}${url.pathname}`;
- url.pathname = `/_tenants/${currentHost}${url.pathname}`
+  const tenant = await trpc.tenant.checkSubDomain.query(currentHost);
+  if(tenant&&tenant.subdomain.length>0){
+  // rewrite everything else to `/_tenants/[tenant] dynamic route
+    url.pathname = `/_tenants/${currentHost}${url.pathname}`
+    return NextResponse.rewrite(url);
+  }
+  // unknown tenant or 
+  url.pathname="/404"
   return NextResponse.rewrite(url);
 }

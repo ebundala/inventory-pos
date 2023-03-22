@@ -35,7 +35,7 @@ export const tenantRouter = router({
     deleteMany: privateProcedureWithTx
         .input(tenantIdsSchema)
         .mutation(({ input, ctx }) => deleteManyTenant(input,ctx as TenantContext)),
-    checkDomain:privateProcedure.input(domainSearchInputSchema).query(({input})=>checkDomain(input)),
-    checkSubDomain:privateProcedure.input(domainSearchInputSchema).query(({input})=>checkSubdomain(input))
+    checkDomain:publicProcedure.input(domainSearchInputSchema).query(({input})=>checkDomain(input)),
+    checkSubDomain:publicProcedure.input(domainSearchInputSchema).query(({input})=>checkSubdomain(input))
 
 })

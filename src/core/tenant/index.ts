@@ -455,6 +455,7 @@ export const checkSubdomain = async (subdomain: DomainSearchInput) => {
     where: {
       subdomain: {
         equals: subdomain,
+        mode:Prisma.QueryMode.insensitive
       },
     },
   });

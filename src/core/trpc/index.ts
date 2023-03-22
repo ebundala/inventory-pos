@@ -3,13 +3,13 @@ import { initTRPC, inferAsyncReturnType, TRPCError } from '@trpc/server';
 import * as TRPCNext from '@trpc/server/adapters/next';
 import { getSession } from 'next-auth/react';
 import { prisma } from '@/core/prisma/prisma';
-import { unstable_getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/auth';
 import { APP_HOST } from '@/lib/util';
 import superjson from 'superjson';
 
 export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
-    const session = await unstable_getServerSession(req,res,authOptions);
+    const session = await getServerSession(req,res,authOptions);
     const hostname = req?.headers?.host||APP_HOST!;
     const domains = hostname.replace(`.${APP_HOST}`, "")
     const mode = Prisma.QueryMode.insensitive;
