@@ -240,7 +240,11 @@ export const purchaseReturns = async (
   });
 };
 
-export const stockAlerts = async (ctx: TenantContext) => {
+export type StockAlertInput ={
+  take?:number
+  skip?:number
+}
+export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
   const productMap = (
     await ctx.tx!.product.findMany({
       where: { recordStatus: RecordStatus.ACTIVE },
@@ -296,7 +300,7 @@ export const stockAlerts = async (ctx: TenantContext) => {
     (p, v) => p.set(v.id, v),
     new Map<number, typeof warehouses[0]>()
   );
-  const products = await ctx.tx!.product.findMany({
+  const products = await ctx.tx!.product.findMany({    
     where: {
       id: { in: alerts.map((stat) => stat.productId) },
       recordStatus: RecordStatus.ACTIVE,
@@ -310,7 +314,7 @@ export const stockAlerts = async (ctx: TenantContext) => {
     new Map<number, typeof products[0]>()
   );
 
-  return alerts
+  const results = alerts
     .map((alert) => {
       const product = prodMap.get(alert.productId)!;
       const productVariant = product.productVariants.find(
@@ -333,7 +337,28 @@ export const stockAlerts = async (ctx: TenantContext) => {
         return false;
       }
       return true;
-    });
+    })
+    
+      const {take,skip} = input;
+      if(skip&&take){
+        console.log("alerts all",input);
+
+        return results.slice(skip,skip+take-1)
+      }
+      else if(skip&&!take){
+        console.log("alerts skip",input);
+
+        return results.slice(skip-1)
+
+
+      }else if(take){
+        console.log("alerts take",input);
+
+        return results.slice(0,take)
+      }    
+      console.log("alerts main",input);
+
+    return results;
 };
 
 export const paymentSale = async (

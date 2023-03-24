@@ -8,3 +8,8 @@ export const dateRangeInputSchema = z.object({
   skip: z.number().optional(),
   cursor: z.number().optional(),
 });
+
+export const stockAlertInputSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+});

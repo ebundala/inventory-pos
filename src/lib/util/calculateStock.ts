@@ -1,4 +1,4 @@
-import { TStockDataInput } from "../../types/TStockDataInput";
+import { TStockDataInput } from "@/types/TStockDataInput";
 
 export function calculateStock(detail: TStockDataInput, warehouseId?: number) {
   if (detail.product?.isVariant === true) {

@@ -1,5 +1,5 @@
 import { paymentPurchase, paymentPurchaseReturn, paymentSale, paymentSaleReturns, productTopSellers, purchaseReturns, purchases, saleReturns, sales, stockAlerts, topCustomers } from "@/core/report";
-import { dateRangeInputSchema } from "@/core/report/index.zod";
+import { dateRangeInputSchema, stockAlertInputSchema } from "@/core/report/index.zod";
 import { router, privateProcedureWithTx, TenantContext } from "@/core/trpc";
 
 
@@ -24,8 +24,8 @@ export const reportRouter = router({
         .input(dateRangeInputSchema)
         .query(({ input, ctx }) => purchaseReturns(input, ctx as TenantContext)),
         stockAlerts: privateProcedureWithTx
-       // .input(dateRangeInputSchema)
-        .query(({ ctx }) => stockAlerts(ctx as TenantContext)),
+        .input(stockAlertInputSchema)
+        .query(({input, ctx }) => stockAlerts(input,ctx as TenantContext)),
         paymentSale: privateProcedureWithTx
         .input(dateRangeInputSchema)
         .query(({ input, ctx }) => paymentSale(input, ctx as TenantContext)),

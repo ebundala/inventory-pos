@@ -1,25 +1,29 @@
 
 import {
-    BsAlarm, BsArrowBarLeft, BsArrowBarRight, BsArrowLeftRight, BsAward, BsBarChart, BsCalculator,
+    BsAlarm, BsArrowBarLeft, BsArrowBarRight, BsArrowLeftRight, BsAward, BsBarChart, BsBuilding, BsCalculator,
     BsCashCoin,
     BsCurrencyExchange, BsGear, BsGenderAmbiguous,
-    BsGraphUp, BsPieChart, BsReceipt, BsShieldCheck, BsShop, BsThermometer, BsUnlock
+    BsGraphUp, BsShieldCheck, BsUnlock
 } from "react-icons/bs";
-import { FaAccessibleIcon, FaBaby, FaBarcode, FaWarehouse } from "react-icons/fa";
+import { FaAccessibleIcon, FaBarcode, FaWarehouse } from "react-icons/fa";
 import { FcDataBackup } from "react-icons/fc";
 import { LinkMenuData } from "@/types/LinkMenuData";
+import {HiOutlineChartPie, HiOutlineDocumentReport, HiOutlineUsers,HiOutlineAdjustments} from "react-icons/hi";
+import {MdOutlineFactory, MdOutlineInventory} from "react-icons/md";
+import {AiOutlineDashboard} from "react-icons/ai";
+
 
 export const menus: LinkMenuData[] = [
     {
         name: "Dashboard",
         link: '/',
-        icon: <BsReceipt size={32} />,
+        icon: <AiOutlineDashboard size={32} />,
         subMenus: []
     },
     {
         name: "Products",
         link: '#',
-        icon: <BsShop size={32} />,
+        icon: <MdOutlineInventory size={32} />,
         subMenus: [
             {
                 name: "Create Products",
@@ -62,7 +66,7 @@ export const menus: LinkMenuData[] = [
     {
         name: "Adjustment",
         link: '#',
-        icon: <BsThermometer size={32} />,
+        icon: <HiOutlineAdjustments size={32} />,
         subMenus: [
             {
                 name: "Create adjustment",
@@ -81,7 +85,7 @@ export const menus: LinkMenuData[] = [
     {
         name: "Quatations",
         link: '#',
-        icon: <BsPieChart size={32} />,
+        icon: <HiOutlineChartPie  size={32} />,
         subMenus: [
             {
                 name: "Create Quatation",
@@ -201,7 +205,7 @@ export const menus: LinkMenuData[] = [
     {
         name: "Peoples",
         link: '#',
-        icon: <FaBaby size={32} />,
+        icon: <HiOutlineUsers size={32} />,
         subMenus: [
             {
                 name: "Customers",
@@ -212,7 +216,7 @@ export const menus: LinkMenuData[] = [
             {
                 name: "Suppliers",
                 link: '/peoples/suppliers',
-                icon: <BsCalculator />,
+                icon: <MdOutlineFactory />,
                 subMenus: []
             },
             {
@@ -221,6 +225,50 @@ export const menus: LinkMenuData[] = [
                 icon: <BsCalculator />,
                 subMenus: []
             }
+        ]
+    },
+    {
+        name: "Reports",
+        link: '#',
+        icon: <HiOutlineDocumentReport size={32} />,
+        subMenus: [
+            {
+                name: "Sales reports",
+                link: '/reports/sales',
+                icon: < BsGraphUp/>,
+                subMenus: []
+            },
+           
+            {
+                name: "Purchases reports",
+                link: '/reports/purchases',
+                icon: <BsBarChart />,
+                subMenus: []
+            },
+            {
+                name: "Customers reports",
+                link: '/reports/customers',
+                icon: <BsCashCoin />,
+                subMenus: []
+            },
+            {
+                name: "Stock reports",
+                link: '/reports/customers',
+                icon: <BsBuilding />,
+                subMenus: []
+            },
+            {
+                name: "Stock alerts",
+                link: '/reports/stock-alerts',
+                icon: <BsBuilding />,
+                subMenus: []
+            },
+            {
+                name: "Suppliers reports",
+                link: '/reports/customers',
+                icon: <MdOutlineFactory />,
+                subMenus: []
+            },
         ]
     },
     {

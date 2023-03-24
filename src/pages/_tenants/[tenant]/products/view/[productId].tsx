@@ -9,7 +9,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import JsBarcode from "jsbarcode";
 import { getImageUrls } from "@/core/util/getImageUrls";
 import Image from "next/image";
-import { BsArrow90DegLeft, BsArrow90DegRight, BsArrowBarLeft, BsArrowBarRight, BsArrowDown, BsArrowLeft, BsArrowRight } from "react-icons/bs";
+import { BsArrow90DegLeft, BsArrow90DegRight, BsArrowBarLeft, BsArrowBarRight, BsArrowDown, BsArrowLeft, BsArrowRight, BsCaretLeft, BsCaretRight } from "react-icons/bs";
 import { numberFormat } from "@/lib/util";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
@@ -101,13 +101,13 @@ export function ViewProduct({ defaultCurrency, product, refetch }: ProductRequir
                          <Image width={440} height={240} src={urls[index]} className="w-full h-full" alt="prouduct"/>
                     </div>
                     {urls.length&&<div className="flex flex-row justify-center p-4">
-                        {index!=0&&<BsArrowLeft onClick={()=>{
+                        {index!=0&&<BsCaretLeft onClick={()=>{
                             if(index-1>=0){
                              setUrlIndex(index-1);
                             }
                         }} size={32}/>}
                         <span className="text-info text-lg mx-4">{index+1}/{urls.length}</span>
-                        {(index+1<urls.length)&&<BsArrowRight onClick={()=>{
+                        {(index+1<urls.length)&&<BsCaretRight onClick={()=>{
                             if(index+1<urls.length){
                              setUrlIndex(index+1);
                             }
