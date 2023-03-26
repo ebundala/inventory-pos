@@ -24,7 +24,7 @@ export function useProducts(args?:z.infer<typeof ProductFindManySchema> ) {
     const refetch = useCallback(async () => {
         const rResult = await result.refetch();
         if (result.isSuccess) {
-            setProducts({ products: rResult.data ?? null });
+            setProducts({ products: rResult.data });
         }
     }, [result.refetch]);
     

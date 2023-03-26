@@ -7,12 +7,12 @@ import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-export function Transfers({ transfers, refetch }: TransferListProps) {
+export function Transfers({ transfers,defaultCurrency, refetch }: TransferListProps) {
     const router = useRouter();
-    const dateFm = new Intl.DateTimeFormat()
-    const currencyFormat = new Intl.NumberFormat()
+    
 
     return  <FormContainer title={<h2>All Transfers</h2>}><div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -67,13 +67,13 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
                         {
                             Header: "Items",
                             accessor: "items",
-                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
+                            Cell: numberFormat()
 
                         },
                         {
                             Header: "Grand total",
                             accessor: "grandTotal",
-                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
+                            Cell: numberFormat(undefined,{currency:defaultCurrency?.code,style:"currency"})
 
                         },
                         {
@@ -112,15 +112,11 @@ export function Transfers({ transfers, refetch }: TransferListProps) {
     </FormContainer>
 }
 
-type TransferListProps = ReturnType<typeof useTransfers>
+type TransferListProps = ReturnType<typeof useViewRequiredData>["data"]
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const data = useTransfers();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <Transfers {...props} />
             }
@@ -129,3 +125,10 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+
+function useViewRequiredData(){
+        const transfers = useTransfers();
+        const {data,isLoading} = useAppConfig();
+        return { data:{...data,...transfers}, isLoading: transfers.result.isLoading||isLoading }
+    
+}

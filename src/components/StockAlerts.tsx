@@ -1,13 +1,64 @@
+import { pageOptions } from "@/lib/config/pageOptions";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
+import { numberFormat } from "@/lib/util";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
+import { CustomTable } from "./table";
 
-export function StockAlerts({take,skip}:{take?:number,skip?:number}) {
+export function StockAlerts({ take, skip, pagenated }: { take?: number, skip?: number, pagenated?: boolean }) {
   const trpcTenant = useTrpcTenant();
-  const result = trpcTenant.report.stockAlerts.useQuery({take:take,skip:skip});
+  const result = trpcTenant.report.stockAlerts.useQuery({ take: take, skip: skip });
   if (result.isLoading)
     return null;
 
+  if (pagenated) {
+    return <CustomTable
+    pageOptions={pageOptions}
+      rowsData={result.data ?? []}
+      collumsData={() => ([
+        {
+          Header: "Code",
+          accessor: "product.code",
+          Cell:({value}:{value:any})=>{
+            return <th>{value}</th>;
+          }
+        },
+        {
+          Header: "Name",
+          accessor: "product.name",
+          Cell: ({ row }: { row: any }) => {
+            return getProductFormatedName(row.original);
+          }
+        },
+        {
+          Header: "Warehouse",
+          accessor: "warehouse.name"
+        },
+        {
+          Header: "Alert level",
+          accessor: "product.stockAlert",
+          Cell: (v: any) => {
+            const qty = numberFormat(undefined, { maximumFractionDigits: 2 })(v);
+            const unit = v?.row?.original?.product?.productUnit?.shortName
+            return <>
+              {qty}<span className=" ml-1 text-sm text-orange-400">{unit}</span>
+            </>
 
+          }
+        },
+        {
+          Header: "In Stock",
+          accessor: "_sum.qty",
+          Cell: (v: any) => {
+            const qty = numberFormat(undefined, { maximumFractionDigits: 2 })(v);
+            const unit = v?.row?.original?.product?.productUnit?.shortName
+            return <>
+              {qty}<span className=" ml-1 text-sm text-orange-400">{unit}</span>
+            </>
+
+          }
+        }
+      ])} />
+  }
   return (
 
     <div className="overflow-x-auto ">

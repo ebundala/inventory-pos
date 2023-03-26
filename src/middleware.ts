@@ -80,7 +80,7 @@ export default async function middleware(req: NextRequest) {
     url.pathname = `/_tenants/${currentHost}${url.pathname}`
     return NextResponse.rewrite(url);
   }
-  // unknown tenant or 
+  // unknown tenant 
   url.pathname="/404"
   return NextResponse.rewrite(url);
 }

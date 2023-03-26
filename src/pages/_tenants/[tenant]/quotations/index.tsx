@@ -5,11 +5,13 @@ import { useQuotations } from "@/lib/hooks/useQuotations";
 import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { dateFormat, numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-export function Quotations({ quotations, refetch }: QuitationListProps) {
+export function Quotations({ quotations,defaultCurrency, refetch }: QuitationListProps) {
     const router = useRouter();
-    const dateFm = new Intl.DateTimeFormat()
+    
 
 
 
@@ -45,9 +47,7 @@ export function Quotations({ quotations, refetch }: QuitationListProps) {
                             {
                                 Header: "Date",
                                 accessor: "date",
-                                Cell: ({ row, value }: { row: any, value: any }) => {
-                                    return dateFm.format(value);
-                                }
+                                Cell: dateFormat()
                             },
                             {
                                 Header: "Reference",
@@ -70,7 +70,9 @@ export function Quotations({ quotations, refetch }: QuitationListProps) {
                             },
                             {
                                 Header: "Grand Total",
-                                accessor: "grandTotal"
+                                accessor: "grandTotal",
+                                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
+
                             },
 
                             {
@@ -101,15 +103,11 @@ export function Quotations({ quotations, refetch }: QuitationListProps) {
     )
 }
 
-type QuitationListProps = ReturnType<typeof useQuotations>
+type QuitationListProps = ReturnType<typeof useViewRequiredData>['data']
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const data = useQuotations();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <Quotations {...props} />
             }
@@ -118,3 +116,9 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+
+function useViewRequiredData() {
+    const quotations = useQuotations();
+    const {data,isLoading} = useAppConfig();
+    return { data:{...data,...quotations}, isLoading: quotations.result.isLoading || isLoading}
+}

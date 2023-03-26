@@ -311,9 +311,10 @@ useSetComputedValues(form,data)
 
                         },
                         {
-                            Header: `Subtotal (${symbol})`,
+                            Header: `Subtotal`,
                             accessor: "fields.5",
                             disableSortBy: true,
+                            
 
                         },
                         {

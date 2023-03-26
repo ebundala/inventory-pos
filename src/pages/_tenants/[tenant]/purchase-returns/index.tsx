@@ -8,9 +8,10 @@ import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
+export function PurchaseReturns({purchaseReturns,defaultCurrency,refetch}:PurchaseReturnnListProps) {
     const router = useRouter();
     
 
@@ -72,12 +73,12 @@ export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
                     {
                         Header: "Grand Total",
                         accessor: "grandTotal",
-                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
+                        Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
                     },
                     {
                         Header: "Paid",
                         accessor: "paidAmount",
-                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
+                        Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
 
                     },
                     {
@@ -86,7 +87,7 @@ export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
                         Cell:({row}:{row:any})=>{
                             const v= row.original as PurchaseReturn;
                             const due = v.grandTotal-v.paidAmount;
-                            return numberFormat(undefined,{maximumFractionDigits:2})({value:due});
+                            return numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})({value:due});
 
                         }
                     },
@@ -123,14 +124,11 @@ export function PurchaseReturns({purchaseReturns,refetch}:QuitationListProps) {
     )
 }
 
-type QuitationListProps = ReturnType<typeof usePurchaseReturns>
+type PurchaseReturnnListProps = ReturnType<typeof useViewRequiredData>["data"]
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            const data = usePurchaseReturns();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <PurchaseReturns {...props} />
             }
@@ -139,3 +137,9 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+
+function useViewRequiredData(){
+    const returns = usePurchaseReturns();
+    const {data,isLoading} = useAppConfig();
+    return { data:{...returns,...data}, isLoading: returns.result.isLoading||isLoading }
+}

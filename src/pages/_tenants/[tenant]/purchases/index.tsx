@@ -7,9 +7,10 @@ import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-export function Purchases({purchases,refetch}:QuitationListProps) {
+export function Purchases({purchases,defaultCurrency,refetch}:QuitationListProps) {
     const router = useRouter();
 
     return (
@@ -67,12 +68,12 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                     {
                         Header: "Grand Total",
                         accessor: "grandTotal",
-                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
+                        Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
                     },
                     {
                         Header: "Paid",
                         accessor: "paidAmount",
-                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
+                        Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
                     },
                     {
                         Header: "Due",
@@ -80,7 +81,7 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
                         Cell:({row}:{row:any})=>{
                             const v= row.original as Purchase;
                             const due = v.grandTotal-v.paidAmount;
-                            return numberFormat()({value:due});
+                            return numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})({value:due});
                         }
                     },
                     {
@@ -119,15 +120,11 @@ export function Purchases({purchases,refetch}:QuitationListProps) {
     )
 }
 
-type QuitationListProps = ReturnType<typeof usePurchases>
+type QuitationListProps = ReturnType<typeof useViewRequiredData>["data"]
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const data = usePurchases();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <Purchases {...props} />
             }
@@ -136,3 +133,9 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+
+function useViewRequiredData(){
+    const purchases = usePurchases();
+    const {data,isLoading}= useAppConfig();
+    return { data:{...data,...purchases,}, isLoading: purchases.result.isLoading||isLoading }
+}

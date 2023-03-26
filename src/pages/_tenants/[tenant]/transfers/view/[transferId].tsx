@@ -121,7 +121,7 @@ export function ViewTransfer({ setting,transfer, defaultCurrency, refetch }: Tra
                 Header: `Unit cost (${symbol})`,
                 accessor: "cost",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style:"currency"})
 
               },
               
@@ -139,19 +139,19 @@ export function ViewTransfer({ setting,transfer, defaultCurrency, refetch }: Tra
                   Header: `Discount (${symbol})`,
                   accessor: "discount",
                   disableSortBy: true,
-                  Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                  Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style:"currency"})
               },
               {
                 Header: `Tax (${symbol})`,
                 accessor: "taxNet",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style:"currency"})
               },
               {
                 Header: `Subtotal (${symbol})`,
                 accessor: "total",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style:"currency"})
               }
              
             ]}
@@ -161,7 +161,7 @@ export function ViewTransfer({ setting,transfer, defaultCurrency, refetch }: Tra
         </div>
         <div className="w-full mt-10 flex justify-end">
           <OrderSummary
-            currency={defaultCurrency?.symbol ?? ""}
+            currency={defaultCurrency?.code ?? ""}
             taxRate={transfer.taxRate!}
             tax={transfer.taxNet!}
             discount={transfer.discount!}

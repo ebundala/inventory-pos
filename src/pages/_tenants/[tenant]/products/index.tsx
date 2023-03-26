@@ -10,7 +10,10 @@ import {getImageUrls} from "@/core/util/getImageUrls"
 import Image from "next/image";
 import { FormContainer } from "@/components/FormContainer";
 import { numberFormat } from "@/lib/util";
-export function Products({products,refetch}:ProductListProps) {
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
+
+
+export function Products({products,defaultCurrency,refetch}:ProductListProps) {
     const router = useRouter();   
 
 
@@ -67,7 +70,7 @@ export function Products({products,refetch}:ProductListProps) {
                     {
                         Header: "Price",
                         accessor: "price",
-                        Cell:numberFormat(undefined,{maximumFractionDigits:2})
+                        Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency',maximumFractionDigits:2})
 
                     },
                    
@@ -110,14 +113,11 @@ export function Products({products,refetch}:ProductListProps) {
     </FormContainer>
 }
 
-type ProductListProps = ReturnType<typeof useProducts>
+type ProductListProps = ReturnType<typeof useViewRequiredData>['data']
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            const data = useProducts();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <Products {...props} />
             }
@@ -126,3 +126,9 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+function useViewRequiredData(){    
+        const products = useProducts();
+        const {data,isLoading} = useAppConfig();
+        return { data:{...data,...products}, isLoading: products.result.isLoading || isLoading}
+    
+}

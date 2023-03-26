@@ -109,7 +109,7 @@ export function UpdatePurchaseReturn({setting,purchaseReturn,defaultCurrency,ref
                 Header: `Unit cost (${symbol})`,
                 accessor: "cost",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
 
               },
               
@@ -127,19 +127,19 @@ export function UpdatePurchaseReturn({setting,purchaseReturn,defaultCurrency,ref
                   Header: `Discount (${symbol})`,
                   accessor: "discount",
                   disableSortBy: true,
-                  Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                  Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               },
               {
                 Header: `Tax (${symbol})`,
                 accessor: "taxNet",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               },
               {
                 Header: `Subtotal (${symbol})`,
                 accessor: "total",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               }
              
             ]}
@@ -149,7 +149,7 @@ export function UpdatePurchaseReturn({setting,purchaseReturn,defaultCurrency,ref
         </div>
         <div className="w-full mt-10 flex justify-end">
           <OrderSummary
-            currency={defaultCurrency?.symbol ?? ""}
+            currency={defaultCurrency?.code ?? ""}
             taxRate={purchaseReturn.taxRate!}
             tax={purchaseReturn.taxNet!}
             discount={purchaseReturn.discount!}

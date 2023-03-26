@@ -253,7 +253,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Stock reports",
-                link: '/reports/customers',
+                link: '/reports/stock',
                 icon: <BsBuilding />,
                 subMenus: []
             },
@@ -265,7 +265,7 @@ export const menus: LinkMenuData[] = [
             },
             {
                 name: "Suppliers reports",
-                link: '/reports/customers',
+                link: '/reports/suppliers-reports',
                 icon: <MdOutlineFactory />,
                 subMenus: []
             },

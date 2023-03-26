@@ -1,35 +1,16 @@
 import { FormContainer } from "@/components/FormContainer";
-import { FormInputField } from "@/components/FormInputField";
-import { updateSaleInputSchema } from "@/core/sale/index.zod";
 import { getLayout } from "@/layouts/getLayout"
 import { useTenant } from "@/lib/hooks/useTenant";
-import { getValue, useZodForm } from "@/lib/util/form-gen";
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
 import { useSale } from "@/lib/hooks/useSale";
-import { useSaleFormFieldOptions } from "@/lib/hooks/useSaleFormFieldOptions";
-import { useEffect, useMemo } from 'react';
-import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
-import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
-import { useFieldArray, FieldValues, FieldArrayPath } from "react-hook-form";
-import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
+import { useMemo } from 'react';
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { useSetting } from "@/lib/hooks/useSetting";
-import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
-import { PaymentSale, Prisma, Product, ProductVariant, ProductWarehouse, SaleDetail, Unit } from "@prisma/client";
-import { TComputedFormFieldsResult, useComputedZodFormValues } from "@/lib/hooks/useComputedZodFormValues";
-import { FormComboBox } from "@/components/combobox";
+import { Unit } from "@prisma/client";
 import { OrderSummary } from "@/components/OrderSummary";
 import { CustomTable } from "@/components/table";
-import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
-import { useProductSearch, productToSaleDetailFormater, productDefaultQueryBuilder } from "@/lib/hooks/useProductSearch";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { useGroupedFieldArray } from "@/lib/hooks/useGroupedFieldArray";
-import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
-import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
-import { useSaleConstraints } from "@/lib/hooks/useSaleConstraints";
-import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
 import { numberFormat } from "@/lib/util";
 
 interface SalePathProps extends ParsedUrlQuery {
@@ -107,7 +88,7 @@ export function UpdateSale({ setting, sale, defaultCurrency, refetch }: SaleRequ
                 Header: `Unit price (${symbol})`,
                 accessor: "price",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
 
               },
               
@@ -125,19 +106,19 @@ export function UpdateSale({ setting, sale, defaultCurrency, refetch }: SaleRequ
                   Header: `Discount (${symbol})`,
                   accessor: "discount",
                   disableSortBy: true,
-                  Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                  Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               },
               {
                 Header: `Tax (${symbol})`,
                 accessor: "taxNet",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               },
               {
                 Header: `Subtotal (${symbol})`,
                 accessor: "total",
                 disableSortBy: true,
-                Cell:numberFormat(undefined,{compactDisplay:"short",maximumFractionDigits:2})
+                Cell:numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
               }
              
             ]}
@@ -147,7 +128,7 @@ export function UpdateSale({ setting, sale, defaultCurrency, refetch }: SaleRequ
         </div>
         <div className="w-full mt-10 flex justify-end">
           <OrderSummary
-            currency={defaultCurrency?.symbol ?? ""}
+            currency={defaultCurrency?.code ?? ""}
             taxRate={sale.taxRate!}
             tax={sale.taxNet!}
             discount={sale.discount!}

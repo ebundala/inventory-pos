@@ -47,8 +47,9 @@ services:
       # - redis
     ports:
       - ${APP_PORT}:3000
-      - 9228:9229 #debugger port disable in production
+      - 9229:9229 #debugger port disable in production
       - 5556:5555 #prisma studio disable in production
+      - 9230:9230
     volumes:
       - ./:/home/app
     networks:

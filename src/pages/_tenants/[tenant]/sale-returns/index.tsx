@@ -7,9 +7,10 @@ import { useRouter } from "next/router";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 
-export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
+export function SaleReturns({ saleReturns,defaultCurrency, refetch }: SaleReturnListProps) {
     const router = useRouter();
     const dateFm = new Intl.DateTimeFormat()
     const currencyFormat = new Intl.NumberFormat()
@@ -80,13 +81,13 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                         {
                             Header: "Grand total",
                             accessor: "grandTotal",
-                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
+                            Cell: numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
 
                         },
                         {
                             Header: "Paid",
                             accessor: "paidAmount",
-                            Cell: numberFormat(undefined,{maximumFractionDigits:2})
+                            Cell: numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})
                         },
                         {
                             Header: "Due",
@@ -97,7 +98,7 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
                                 }
                                 const payments = saleReturn.paymentSaleReturns.map((v) => v.amount - v.change).reduce((v, cv, i, arr) => v + cv, 0)
                                 const due = saleReturn.grandTotal - payments;
-                                return numberFormat(undefined,{maximumFractionDigits:2})({value:due});
+                                return numberFormat(undefined,{currency:defaultCurrency?.code,style: 'currency'})({value:due});
 
                             }
                         }, {
@@ -136,15 +137,11 @@ export function SaleReturns({ saleReturns, refetch }: SaleReturnListProps) {
     )
 }
 
-type SaleReturnListProps = ReturnType<typeof useSaleReturns>
+type SaleReturnListProps = ReturnType<typeof useViewRequiredData>["data"]
 
 export default function Index() {
     return (
-        <CollectRequiredDataWrapper useHooks={() => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const data = useSaleReturns();
-            return { data, isLoading: data.result.isLoading }
-        }}>
+        <CollectRequiredDataWrapper useHooks={useViewRequiredData}>
             {(props) =>
                 <SaleReturns {...props} />
             }
@@ -153,3 +150,8 @@ export default function Index() {
 }
 
 Index.getLayout = getLayout;
+function useViewRequiredData(){
+    const returns = useSaleReturns();
+    const {data,isLoading}= useAppConfig();
+    return { data:{...data,...returns}, isLoading: returns.result.isLoading||isLoading }
+}
