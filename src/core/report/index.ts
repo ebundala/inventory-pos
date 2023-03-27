@@ -492,3 +492,26 @@ export const paymentPurchaseReturn = async (
     skip,
   });
 };
+
+
+export const customerReport =  async (ctx:TenantContext)=>{
+
+ const stats = (await ctx.tx!.sale.groupBy({
+    where:{
+      recordStatus:RecordStatus.ACTIVE
+    },
+    by:[Prisma.SaleScalarFieldEnum.customerId],
+    _count:{
+      id:true
+    },
+    _sum:{
+      paidAmount:true,
+      grandTotal:true,
+      discount:true,
+      shipping:true
+    }
+  }));
+ const statMap:Map<number,typeof stats[0]> = stats.reduce((p,c,i)=>p.set(c.customerId,c),new Map())
+ const result = (await ctx.tx!.customer.findMany()).map((v)=>({...v,...statMap.get(v.id)}));
+ return result;
+}
