@@ -670,6 +670,7 @@ model Supplier {
   tenant          Tenant           @relation(fields: [tenantId], references: [tenantId], onDelete: Cascade)
   tenantId        String
 
+
   @@index([tenantId])
 }
 

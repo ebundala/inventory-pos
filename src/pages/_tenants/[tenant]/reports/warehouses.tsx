@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 
 function SuppliersReports({}:SuppliersReportsProps){
   return (
-    <FormContainer title={<h2>SuppliersReports under construction</h2>}>
+    <FormContainer title={<h2>Suppliers Reports</h2>}>
          <div></div>
     </FormContainer>
   );

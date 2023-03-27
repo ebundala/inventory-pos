@@ -9,7 +9,8 @@ import { RouterOutput } from "@/lib/routers";
 
 
 export interface AppState {
-    customersReports: RouterOutput['report']['customerReports'];
+    suppliersReports: RouterOutput['report']['supplierReports'],
+    customersReports: RouterOutput['report']['customerReports'],
 
    //
     editingPurchase: RouterOutput['purchase']['get'],

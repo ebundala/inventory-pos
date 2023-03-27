@@ -5,8 +5,6 @@ import { getLayout } from "@/layouts/getLayout"
 import { pageOptions } from "@/lib/config/pageOptions";
 import { useStore } from "@/lib/context";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
-import { useCustomers } from "@/lib/hooks/useCustomers";
-import { useTenant } from "@/lib/hooks/useTenant";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { numberFormat } from "@/lib/util";
 import { useRouter } from "next/router";

@@ -515,3 +515,24 @@ export const customerReport =  async (ctx:TenantContext)=>{
  const result = (await ctx.tx!.customer.findMany()).map((v)=>({...v,...statMap.get(v.id)}));
  return result;
 }
+
+
+export const suppliersReport = async (ctx:TenantContext)=>{
+const stats = (await ctx.tx!.purchase.groupBy({
+  where:{
+    recordStatus:RecordStatus.ACTIVE
+  },
+  by:[Prisma.PurchaseScalarFieldEnum.supplierId],
+  _count:{
+    id:true
+  },
+  _sum:{
+    paidAmount:true,
+    discount:true,
+    grandTotal:true,
+  }
+}))
+const statMap:Map<number,typeof stats[0]> = stats.reduce((p,c,i)=>p.set(c.supplierId,c),new Map());
+const result = (await ctx.tx!.supplier.findMany()).map((v)=>({...v,...statMap.get(v.id)}));
+return result;
+}
