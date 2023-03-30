@@ -23,6 +23,7 @@ import { pageOptions } from "@/lib/config/pageOptions";
 import Image from "next/image";
 import { getImageUrls } from "@/core/util/getImageUrls";
 import { FormContainer } from "@/components/FormContainer";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
 export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
   const [showModal, hide, data] = useModal();
@@ -75,124 +76,133 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
       callbacks.onError(error);
     },
   });
+  const dResult = trpcWithHost.product.brand.delete.useMutation(callbacks);
+  const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
   return (
     <FormContainer title={<h2>All Brands</h2>}>
-    <div className="flex flex-col justify-start">
-      <div className="flex flex-row justify-end ">
-        <button
-          className="btn btn-success btn-sm btn-outline"
-          onClick={(e) => {
-            showModal({
-              content: (props) => {
-                return (
-                  <BrandForm
-                    {...props}
-                    mutateAsync={(data) => {
-                      showProgress({ animated: true });
-                      return result1.mutateAsync(data);
-                    }}
-                    schema={createBrandInputSchema}
-                    fieldOptions={options}
-                    title={"Create Brand"}
-                  />
-                );
-              },
-            });
-          }}
-        >
-          create
-        </button>
-      </div>
+      <div className="flex flex-col justify-start">
+        <div className="flex flex-row justify-end ">
+          <button
+            className="btn btn-success btn-sm btn-outline"
+            onClick={(e) => {
+              showModal({
+                content: (props) => {
+                  return (
+                    <BrandForm
+                      {...props}
+                      mutateAsync={(data) => {
+                        showProgress({ animated: true });
+                        return result1.mutateAsync(data);
+                      }}
+                      schema={createBrandInputSchema}
+                      fieldOptions={options}
+                      title={"Create Brand"}
+                    />
+                  );
+                },
+              });
+            }}
+          >
+            create
+          </button>
+        </div>
 
-      <CustomTable
-        pageOptions={pageOptions}
-        rowsData={brands ?? []}
-        collumsData={() => {
-          return [
-            {
-              Header: () => (
-                <label>
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-primary checkbox-xs "
-                  />
-                </label>
-              ),
-              accessor: "id",
-              disableSortBy: true,
-              Cell: ({ row, value }: { row: any; value: any }) => {
-                return (
+        <CustomTable
+          pageOptions={pageOptions}
+          rowsData={brands ?? []}
+          collumsData={() => {
+            return [
+              {
+                Header: () => (
                   <label>
                     <input
                       type="checkbox"
                       className="checkbox checkbox-primary checkbox-xs "
                     />
                   </label>
-                );
+                ),
+                accessor: "tenantId",
+                disableSortBy: true,
+                Cell: ({ row, value }: { row: any; value: any }) => {
+                  return (
+                    <label>
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-xs "
+                      />
+                    </label>
+                  );
+                },
               },
-            },
-            {
+              {
                 Header: "Logo",
                 accessor: "image",
                 Cell: ({ row, value }: { row: any, value: string }) => {
                   const urls = getImageUrls(value)
-                  return <Image src={urls[0]} height={40} width={40} alt="product picture"/>
+                  return <Image src={urls[0]} height={40} width={40} alt="product picture" />
                 }
               },
-            {
-              Header: "Brand name",
-              accessor: "name",
-            },
-            {
-              Header: "Description",
-              accessor: "description",
-            },
-            
-
-            {
-              Header: "Actions",
-              accessor: "tenantId",
-              disableSortBy: true,
-              Cell: ({ row, value }: { row: any; value: any }) => {
-                return (
-                  <div className="flex flex-row gap-2">
-                    <button
-                      onClick={(e) => {
-                        console.log(row);
-                        showModal({
-                          content: (props) => {
-                            return (
-                              <BrandForm
-                                {...props}
-                                mutateAsync={(data) => {
-                                  showProgress({ animated: true });
-                                  return result2.mutateAsync(data);
-                                }}
-                                schema={updateBrandInputSchema}
-                                fieldOptions={options}
-                                defaultValues={row.original}
-                                title="Update brand"
-                              />
-                            );
-                          },
-                        });
-                      }}
-                      className="btn btn-info btn-sm rounded-md btn-outline"
-                    >
-                      Edit
-                    </button>
-                    <button className="btn btn-warning btn-sm rounded-md btn-outline">
-                      Delete
-                    </button>
-                  </div>
-                );
+              {
+                Header: "Brand name",
+                accessor: "name",
               },
-            },
-          ];
-        }}
-      />
-    </div>
+              {
+                Header: "Description",
+                accessor: "description",
+              },
+
+
+              {
+                Header: "Actions",
+                accessor: "id",
+                disableSortBy: true,
+                Cell: ({ row, value }: { row: any; value: any }) => {
+                  return (
+                    <div className="flex flex-row gap-2">
+                      <button
+                        onClick={(e) => {
+
+                          showModal({
+                            content: (props) => {
+                              return (
+                                <BrandForm
+                                  {...props}
+                                  mutateAsync={(data) => {
+                                    showProgress({ animated: true });
+                                    return result2.mutateAsync(data);
+                                  }}
+                                  schema={updateBrandInputSchema}
+                                  fieldOptions={options}
+                                  defaultValues={row.original}
+                                  title="Update brand"
+                                />
+                              );
+                            },
+                          });
+                        }}
+                        className="btn btn-info btn-sm rounded-md btn-outline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          showConfirmDialog(() => {
+                            showProgress();
+                            dResult.mutate(value);
+                          });
+                        }}
+                        className="btn btn-warning btn-sm rounded-md btn-outline">
+                        Delete
+                      </button>
+                    </div>
+                  );
+                },
+              },
+            ];
+          }}
+        />
+      </div>
     </FormContainer>
   );
 }

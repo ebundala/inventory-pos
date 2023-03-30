@@ -8,11 +8,18 @@ import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
 
 export function Transfers({ transfers,defaultCurrency, refetch }: TransferListProps) {
     const router = useRouter();
-    
+    const trpcTenant = useTrpcTenant();
+    const { showProgress, callbacks } = useProgressFeedback("/transfers")
+    const dResult = trpcTenant.transfer.delete.useMutation(callbacks);
+    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
+
 
     return  <FormContainer title={<h2>All Transfers</h2>}><div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
@@ -99,7 +106,12 @@ export function Transfers({ transfers,defaultCurrency, refetch }: TransferListPr
                                         router.push(`/transfers/update/${value}`);
                                     }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
                                     <button 
-                                    onClick={()=>{}}
+                                    onClick={()=>{
+                                        showConfirmDialog(()=>{
+                                            showProgress();
+                                            dResult.mutate(value);
+                                        })
+                                    }}
                                     className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                                 </div>
                             }

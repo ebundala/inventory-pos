@@ -7,7 +7,6 @@ import { useStore } from "@/lib/context";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { numberFormat } from "@/lib/util";
-import { useRouter } from "next/router";
 import { useCallback } from "react";
 
 
@@ -56,7 +55,7 @@ function SuppliersReports({suppliersReports,defaultCurrency}:ViewProps){
         accessor: "_sum.due",
         Cell: (v: any) => {
           const { row: { original }, value }: { value: number, row: { original: typeof suppliersReports[0] } } = v;
-          const due = original!._sum!.grandTotal! - original!._sum!.paidAmount!;
+          const due = (original!._sum?.grandTotal??0) - (original!._sum?.paidAmount??0);
 
           return numberFormat(undefined, { currency: defaultCurrency?.code, style: "currency" })({ value: due })
         }
@@ -86,7 +85,7 @@ Index.getLayout = getLayout;
 
 
 function useViewRequiredData() {
-    const router = useRouter();
+    
     const {data,isLoading} = useAppConfig();
     const suppliers = useSuppliersReports()
     return { data: { ...data,...suppliers}, isLoading: isLoading || suppliers.result.isLoading};

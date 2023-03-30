@@ -16,88 +16,92 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
-export function WarehouseIndex({warehouses,refetch}:WarehouseIndexProps) {
-  
+export function WarehouseIndex({ warehouses, refetch }: WarehouseIndexProps) {
+
     const [showModal, hide, data] = useModal();
-    const options = useMemo(()=>({
-        tenantId:{
-            hidden:true
+    const options = useMemo(() => ({
+        tenantId: {
+            hidden: true
         },
-        id:{
-            hidden:true
+        id: {
+            hidden: true
         },
-        name:{
-            label:"Warehouse name",
-            ordering:1
+        name: {
+            label: "Warehouse name",
+            ordering: 1
         },
-        email:{
-            label:"email",
-            ordering:2
+        email: {
+            label: "email",
+            ordering: 2
         },
-        mobile:{
-            label:"Phone",
-            ordering:3
+        mobile: {
+            label: "Phone",
+            ordering: 3
         },
-        country:{
-            label:"Country",
-            ordering:4
+        country: {
+            label: "Country",
+            ordering: 4
         },
-        city:{
-            label:"city",
-            ordering:5
+        city: {
+            label: "city",
+            ordering: 5
         },
-        zip:{
-            label:"Zip code",
-            ordering:5
+        zip: {
+            label: "Zip code",
+            ordering: 5
         }
-    }),[]);
-    
-   const trpcWithHost = useTrpcTenant();
-   const {showProgress,callbacks} = useProgressFeedback()
+    }), []);
 
-   const result1 = trpcWithHost.setting.warehouse.create.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-   const result2 = trpcWithHost.setting.warehouse.update.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-  
+    const trpcWithHost = useTrpcTenant();
+    const { showProgress, callbacks } = useProgressFeedback()
+
+    const result1 = trpcWithHost.setting.warehouse.create.useMutation({
+        onSuccess: (data, variable, ctx) => {
+            callbacks.onSuccess(data);
+            hide();
+            refetch()
+        },
+        onError: (error) => {
+            callbacks.onError(error);
+        }
+    });
+    const result2 = trpcWithHost.setting.warehouse.update.useMutation({
+        onSuccess: (data, variable, ctx) => {
+            callbacks.onSuccess(data);
+            hide();
+            refetch()
+        },
+        onError: (error) => {
+            callbacks.onError(error);
+        }
+    });
+
+    const dResult = trpcWithHost.setting.warehouse.delete.useMutation(callbacks);
+    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
+
 
     return <FormContainer title={<h2>All Warehouses</h2>}> <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
-                        
+
                         showModal({
-                            content:(props) => {                       
-                       return <WarehouseForm 
-                       {...props} 
-                       mutateAsync={(data)=>{
-                        showProgress({animated:true});
-                        return result1.mutateAsync(data);
-                      }}
-                       schema={createWarehouseInputSchema} 
-                       fieldOptions={options} title={
-                        "Create Warehouse"
-                       }/>
+                            content: (props) => {
+                                return <WarehouseForm
+                                    {...props}
+                                    mutateAsync={(data) => {
+                                        showProgress({ animated: true });
+                                        return result1.mutateAsync(data);
+                                    }}
+                                    schema={createWarehouseInputSchema}
+                                    fieldOptions={options} title={
+                                        "Create Warehouse"
+                                    } />
                             }
-                          
+
                         })
                     }
                 }
@@ -113,7 +117,7 @@ export function WarehouseIndex({warehouses,refetch}:WarehouseIndexProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -141,28 +145,39 @@ export function WarehouseIndex({warehouses,refetch}:WarehouseIndexProps) {
                     },
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row, value }: { row: any, value: number }) => {
                             return <div className="flex flex-row gap-2">
-                                <button onClick={(e)=>{
+                                <button onClick={(e) => {
                                     console.log(row);
                                     showModal({
-                                        content:(props) => {                       
-                                   return <WarehouseForm 
-                                   {...props} 
-                                   mutateAsync={(data)=>{
-                                    showProgress({animated:true});
-                                    return result2.mutateAsync(data);
-                                  }}
-                                   schema={updateWarehouseInputSchema} 
-                                   fieldOptions={options} 
-                                   defaultValues={row.original}
-                                   title="Update warehouse"/>
-                                   
-                                }})
-                            }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
+                                        content: (props) => {
+                                            return <WarehouseForm
+                                                {...props}
+                                                mutateAsync={(data) => {
+                                                    showProgress({ animated: true });
+                                                    return result2.mutateAsync(data);
+                                                }}
+                                                schema={updateWarehouseInputSchema}
+                                                fieldOptions={options}
+                                                defaultValues={row.original}
+                                                title="Update warehouse" />
+
+                                        }
+                                    })
+                                }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
+                                <button
+                                    onClick={
+                                        () => {
+                                            showConfirmDialog(() => {
+                                                showProgress();
+                                                dResult.mutate(value)
+
+                                            })
+                                        }
+                                    }
+                                    className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
@@ -175,38 +190,38 @@ export function WarehouseIndex({warehouses,refetch}:WarehouseIndexProps) {
 }
 
 
-export default function Index(){
-return (
-    <CollectRequiredDataWrapper useHooks={useWarehouseRequiredData}>
-    {(props)=><WarehouseIndex {...props} />}
-    </CollectRequiredDataWrapper>
-);
+export default function Index() {
+    return (
+        <CollectRequiredDataWrapper useHooks={useWarehouseRequiredData}>
+            {(props) => <WarehouseIndex {...props} />}
+        </CollectRequiredDataWrapper>
+    );
 }
 
 Index.getLayout = getLayout
 
-type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
+type ZodFormSchema<R, T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes> = {
     show: (data: ModalData) => void;
     hide: () => void;
     ModalContainer: FC<ModalSectionProps>;
     ModalContent: FC<ModalSectionProps>;
     ModalAction: FC<ModalSectionProps>;
-    title?:ReactNode,
-    schema:T
+    title?: ReactNode,
+    schema: T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    mutateAsync:(data:any)=>Promise<unknown>
+    mutateAsync: (data: any) => Promise<unknown>
 }
 
-const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
-    const {tenant} = useTenant();
-    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+const WarehouseForm: FC<ZodFormSchema<Warehouse>> = ({ show, hide, mutateAsync, ModalContainer, ModalContent, ModalAction, schema, title, defaultValues, fieldOptions }) => {
+    const { tenant } = useTenant();
+    const [config, form] = useZodForm(schema, fieldOptions, { defaultValues: { tenantId: tenant?.tenantId, ...defaultValues } });
 
     return (
         <ModalContainer>
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await mutateAsync(data as any);
+                    await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>
@@ -214,7 +229,7 @@ const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,mutateAsync, Mod
                     <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
                         {config.map((i) => {
                             return (<FormInputField key={i.name} {...i} />);
-                        })} 
+                        })}
                     </div>
                     <ModalAction >
                         <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">
@@ -234,11 +249,11 @@ const WarehouseForm:FC<ZodFormSchema<Warehouse>> =({ show, hide,mutateAsync, Mod
 }
 
 function useWarehouseRequiredData() {
-    
-        const { warehouses, result: { isLoading, isSuccess }, refetch } = useWarehouses();
 
-        return { isLoading, data: { warehouses, refetch } };
-    
+    const { warehouses, result: { isLoading, isSuccess }, refetch } = useWarehouses();
+
+    return { isLoading, data: { warehouses, refetch } };
+
 }
 
 type WarehouseIndexProps = ReturnType<typeof useWarehouseRequiredData>['data']

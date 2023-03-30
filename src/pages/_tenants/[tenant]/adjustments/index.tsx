@@ -5,12 +5,16 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
-function Adjustments({router}:TAppConfig) {
+function Adjustments({router,adjustments}:AdjustmentsProps) {
 
-    const [adjustments, loading] = useAdjustments();
-    
-
+   const trpcTenant = useTrpcTenant();
+   const {showProgress,callbacks}= useProgressFeedback("/adjustments")
+   const dResult =  trpcTenant.adjustment.delete.useMutation(callbacks);
+   const showConfirmDialog = useConfirmDialog({message:"You are about to delete this record. This action cannot be reversed, Do you want to continue?"})
      
     return (
     <FormContainer title={<h2>All Adjustments</h2>}>
@@ -86,6 +90,10 @@ function Adjustments({router}:TAppConfig) {
                                 <button
                                 onClick={()=>{
                                     //delete here
+                                    showConfirmDialog(()=>{
+                                        showProgress();
+                                        dResult.mutate(value);
+                                    })
                                 }}
                                  className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                             </div>
@@ -102,11 +110,17 @@ export default function Index() {
 
     return (
      
-        <CollectRequiredDataWrapper useHooks={useAppConfig}>
+        <CollectRequiredDataWrapper useHooks={useAdjustmentRequiredData}>
             {(props) => <Adjustments {...props} />}
         </CollectRequiredDataWrapper>
     );
 }
 Index.getLayout = getLayout;
 
+type AdjustmentsProps = ReturnType<typeof useAdjustmentRequiredData>["data"]
+function useAdjustmentRequiredData(){
+    const config = useAppConfig();
+    const [adjustments,loading] = useAdjustments();
 
+    return {data:{...config.data,adjustments},isLoading:loading||config.isLoading}
+}

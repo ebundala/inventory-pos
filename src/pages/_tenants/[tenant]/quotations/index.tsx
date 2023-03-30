@@ -7,6 +7,9 @@ import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
 
 export function Quotations({ quotations,defaultCurrency, refetch }: QuitationListProps) {
@@ -14,6 +17,10 @@ export function Quotations({ quotations,defaultCurrency, refetch }: QuitationLis
     
 
 
+    const trpcTenant = useTrpcTenant();
+    const { showProgress, callbacks } = useProgressFeedback("/quotations")
+    const dResult = trpcTenant.quotation.delete.useMutation(callbacks);
+    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (
         <FormContainer title={<h2>All Quotations</h2>}>
@@ -90,6 +97,10 @@ export function Quotations({ quotations,defaultCurrency, refetch }: QuitationLis
                                         }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
                                         <button 
                                         onClick={(e) => {
+                                            showConfirmDialog(()=>{
+                                                showProgress();
+                                                dResult.mutate(value);
+                                            })
                                         }}
                                         className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                                     </div>

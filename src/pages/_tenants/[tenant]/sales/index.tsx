@@ -8,10 +8,17 @@ import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
+import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 
 
 export function Sales({ sales, defaultCurrency,refetch }: SaleListProps) {
     const router = useRouter();
+    const trpcTenant = useTrpcTenant();
+    const { showProgress, callbacks } = useProgressFeedback("/sales")
+    const dResult = trpcTenant.sale.delete.useMutation(callbacks);
+    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (<FormContainer title={<h2>All Sales</h2>}>
     <div className="flex flex-col justify-start">
@@ -121,7 +128,12 @@ export function Sales({ sales, defaultCurrency,refetch }: SaleListProps) {
                                         
                                         router.push(`/sales/update/${value}`);
                                     }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
-                                    <button onClick={()=>{}}
+                                    <button onClick={()=>{
+                                        showConfirmDialog(()=>{
+                                            showProgress();
+                                            dResult.mutate(value);
+                                        })
+                                    }}
                                     className="btn btn-warning btn-xs rounded-md btn-outline">Delete</button>
                                 </div>
                             }

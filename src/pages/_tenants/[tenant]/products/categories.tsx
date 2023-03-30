@@ -16,6 +16,7 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { FormContainer } from "@/components/FormContainer";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
 export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
     const [showModal, hide, data] = useModal();
@@ -45,6 +46,8 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
         callbacks.onError(error);
     }
    });
+   const dResult = trpcWithHost.product.category.delete.useMutation(callbacks);
+   const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return  <FormContainer title={<h2>All Category</h2>}>
     <div className="flex flex-col justify-start">
@@ -82,7 +85,7 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -99,9 +102,9 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                     
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row, value }: { row: any, value: number }) => {
                             return <div className="flex flex-row gap-2">
                                 <button onClick={(e)=>{
                                    // console.log(row);
@@ -119,7 +122,14 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                                    
                                 }})
                             }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
+                                <button
+                                onClick={()=>{
+                                    showConfirmDialog(()=>{
+                                        showProgress();
+                                        dResult.mutate(value);
+                                    })
+                                }}
+                                 className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },

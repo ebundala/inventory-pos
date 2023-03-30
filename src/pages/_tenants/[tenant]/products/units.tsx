@@ -18,105 +18,108 @@ import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrap
 import { useUnitSearch } from "@/lib/hooks/useUnitSearch";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
-function useUnitFormOptions(opts?:Unit & {unit?:Unit}){
-    const {unit,operator}=opts??{};   
-    return useMemo(():ZodFormFieldOptions=>({
-        tenantId:{
-            hidden:true
+function useUnitFormOptions(opts?: Unit & { unit?: Unit }) {
+    const { unit, operator } = opts ?? {};
+    return useMemo((): ZodFormFieldOptions => ({
+        tenantId: {
+            hidden: true
         },
-        id:{
-            hidden:true
+        id: {
+            hidden: true
         },
-        name:{
-            label:"Unit name",
-            ordering:1
+        name: {
+            label: "Unit name",
+            ordering: 1
         },
-        shortName:{
-            label:"Short name",
-            ordering:2,
+        shortName: {
+            label: "Short name",
+            ordering: 2,
         },
-        baseUnitId:{
-            label:"Base unit",
-            ordering:3,
-            combobox:{
-                elevation:48,
-                value:unit,
-                valuePath:"id",
-                useGetDataHook:useUnitSearch
+        baseUnitId: {
+            label: "Base unit",
+            ordering: 3,
+            combobox: {
+                elevation: 48,
+                value: unit,
+                valuePath: "id",
+                useGetDataHook: useUnitSearch
             }
         },
-        operator:{
-            label:"Operator",
-            ordering:4,
-            registerOptions:{
+        operator: {
+            label: "Operator",
+            ordering: 4,
+            registerOptions: {
                 value: operator
             },
-            options:[{
-                label:"Multiply",
-                value:"x"
+            options: [{
+                label: "Multiply",
+                value: "x"
             },
             {
-                label:"Division",
-                value:"/"
+                label: "Division",
+                value: "/"
             }
-        ]
+            ]
         },
-        operatorValue:{
-            label:"Operator value",
-            ordering:5,
+        operatorValue: {
+            label: "Operator value",
+            ordering: 5,
         },
-    }),[opts]);
+    }), [opts]);
 }
-export function UnitIndex({units,refetch}:UnitIndexProps) {
+export function UnitIndex({ units, refetch }: UnitIndexProps) {
     const [showModal, hide, data] = useModal();
-   
-    
-   const trpcWithHost = useTrpcTenant();
-   const {showProgress,callbacks} = useProgressFeedback()
 
-   const result1 = trpcWithHost.product.unit.create.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-   const result2 = trpcWithHost.product.unit.update.useMutation({
-    onSuccess:(data,variable,ctx)=>{
-        callbacks.onSuccess(data);
-        hide();
-        refetch()
-    },
-    onError:(error)=>{
-        callbacks.onError(error);
-    }
-   });
-   
+
+    const trpcWithHost = useTrpcTenant();
+    const { showProgress, callbacks } = useProgressFeedback()
+
+    const result1 = trpcWithHost.product.unit.create.useMutation({
+        onSuccess: (data, variable, ctx) => {
+            callbacks.onSuccess(data);
+            hide();
+            refetch()
+        },
+        onError: (error) => {
+            callbacks.onError(error);
+        }
+    });
+    const result2 = trpcWithHost.product.unit.update.useMutation({
+        onSuccess: (data, variable, ctx) => {
+            callbacks.onSuccess(data);
+            hide();
+            refetch()
+        },
+        onError: (error) => {
+            callbacks.onError(error);
+        }
+    });
+    const dResult = trpcWithHost.product.unit.delete.useMutation(callbacks);
+    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
+
 
     return <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
                     (e) => {
-                        
+
                         showModal({
-                            content:(props) => {                       
-                       return <UnitForm 
-                       {...props} 
-                       mutateAsync={(data)=>{
-                        showProgress({animated:true});
-                        return result1.mutateAsync(data);
-                      }}
-                       schema={createUnitInputSchema}                        
-                        title={
-                        "Create Unit"
-                       }/>
+                            content: (props) => {
+                                return <UnitForm
+                                    {...props}
+                                    mutateAsync={(data) => {
+                                        showProgress({ animated: true });
+                                        return result1.mutateAsync(data);
+                                    }}
+                                    schema={createUnitInputSchema}
+                                    title={
+                                        "Create Unit"
+                                    } />
                             }
-                          
+
                         })
                     }
                 }
@@ -132,7 +135,7 @@ export function UnitIndex({units,refetch}:UnitIndexProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -148,7 +151,7 @@ export function UnitIndex({units,refetch}:UnitIndexProps) {
                     },
                     {
                         Header: "Base unit",
-                        accessor: "unit.name",                       
+                        accessor: "unit.name",
                     },
                     {
                         Header: "Operator",
@@ -160,28 +163,36 @@ export function UnitIndex({units,refetch}:UnitIndexProps) {
                     },
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row, value }: { row: any, value: number }) => {
                             return <div className="flex flex-row gap-2">
-                                <button onClick={(e)=>{
+                                <button onClick={(e) => {
                                     console.log(row);
                                     showModal({
-                                        content:(props) => {                       
-                                   return <UnitForm 
-                                   {...props} 
-                                   mutateAsync={(data)=>{
-                                    showProgress({animated:true});
-                                    return result2.mutateAsync(data);
-                                  }}
-                                   schema={updateUnitInputSchema} 
-                                  
-                                   defaultValues={row.original}
-                                   title="Update Unit"/>
-                                   
-                                }})
-                            }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
+                                        content: (props) => {
+                                            return <UnitForm
+                                                {...props}
+                                                mutateAsync={(data) => {
+                                                    showProgress({ animated: true });
+                                                    return result2.mutateAsync(data);
+                                                }}
+                                                schema={updateUnitInputSchema}
+
+                                                defaultValues={row.original}
+                                                title="Update Unit" />
+
+                                        }
+                                    })
+                                }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
+                                <button
+                                    onClick={() => {
+                                        showConfirmDialog(() => {
+                                            showProgress();
+                                            dResult.mutate(value);
+                                        })
+                                    }}
+                                    className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
@@ -192,7 +203,7 @@ export function UnitIndex({units,refetch}:UnitIndexProps) {
 
 }
 
-function useRequiredUnitData(){
+function useRequiredUnitData() {
     const data = useUnits();
     return { data, isLoading: data.result.isLoading }
 }
@@ -210,36 +221,36 @@ export default function Index() {
 }
 Index.getLayout = getLayout;
 
-type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes>={
+type ZodFormSchema<R, T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTypes> = {
     show: (data: ModalData) => void;
     hide: () => void;
     ModalContainer: FC<ModalSectionProps>;
     ModalContent: FC<ModalSectionProps>;
     ModalAction: FC<ModalSectionProps>;
-    title?:ReactNode,
-    schema:T
+    title?: ReactNode,
+    schema: T
     defaultValues?: Partial<R>
     fieldOptions?: Parameters<typeof useZodForm>[1]
-    mutateAsync:(data:any)=>Promise<unknown>
+    mutateAsync: (data: any) => Promise<unknown>
 }
 
-const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues })=>{
-    const {tenant} = useTenant();
+const UnitForm: FC<ZodFormSchema<Unit>> = ({ show, hide, mutateAsync, ModalContainer, ModalContent, ModalAction, schema, title, defaultValues }) => {
+    const { tenant } = useTenant();
     const options = useUnitFormOptions(defaultValues as any)
-    const [config, form] = useZodForm(schema,options,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
-     useEffect(()=>{
-        if(defaultValues) {
-        form.reset(defaultValues)
+    const [config, form] = useZodForm(schema, options, { defaultValues: { tenantId: tenant?.tenantId, ...defaultValues } });
+    useEffect(() => {
+        if (defaultValues) {
+            form.reset(defaultValues)
         }
-     },[defaultValues])
-    
+    }, [defaultValues])
+
     return (
 
         <ModalContainer>
 
             <ModalContent>
                 <form onSubmit={form.handleSubmit(async (data) => {
-                  await mutateAsync(data as any);
+                    await mutateAsync(data as any);
                 }, (e) => {
                     console.error(e)
                 })}>
@@ -247,7 +258,7 @@ const UnitForm:FC<ZodFormSchema<Unit>> =({ show, hide,mutateAsync, ModalContaine
                     <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
                         {config.map((i) => {
                             return (<FormInputField key={i.name} {...i} />);
-                        })} 
+                        })}
                     </div>
                     <ModalAction >
                         <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">

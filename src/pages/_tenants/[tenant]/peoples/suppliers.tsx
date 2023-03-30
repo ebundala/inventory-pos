@@ -18,6 +18,7 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
+import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
 
 function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
@@ -82,6 +83,8 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
         callbacks.onError(error);
     }
    });
+   const dResult = trpcWithHost.people.supplier.delete.useMutation(callbacks);
+   const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (
         <FormContainer title={<h2>All Suppliers</h2>}>
@@ -120,7 +123,7 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
                     {
                         Header: () => <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
                         ,
-                        accessor: "id",
+                        accessor: "tenantId",
                         disableSortBy: true,
                         Cell: ({ row, value }: { row: any, value: any }) => {
                             return <label ><input type="checkbox" className="checkbox checkbox-primary checkbox-xs " /></label>
@@ -152,9 +155,9 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
                     },
                     {
                         Header: "Actions",
-                        accessor: "tenantId",
+                        accessor: "id",
                         disableSortBy: true,
-                        Cell: ({ row, value }: { row: any, value: any }) => {
+                        Cell: ({ row, value }: { row: any, value: number }) => {
                             return <div className="flex flex-row gap-2">
                                 <button onClick={(e)=>{
                                     console.log(row);
@@ -173,7 +176,14 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
                                    
                                 }})
                             }} className="btn btn-info btn-sm rounded-md btn-outline">Edit</button>
-                                <button className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
+                                <button
+                                onClick={()=>{
+                                    showConfirmDialog(()=>{
+                                        showProgress();
+                                        dResult.mutate(value);
+                                    })
+                                }}
+                                 className="btn btn-warning btn-sm rounded-md btn-outline">Delete</button>
                             </div>
                         }
                     },
