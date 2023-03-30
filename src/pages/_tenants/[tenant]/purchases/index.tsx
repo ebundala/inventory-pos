@@ -122,7 +122,7 @@ export function Purchases({ purchases, defaultCurrency, refetch }: QuitationList
                                             onClick={(e) => {
 
                                                 showConfirmDialog(() => {
-                                                    showProgress();
+                                                     showProgress({ animated: true });;
                                                     dResult.mutate(value)
                                                 })
                                             }}

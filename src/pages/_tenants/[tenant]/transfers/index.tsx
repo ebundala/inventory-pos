@@ -116,7 +116,7 @@ export function Transfers({ transfers,defaultCurrency, refetch }: TransferListPr
                                     <button 
                                     onClick={()=>{
                                         showConfirmDialog(()=>{
-                                            showProgress();
+                                             showProgress({ animated: true });;
                                             dResult.mutate(value);
                                         })
                                     }}

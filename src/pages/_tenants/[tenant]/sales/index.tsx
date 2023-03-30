@@ -138,7 +138,7 @@ export function Sales({ sales, defaultCurrency,refetch }: SaleListProps) {
                                     }} className="btn btn-info btn-xs rounded-md btn-outline">Edit</button>
                                     <button onClick={()=>{
                                         showConfirmDialog(()=>{
-                                            showProgress();
+                                             showProgress({ animated: true });;
                                             dResult.mutate(value);
                                         })
                                     }}

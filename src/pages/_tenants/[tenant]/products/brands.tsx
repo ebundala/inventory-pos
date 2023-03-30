@@ -196,7 +196,7 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
                       <button
                         onClick={() => {
                           showConfirmDialog(() => {
-                            showProgress();
+                             showProgress({ animated: true });;
                             dResult.mutate(value);
                             
                           });

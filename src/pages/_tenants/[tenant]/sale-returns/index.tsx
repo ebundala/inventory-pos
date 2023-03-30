@@ -137,7 +137,7 @@ export function SaleReturns({ saleReturns, defaultCurrency, refetch }: SaleRetur
                                             <button
                                                 onClick={() => {
                                                     showConfirmDialog(() => {
-                                                        showProgress();
+                                                         showProgress({ animated: true });;
                                                         dResult.mutate(value);
                                                     })
                                                 }}

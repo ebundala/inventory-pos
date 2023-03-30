@@ -119,7 +119,7 @@ export function Products({ products, defaultCurrency, refetch }: ProductListProp
                                     <button
                                         onClick={(e) => {
                                             showConfirmDialog(()=>{
-                                                showProgress();
+                                                 showProgress({ animated: true });;
                                                 dResult.mutate(value)
                                             })
                                           

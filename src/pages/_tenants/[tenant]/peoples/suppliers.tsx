@@ -187,7 +187,7 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
                                 <button
                                 onClick={()=>{
                                     showConfirmDialog(()=>{
-                                        showProgress();
+                                         showProgress({ animated: true });;
                                         dResult.mutate(value);
                                     })
                                 }}

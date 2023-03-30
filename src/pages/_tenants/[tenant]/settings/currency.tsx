@@ -160,7 +160,7 @@ export function CurrencyIndex({ currencies, refetch }: CurrencyIndexProps) {
                                     <button
                                         onClick={() => {
                                             showConfirmDialog(() => {
-                                                showProgress();
+                                                 showProgress({ animated: true });;
                                                 dResult.mutate(value)
                                             })
                                         }}

@@ -106,7 +106,7 @@ export function Quotations({ quotations,defaultCurrency, refetch }: QuitationLis
                                         <button 
                                         onClick={(e) => {
                                             showConfirmDialog(()=>{
-                                                showProgress();
+                                                 showProgress({ animated: true });;
                                                 dResult.mutate(value);
                                             })
                                         }}

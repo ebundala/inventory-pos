@@ -179,7 +179,7 @@ export function WarehouseIndex({ warehouses, refetch }: WarehouseIndexProps) {
                                     onClick={
                                         () => {
                                             showConfirmDialog(() => {
-                                                showProgress();
+                                                 showProgress({ animated: true });;
                                                 dResult.mutate(value)
 
                                             })

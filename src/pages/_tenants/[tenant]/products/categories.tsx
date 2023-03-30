@@ -133,7 +133,7 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
                                 <button
                                 onClick={()=>{
                                     showConfirmDialog(()=>{
-                                        showProgress();
+                                         showProgress({ animated: true });;
                                         dResult.mutate(value);
                                     })
                                 }}

@@ -196,7 +196,7 @@ export function UnitIndex({ units, refetch }: UnitIndexProps) {
                                 <button
                                     onClick={() => {
                                         showConfirmDialog(() => {
-                                            showProgress();
+                                             showProgress({ animated: true });;
                                             dResult.mutate(value);
                                         })
                                     }}

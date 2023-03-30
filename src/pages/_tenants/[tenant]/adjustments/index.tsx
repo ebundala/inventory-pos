@@ -99,7 +99,7 @@ function Adjustments({router,adjustments,refetch}:AdjustmentsProps) {
                                 onClick={()=>{
                                     //delete here
                                     showConfirmDialog(()=>{
-                                        showProgress();
+                                         showProgress({ animated: true });;
                                         dResult.mutate(value);
                                     })
                                 }}
