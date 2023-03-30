@@ -16,8 +16,16 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 export function Sales({ sales, defaultCurrency,refetch }: SaleListProps) {
     const router = useRouter();
     const trpcTenant = useTrpcTenant();
-    const { showProgress, callbacks } = useProgressFeedback("/sales")
-    const dResult = trpcTenant.sale.delete.useMutation(callbacks);
+    const { showProgress, callbacks } = useProgressFeedback()
+    const dResult = trpcTenant.sale.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (<FormContainer title={<h2>All Sales</h2>}>

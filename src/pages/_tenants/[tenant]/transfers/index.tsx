@@ -16,8 +16,16 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 export function Transfers({ transfers,defaultCurrency, refetch }: TransferListProps) {
     const router = useRouter();
     const trpcTenant = useTrpcTenant();
-    const { showProgress, callbacks } = useProgressFeedback("/transfers")
-    const dResult = trpcTenant.transfer.delete.useMutation(callbacks);
+    const { showProgress, callbacks } = useProgressFeedback()
+    const dResult = trpcTenant.transfer.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
 

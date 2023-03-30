@@ -18,8 +18,16 @@ export function PurchaseReturns({ purchaseReturns, defaultCurrency, refetch }: P
     const router = useRouter();
 
     const trpcTenant = useTrpcTenant();
-    const { showProgress, callbacks } = useProgressFeedback("/sales")
-    const dResult = trpcTenant.purchase_return.delete.useMutation(callbacks);
+    const { showProgress, callbacks } = useProgressFeedback()
+    const dResult = trpcTenant.purchase_return.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
 

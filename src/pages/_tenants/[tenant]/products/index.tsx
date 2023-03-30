@@ -18,10 +18,18 @@ import { useConfirmDialog } from "../../../../lib/hooks/useConfirmDialog";
 
 export function Products({ products, defaultCurrency, refetch }: ProductListProps) {
     const router = useRouter();
-    const { showProgress, callbacks } = useProgressFeedback("/products")
+    const { showProgress, callbacks } = useProgressFeedback();
 
     const trpcTenant = useTrpcTenant();
-    const dResult = trpcTenant.product.delete.useMutation(callbacks);
+    const dResult = trpcTenant.product.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
 
     const showConfirmDialog = useConfirmDialog({
         

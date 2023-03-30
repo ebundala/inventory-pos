@@ -83,7 +83,15 @@ function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
         callbacks.onError(error);
     }
    });
-   const dResult = trpcWithHost.people.supplier.delete.useMutation(callbacks);
+   const dResult = trpcWithHost.people.supplier.delete.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (

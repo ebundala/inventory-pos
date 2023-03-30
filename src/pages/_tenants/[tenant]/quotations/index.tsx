@@ -18,8 +18,16 @@ export function Quotations({ quotations,defaultCurrency, refetch }: QuitationLis
 
 
     const trpcTenant = useTrpcTenant();
-    const { showProgress, callbacks } = useProgressFeedback("/quotations")
-    const dResult = trpcTenant.quotation.delete.useMutation(callbacks);
+    const { showProgress, callbacks } = useProgressFeedback()
+    const dResult = trpcTenant.quotation.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (

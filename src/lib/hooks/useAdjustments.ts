@@ -34,5 +34,5 @@ export function useAdjustments(args?: z.infer<typeof AdjustmentFindManySchema>) 
         return rResult;
     }, [result.refetch])
 
-    return [adjustments, result.isLoading, result.isSuccess, refetch] as [typeof adjustments, boolean, boolean, typeof refetch];
+    return {adjustments, isLoading:result.isLoading, result, refetch};
 }

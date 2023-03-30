@@ -96,7 +96,15 @@ export function UnitIndex({ units, refetch }: UnitIndexProps) {
             callbacks.onError(error);
         }
     });
-    const dResult = trpcWithHost.product.unit.delete.useMutation(callbacks);
+    const dResult = trpcWithHost.product.unit.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
 
@@ -255,7 +263,7 @@ const UnitForm: FC<ZodFormSchema<Unit>> = ({ show, hide, mutateAsync, ModalConta
                     console.error(e)
                 })}>
                     <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
-                    <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
+                    <div className="grid grid-flow-row grid-cols-1 ">
                         {config.map((i) => {
                             return (<FormInputField key={i.name} {...i} />);
                         })}

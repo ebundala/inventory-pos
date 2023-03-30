@@ -46,7 +46,15 @@ export function CategoryIndex({categories,refetch}:CategoryIndexProps) {
         callbacks.onError(error);
     }
    });
-   const dResult = trpcWithHost.product.category.delete.useMutation(callbacks);
+   const dResult = trpcWithHost.product.category.delete.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
    const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return  <FormContainer title={<h2>All Category</h2>}>
@@ -205,7 +213,7 @@ const CategoryForm:FC<ZodFormSchema<Category>> =({ show, hide, mutateAsync, Moda
                     console.error(e)
                 })}>
                     <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
-                    <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
+                    <div className="grid grid-flow-row grid-cols-1">
                         {config.map((i) => {
                             return (<FormInputField key={i.name} {...i} />);
                         })} 

@@ -16,8 +16,16 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 export function Purchases({ purchases, defaultCurrency, refetch }: QuitationListProps) {
     const router = useRouter();
     const trpcTenant = useTrpcTenant();
-    const { showProgress, callbacks } = useProgressFeedback("/purchases")
-    const dResult = trpcTenant.purchase.delete.useMutation(callbacks);
+    const { showProgress, callbacks } = useProgressFeedback()
+    const dResult = trpcTenant.purchase.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+          callbacks.onSuccess(data);
+          refetch();
+        },
+        onError: (error) => {
+          callbacks.onError(error);
+        },
+      });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
     return (

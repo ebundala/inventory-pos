@@ -9,11 +9,19 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 
-function Adjustments({router,adjustments}:AdjustmentsProps) {
+function Adjustments({router,adjustments,refetch}:AdjustmentsProps) {
 
    const trpcTenant = useTrpcTenant();
-   const {showProgress,callbacks}= useProgressFeedback("/adjustments")
-   const dResult =  trpcTenant.adjustment.delete.useMutation(callbacks);
+   const {showProgress,callbacks}= useProgressFeedback()
+   const dResult =  trpcTenant.adjustment.delete.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
    const showConfirmDialog = useConfirmDialog({message:"You are about to delete this record. This action cannot be reversed, Do you want to continue?"})
      
     return (
@@ -120,7 +128,6 @@ Index.getLayout = getLayout;
 type AdjustmentsProps = ReturnType<typeof useAdjustmentRequiredData>["data"]
 function useAdjustmentRequiredData(){
     const config = useAppConfig();
-    const [adjustments,loading] = useAdjustments();
-
-    return {data:{...config.data,adjustments},isLoading:loading||config.isLoading}
+    const adjustments = useAdjustments();
+    return {data:{...config.data,...adjustments},isLoading:adjustments.isLoading||config.isLoading}
 }

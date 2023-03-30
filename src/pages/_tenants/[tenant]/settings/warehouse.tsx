@@ -78,7 +78,15 @@ export function WarehouseIndex({ warehouses, refetch }: WarehouseIndexProps) {
         }
     });
 
-    const dResult = trpcWithHost.setting.warehouse.delete.useMutation(callbacks);
+    const dResult = trpcWithHost.setting.warehouse.delete.useMutation({
+        onSuccess: (data, variable, ctx) => {
+            callbacks.onSuccess(data);
+            refetch();
+        },
+        onError: (error) => {
+            callbacks.onError(error);
+        },
+    });
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
 
