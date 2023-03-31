@@ -258,6 +258,7 @@ export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
     where: {
       product: {
         recordStatus: RecordStatus.ACTIVE,
+        
       },
     },
     by: [
@@ -335,6 +336,9 @@ export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
         v.productVariant?.recordStatus !== RecordStatus.ACTIVE
       ) {
         return false;
+      }
+      if(!v.warehouse){
+        return false
       }
       return true;
     })
@@ -512,7 +516,7 @@ export const customerReport =  async (ctx:TenantContext)=>{
     }
   }));
  const statMap:Map<number,typeof stats[0]> = stats.reduce((p,c,i)=>p.set(c.customerId,c),new Map())
- const result = (await ctx.tx!.customer.findMany()).map((v)=>({...v,...statMap.get(v.id)}));
+ const result = (await ctx.tx!.customer.findMany({where:{recordStatus:RecordStatus.ACTIVE}})).map((v)=>({...v,...statMap.get(v.id)}));
  return result;
 }
 

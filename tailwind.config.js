@@ -78,4 +78,11 @@ module.exports = {
    // require("@tailwindcss/line-clamp"),
     require("daisyui")
   ],
+  theme: {
+    extend: {
+        screens: {
+            'print': { 'raw': 'print' },
+        }
+    }
+},
 };

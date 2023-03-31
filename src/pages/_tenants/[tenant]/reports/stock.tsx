@@ -7,14 +7,25 @@ import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { numberFormat } from "@/lib/util";
 import { useRouter } from "next/router";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 
 
 
-function StockReports({ products,defaultCurrency }: StockReportsProps) {
+function StockReports({ products, defaultCurrency }: StockReportsProps) {
+  const componentRef = useRef<HTMLDivElement | null>(null);
+  const requestPrint = useReactToPrint({ content: () => componentRef.current });
+
+
   return (
     <FormContainer title={<h2>Stock Reports </h2>}>
+      <div className="flex justify-end">
+        <button onClick={() => { requestPrint() }} className="btn btn-sm btn-info btn-outline">Print</button>
+      </div>
+      <div ref={componentRef} className="w-full">
       <CustomTable
+        printTitle={"Purchases"}
         pageOptions={pageOptions}
         rowsData={products}
         collumsData={() => ([
@@ -28,7 +39,7 @@ function StockReports({ products,defaultCurrency }: StockReportsProps) {
           {
             Header: "Name",
             accessor: "name",
-           
+
           },
           {
             Header: "Category",
@@ -37,12 +48,12 @@ function StockReports({ products,defaultCurrency }: StockReportsProps) {
           {
             Header: "Cost",
             accessor: "cost",
-            Cell: numberFormat(undefined, {currency:defaultCurrency?.code,style: 'currency', maximumFractionDigits: 2 })
+            Cell: numberFormat(undefined, { currency: defaultCurrency?.code, style: 'currency', maximumFractionDigits: 2 })
           },
           {
             Header: "Price",
             accessor: "price",
-            Cell: numberFormat(undefined, {currency:defaultCurrency?.code,style: 'currency', maximumFractionDigits: 2 })
+            Cell: numberFormat(undefined, { currency: defaultCurrency?.code, style: 'currency', maximumFractionDigits: 2 })
           },
           {
             Header: "In Stock",
@@ -55,7 +66,8 @@ function StockReports({ products,defaultCurrency }: StockReportsProps) {
             }
           }
         ])} />
-    </FormContainer>
+    </div>
+    </FormContainer >
   );
 }
 

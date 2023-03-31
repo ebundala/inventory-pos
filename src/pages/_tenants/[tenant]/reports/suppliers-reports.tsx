@@ -7,17 +7,27 @@ import { useStore } from "@/lib/context";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { numberFormat } from "@/lib/util";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 
 
 
 function SuppliersReports({suppliersReports,defaultCurrency}:ViewProps){
+  const componentRef = useRef<HTMLDivElement | null>(null);
+  const requestPrint = useReactToPrint({content:()=>componentRef.current});
+  
+  
   return (
     <FormContainer title={<h2>Suppliers Reports</h2>}>
-            <div>
+<div className="flex justify-end">
+           <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
+           </div>
+      <div ref={componentRef} className="w-full">
 
 <CustomTable
+          printTitle={"Suppliers"}
+
   pageOptions={pageOptions}
   rowsData={suppliersReports ?? []}
   collumsData={() => {

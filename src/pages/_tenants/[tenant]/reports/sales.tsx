@@ -7,16 +7,25 @@ import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useSales } from "@/lib/hooks/useSales";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { Sale, PaymentSale } from "@prisma/client";
-import router, { useRouter } from "next/router";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 
 
 
 function SalesReports({sales,defaultCurrency,refetch}:SalesReportsProps){
-  return (
+    const componentRef = useRef<HTMLDivElement | null>(null);
+    const requestPrint = useReactToPrint({content:()=>componentRef.current});
+     
+    return (
     <FormContainer title={<h2>Sales reports</h2>}>
-         <div className="w-full ">
+ <div className="flex justify-end">
+           <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
+           </div>
+      <div ref={componentRef} className="w-full">
             <CustomTable
+                      printTitle={"Sales"}
+
                 pageOptions={pageOptions}
                 rowsData={sales ?? []}
                 collumsData={() => {
@@ -42,11 +51,11 @@ function SalesReports({sales,defaultCurrency,refetch}:SalesReportsProps){
                             accessor: "ref",
 
                         },
-                        {
-                            Header: "Added by",
-                            accessor: "user.name",
+                        // {
+                        //     Header: "Added by",
+                        //     accessor: "user.name",
 
-                        },
+                        // },
                         {
                             Header: "Customer",
                             accessor: "customer.name",
@@ -92,10 +101,10 @@ function SalesReports({sales,defaultCurrency,refetch}:SalesReportsProps){
                             Header: "Payment status",
                             accessor: "paymentStatus"
                         },
-                         {
-                            Header: "Shipping status",
-                            accessor: "shippingStatus"
-                        }
+                        //  {
+                        //     Header: "Shipping status",
+                        //     accessor: "shippingStatus"
+                        // }
                         // {
                         //     Header: "Actions",
                         //     accessor: "id",

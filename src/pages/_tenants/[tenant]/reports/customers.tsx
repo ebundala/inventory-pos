@@ -8,17 +8,25 @@ import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { numberFormat } from "@/lib/util";
 import { useRouter } from "next/router";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 
 
 
 function View({ customersReports, defaultCurrency, }: ViewProps) {
+ const componentRef = useRef<HTMLDivElement | null>(null);
+ const requestPrint = useReactToPrint({content:()=>componentRef.current});
   return (
     <FormContainer title={<h2>Customers reports</h2>}>
-      <div>
+      <div className="flex justify-end">
+           <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
+           </div>
+      <div ref={componentRef}>
 
         <CustomTable
+                  printTitle={"Customers"}
+
           pageOptions={pageOptions}
           rowsData={customersReports ?? []}
           collumsData={() => {

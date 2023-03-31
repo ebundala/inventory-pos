@@ -3,23 +3,32 @@ import { FormContainer } from "@/components/FormContainer";
 import { getLayout } from "@/layouts/getLayout"
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
 import { useRouter } from "next/router";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 
 
 
 
-function SuppliersReports({}:SuppliersReportsProps){
+function WarehouseReports({}:WarehouseReportsProps){
+  const componentRef = useRef<HTMLDivElement | null>(null);
+  const requestPrint = useReactToPrint({content:()=>componentRef.current});
+  
   return (
-    <FormContainer title={<h2>Suppliers Reports</h2>}>
-         <div></div>
+    <FormContainer title={<h2>Warehouse Reports</h2>}>
+        <div className="flex justify-end">
+           <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
+           </div>
+      <div ref={componentRef} className="w-full">
+        </div>
     </FormContainer>
   );
 }
 
 export default function Index() {
     return (
-      <CollectRequiredDataWrapper useHooks={useSuppliersReportsRequiredData}>
+      <CollectRequiredDataWrapper useHooks={useWarehouseReportsRequiredData}>
         {(props) => {
-          return <SuppliersReports {...props} />;
+          return <WarehouseReports {...props} />;
         }}
       </CollectRequiredDataWrapper>
     );
@@ -30,11 +39,11 @@ export default function Index() {
 Index.getLayout = getLayout;
 
 
-function useSuppliersReportsRequiredData() {
+function useWarehouseReportsRequiredData() {
     const router = useRouter();
     const {data,isLoading} = useAppConfig()
     return { data: { ...data}, isLoading: isLoading};
 }
-type SuppliersReportsProps = ReturnType<
-  typeof useSuppliersReportsRequiredData
+type WarehouseReportsProps = ReturnType<
+  typeof useWarehouseReportsRequiredData
 >["data"];

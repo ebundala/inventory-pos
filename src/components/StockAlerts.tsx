@@ -12,6 +12,7 @@ export function StockAlerts({ take, skip, pagenated }: { take?: number, skip?: n
 
   if (pagenated) {
     return <CustomTable
+    printTitle={"Stock Alerts"}
     pageOptions={pageOptions}
       rowsData={result.data ?? []}
       collumsData={() => ([

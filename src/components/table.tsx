@@ -16,6 +16,7 @@ import {
   FaSortDown,
 } from "react-icons/fa";
 import { Listbox, Transition } from "@headlessui/react";
+import { useAppConfig } from "@/lib/hooks/useAppConfig";
 
 // const getColumns = () => [
 //   {
@@ -306,23 +307,36 @@ function TableComponent({
   getTableBodyProps,
   rows,
   prepareRow,
+  printTitle
 }: {
   getTableProps: () => any;
   headerGroups: any[];
   getTableBodyProps: () => any;
   rows: any[];
   prepareRow: (v: any) => void;
+  printTitle?:ReactNode
 }) {
+const {data:{setting}} = useAppConfig();
   return (
-    <div className="w-full min-w-[30rem] bg-white rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.03)] overflow-x-auto">
-      <table {...getTableProps()} className="table w-full">
-        <thead>
+    <div className="w-full bg-white rounded-xl  shadow-[0_4px_10px_rgba(0,0,0,0.03)]  overflow-x-auto print:shadow-none print:overflow-hidden print:rounded-none print:p-8" >
+     <table className="table table-compact mb-3 hidden print:block">
+            <tbody>
+                <tr className="text-xl font-bold">{setting?.companyName}</tr>
+                <tr>Email: {setting?.email}</tr>
+                <tr>Phone: {setting?.companyPhone}</tr>
+                <tr>Address: {setting?.companyAddress}</tr>
+
+            </tbody>
+        </table>
+        <div className="text-xl text-center my-3 hidden print:block">{printTitle} </div>
+      <table {...getTableProps()} className="table print:table-compact w-full">
+        <thead >
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column: any) => (
                 <th
                   {...column.getHeaderProps(column.getSortByToggleProps())}
-                  className="px-3 text-start text-xs font-light uppercase cursor-pointer"
+                  className="px-2 break-normal whitespace-normal	 text-start text-xs font-light uppercase cursor-pointer print:font-semibold print:px-[2px] "
                   style={{ width: column.width }}
                 >
                   <div className="flex gap-2 items-center">
@@ -330,7 +344,7 @@ function TableComponent({
                       {column.render("Header")}
                     </div>
                     {!column.disableSortBy && (
-                      <div className="flex flex-col">
+                      <div className="flex flex-col print:hidden">
                         <FaSortUp
                           className={`text-sm translate-y-1/2 ${
                             column.isSorted && !column.isSortedDesc
@@ -362,7 +376,7 @@ function TableComponent({
                   return (
                     <td
                       {...cell.getCellProps()}
-                      className="p-2 text-sm font-normal text-gray-700 first:rounded-l-lg last:rounded-r-lg"
+                      className="p-2 text-xs break-normal whitespace-normal font-normal text-gray-700 first:rounded-l-lg last:rounded-r-lg print:p-[2px] print:rounded-none"
                     >
                       {cell.render("Cell")}
                     </td>
@@ -395,6 +409,7 @@ type TableProps<T> = {
   search?: boolean;
   pagenation?: boolean;
  colDeps?:any[]
+ printTitle?:ReactNode
 };
 export function CustomTable<T extends object = any>({
   rowsData,
@@ -402,6 +417,7 @@ export function CustomTable<T extends object = any>({
   pageOptions,
   search = true,
   pagenation = true,
+  printTitle,
   colDeps=[]
 }: TableProps<T>) {
   const data:T[] = useMemo(() => rowsData, [rowsData]);
@@ -432,18 +448,18 @@ export function CustomTable<T extends object = any>({
     usePagination
   );
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 ">
       <div className="flex flex-col sm:flex-row justify-between gap-2 items-center">
         {search && (
           <TableGlobalSearchFilter
-            className="sm:w-64"
+            className="sm:w-64 print:hidden"
             globalFilter={state.globalFilter}
             setGlobalFilter={setGlobalFilter}
           />
         )}
         {pageOptions && (
           <TableSelectMenu
-            className="sm:w-44"
+            className="sm:w-44 print:hidden"
             value={pageSize}
             setValue={setPageSize}
             options={pageOptions}
@@ -456,9 +472,10 @@ export function CustomTable<T extends object = any>({
         getTableBodyProps={getTableBodyProps}
         rows={rows}
         prepareRow={prepareRow}
+        printTitle={printTitle}
       />
       {pagenation && (
-        <div className="flex justify-center">
+        <div className="flex justify-center print:hidden">
           <TablePaginationNav
             gotoPage={gotoPage}
             canPreviousPage={canPreviousPage}
