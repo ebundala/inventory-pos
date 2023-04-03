@@ -1,5 +1,6 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
+import { FormInputField } from "@/components/FormInputField";
 import { CustomTable } from "@/components/table";
 import { getLayout } from "@/layouts/getLayout"
 import { pageOptions } from "@/lib/config/pageOptions";
@@ -8,24 +9,52 @@ import { usePurchases } from "@/lib/hooks/usePurchases";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { Purchase } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {useReactToPrint} from "react-to-print"
+import { DateFilterArg, useDateFilterForm } from "@/lib/hooks/useDateFilterForm";
+import { z } from "zod";
+import { useDateFilterText } from "@/lib/hooks/useDateFilterText";
 
 
 
-
-function PurchasesReports({ purchases, defaultCurrency }: ViewProps) {
+function PurchasesReports({ purchases, defaultCurrency,setArgs }: ViewProps) {
 
   const componentRef = useRef<HTMLDivElement | null>(null);
  const requestPrint = useReactToPrint({content:()=>componentRef.current});
+ const [config,form] = useDateFilterForm()
+const datesText = useDateFilterText(form);
   return (
     <FormContainer title={<h2>Purchases Reports</h2>}>
-      <div className="flex justify-end">
+      
+        <form className="flex flex-row justify-start items-center gap-2"
+        onSubmit={form.handleSubmit((dates)=>{
+          setArgs({where:{
+            AND:[{
+            date:{
+              gte:dates.startAt
+
+            }},
+            {
+              date:{
+                lte:dates.endAt
+  
+              }}
+          ]
+          }})
+        })}>
+        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
+        <div className="flex flex-col justify-start">
+        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
+        </div>
+        </form>
+    
+      <div className="flex justify-end">   
+
            <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
            </div>
       <div ref={componentRef} className="w-full">
         <CustomTable
-          printTitle={"Purchases"}
+          printTitle={`Purchases ${datesText}`}
           pageOptions={pageOptions}
           rowsData={purchases ?? []}
           collumsData={() => {
@@ -135,11 +164,12 @@ Index.getLayout = getLayout;
 
 
 function useViewRequiredData() {
-  const router = useRouter();
   const { data, isLoading } = useAppConfig()
-  const purchases = usePurchases();
-  return { data: { ...data, ...purchases }, isLoading: isLoading || purchases.result.isLoading };
+  const [args,setArgs] = useState<Parameters<typeof usePurchases>[0]|undefined>();
+  const purchases = usePurchases(args);
+  return { data: { ...data, ...purchases,setArgs }, isLoading: isLoading || purchases.result.isLoading };
 }
+
 type ViewProps = ReturnType<
   typeof useViewRequiredData
 >["data"];

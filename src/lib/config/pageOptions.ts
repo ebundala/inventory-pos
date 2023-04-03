@@ -14,6 +14,9 @@ export const pageOptions = [
     {
         label: "100 items per page",
         value: 100
+    },
+    {
+        label: "All items",
+        value: Number.MAX_SAFE_INTEGER
     }
-   
 ]

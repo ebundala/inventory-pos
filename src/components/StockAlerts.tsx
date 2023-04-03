@@ -4,7 +4,7 @@ import { numberFormat } from "@/lib/util";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { CustomTable } from "./table";
 
-export function StockAlerts({ take, skip, pagenated }: { take?: number, skip?: number, pagenated?: boolean }) {
+export function StockAlerts({ take, skip, pagenated }: { take?: number, skip?: number, pagenated?: boolean}) {
   const trpcTenant = useTrpcTenant();
   const result = trpcTenant.report.stockAlerts.useQuery({ take: take, skip: skip });
   if (result.isLoading)

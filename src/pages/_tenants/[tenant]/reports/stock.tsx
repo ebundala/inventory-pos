@@ -1,31 +1,34 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
+import { FormInputField } from "@/components/FormInputField";
 import { CustomTable } from "@/components/table";
 import { getLayout } from "@/layouts/getLayout"
 import { pageOptions } from "@/lib/config/pageOptions";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useDateFilterForm } from "@/lib/hooks/useDateFilterForm";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { numberFormat } from "@/lib/util";
-import { useRouter } from "next/router";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 
 
 
 
-function StockReports({ products, defaultCurrency }: StockReportsProps) {
+function StockReports({ products, defaultCurrency,setArgs }: StockReportsProps) {
   const componentRef = useRef<HTMLDivElement | null>(null);
   const requestPrint = useReactToPrint({ content: () => componentRef.current });
 
 
   return (
     <FormContainer title={<h2>Stock Reports </h2>}>
+       
+    
       <div className="flex justify-end">
         <button onClick={() => { requestPrint() }} className="btn btn-sm btn-info btn-outline">Print</button>
       </div>
       <div ref={componentRef} className="w-full">
       <CustomTable
-        printTitle={"Purchases"}
+        printTitle={"Stock levels"}
         pageOptions={pageOptions}
         rowsData={products}
         collumsData={() => ([
@@ -87,10 +90,10 @@ Index.getLayout = getLayout;
 
 
 function useStockReportsRequiredData() {
-  const router = useRouter();
   const { data, isLoading } = useAppConfig()
-  const { products, result: { isLoading: loading } } = useProducts()
-  return { data: { ...data, products, }, isLoading: isLoading || loading };
+  const [args,setArgs]= useState<Parameters<typeof useProducts>[0]>()
+  const { products, result: { isLoading: loading } } = useProducts(args)
+  return { data: { ...data, products,setArgs }, isLoading: isLoading || loading };
 }
 type StockReportsProps = ReturnType<
   typeof useStockReportsRequiredData

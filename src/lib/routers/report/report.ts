@@ -1,43 +1,43 @@
-import { customerReport, paymentPurchase, paymentPurchaseReturn, paymentSale, paymentSaleReturns, productTopSellers, purchaseReturns, purchases, saleReturns, sales, stockAlerts, suppliersReport, topCustomers } from "@/core/report";
-import { dateRangeInputSchema, stockAlertInputSchema } from "@/core/report/index.zod";
+import { customerReport, CustomerSchema, paymentPurchase, paymentPurchaseReturn, PaymentPurchaseReturnSchema, PaymentPurchaseSchema, paymentSale, paymentSaleReturns, PaymentSaleReturnSchema, PaymentSaleSchema, productTopSellers, ProductTopSellersSchema, purchaseReturns, PurchaseReturnSchema, purchases, PurchasesSchema, saleReturns, SaleReturnSchema, sales, SalesSchema, stockAlerts, SupplierSchema, suppliersReport, topCustomers, TopCustomersSchema } from "@/core/report";
+import {  stockAlertInputSchema } from "@/core/report/index.zod";
 import { router, privateProcedureWithTx, TenantContext } from "@/core/trpc";
 
 
 
 export const reportRouter = router({
     productTopSellers: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(ProductTopSellersSchema)
         .query(({ input, ctx }) => productTopSellers(input, ctx as TenantContext)),
         topCustomers: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(TopCustomersSchema)
         .query(({ input, ctx }) => topCustomers(input, ctx as TenantContext)),
         sales: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(SalesSchema)
         .query(({ input, ctx }) => sales(input, ctx as TenantContext)),
         purchases: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PurchasesSchema)
         .query(({ input, ctx }) => purchases(input, ctx as TenantContext)),
         saleReturns: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(SaleReturnSchema)
         .query(({ input, ctx }) => saleReturns(input, ctx as TenantContext)),
         purchaseReturns: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PurchaseReturnSchema)
         .query(({ input, ctx }) => purchaseReturns(input, ctx as TenantContext)),
         stockAlerts: privateProcedureWithTx
         .input(stockAlertInputSchema)
         .query(({input, ctx }) => stockAlerts(input,ctx as TenantContext)),
         paymentSale: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PaymentSaleSchema)
         .query(({ input, ctx }) => paymentSale(input, ctx as TenantContext)),
         paymentSaleReturns: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PaymentSaleReturnSchema)
         .query(({ input, ctx }) => paymentSaleReturns(input, ctx as TenantContext)),
         paymentPurchase: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PaymentPurchaseSchema)
         .query(({ input, ctx }) => paymentPurchase(input, ctx as TenantContext)),
         paymentPurchaseReturn: privateProcedureWithTx
-        .input(dateRangeInputSchema)
+        .input(PaymentPurchaseReturnSchema)
         .query(({ input, ctx }) => paymentPurchaseReturn(input, ctx as TenantContext)),
-        customerReports: privateProcedureWithTx.query(({ctx})=>customerReport(ctx as TenantContext)),
-        supplierReports:privateProcedureWithTx.query(({ctx})=>suppliersReport(ctx as TenantContext))
+        customerReports: privateProcedureWithTx.input(CustomerSchema).query(({input,ctx})=>customerReport(input,ctx as TenantContext)),
+        supplierReports:privateProcedureWithTx.input(SupplierSchema).query(({input,ctx})=>suppliersReport(input,ctx as TenantContext))
     })

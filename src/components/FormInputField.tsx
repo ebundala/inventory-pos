@@ -5,7 +5,6 @@ import { FormComboBox } from "./combobox";
 import Image from "next/image";
 import CloudinaryUploadWidget from "./Cloudinary";
 import { BsTrash } from "react-icons/bs";
-import { json } from "stream/consumers";
 import { tryJsonParse } from "../core/util/tryJsonParse";
 import { CloudinaryCallbackImage } from "@/types";
 
@@ -160,11 +159,14 @@ export function FormInputField({
           //   disabled,
           //   min,
           //   max, } = props;
-          const value =
-            field.value instanceof Date
-              ? field.value.toISOString().substring(0, 10)
-              : undefined; //"2023-01-18";
-
+          
+          let value = undefined;
+         try{
+         value = field.value.toISOString().substring(0, 10)
+              
+         } catch(e){
+         value=undefined
+         }
           return (
             <>
               {!hideLabel && (

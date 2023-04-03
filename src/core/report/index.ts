@@ -1,5 +1,15 @@
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "@/core/trpc";
+import { z } from "zod";
+import { SaleDetailWhereInputObjectSchema } from "prisma/generated/schemas/objects/SaleDetailWhereInput.schema";
+import { SaleWhereInputObjectSchema } from "prisma/generated/schemas/objects/SaleWhereInput.schema";
+import { PurchaseWhereInputObjectSchema } from "prisma/generated/schemas/objects/PurchaseWhereInput.schema";
+import { SaleReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/SaleReturnWhereInput.schema";
+import { PurchaseReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/PurchaseReturnWhereInput.schema";
+import { PaymentSaleWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentSaleWhereInput.schema";
+import { PaymentSaleReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentSaleReturnWhereInput.schema";
+import { PaymentPurchaseWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentPurchaseWhereInput.schema";
+import { PaymentPurchaseReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentPurchaseReturnWhereInput.schema";
 
 const productIncludes = {
   productVariants: {
@@ -13,24 +23,28 @@ const productIncludes = {
   productWarehouse: true,
 };
 
-export type DateRangeInput = {
-  startDate: Date;
-  endDate: Date;
+export type WhereInput<T> = {
+  where?: T
   take?: number;
   skip?: number;
   cursor?: number;
 };
+
+export const ProductTopSellersSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: SaleDetailWhereInputObjectSchema.optional()
+});
+
 export const productTopSellers = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.SaleDetailWhereInput>,
   ctx: TenantContext
 ) => {
   const stats = await ctx.tx!.saleDetail.groupBy({
     by: [Prisma.SaleDetailScalarFieldEnum.productId],
     where: {
-      date:{
-        lte:endDate,
-        gte:startDate
-       },
+      ...where,
       sale: {
         recordStatus: RecordStatus.ACTIVE,
         status: { equals: "Completed" },
@@ -47,6 +61,7 @@ export const productTopSellers = async (
     },
     take,
     skip,
+    
   });
   const ids = stats.map((v) => v.productId);
 
@@ -64,26 +79,22 @@ export const productTopSellers = async (
   });
 };
 
+export const TopCustomersSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: SaleWhereInputObjectSchema.optional()
+});
 export const topCustomers = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.SaleWhereInput>,
   ctx: TenantContext
 ) => {
   const stats = await ctx.tx!.sale.groupBy({
     where: {
+      ...where,
       status: { equals: "Completed" },
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+
     },
     by: [Prisma.SaleScalarFieldEnum.customerId],
     _sum: {
@@ -108,26 +119,22 @@ export const topCustomers = async (
   });
 };
 
+
+export const SalesSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: SaleWhereInputObjectSchema.optional()
+});
 export const sales = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.SaleWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.sale.groupBy({
     where: {
+      ...where,
       status: { equals: "Completed" },
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -141,26 +148,22 @@ export const sales = async (
   });
 };
 
+export const PurchasesSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PurchaseWhereInputObjectSchema.optional()
+});
 export const purchases = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.PurchaseWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.purchase.groupBy({
     where: {
+      ...where,
       recordStatus: RecordStatus.ACTIVE,
       status: { equals: "Received" },
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -174,26 +177,23 @@ export const purchases = async (
   });
 };
 
+export const SaleReturnSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: SaleReturnWhereInputObjectSchema.optional()
+});
+
 export const saleReturns = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.SaleReturnWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.saleReturn.groupBy({
     where: {
+      ...where,
       status: { equals: "Received" },
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -207,26 +207,22 @@ export const saleReturns = async (
   });
 };
 
+
+export const PurchaseReturnSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PurchaseReturnWhereInputObjectSchema.optional()
+});
 export const purchaseReturns = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.PurchaseReturnWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.purchaseReturn.groupBy({
     where: {
+      ...where,
       status: { equals: "Received" },
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -240,11 +236,11 @@ export const purchaseReturns = async (
   });
 };
 
-export type StockAlertInput ={
-  take?:number
-  skip?:number
+export type StockAlertInput = {
+  take?: number
+  skip?: number
 }
-export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
+export const stockAlerts = async (input: StockAlertInput, ctx: TenantContext) => {
   const productMap = (
     await ctx.tx!.product.findMany({
       where: { recordStatus: RecordStatus.ACTIVE },
@@ -258,7 +254,7 @@ export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
     where: {
       product: {
         recordStatus: RecordStatus.ACTIVE,
-        
+
       },
     },
     by: [
@@ -301,7 +297,7 @@ export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
     (p, v) => p.set(v.id, v),
     new Map<number, typeof warehouses[0]>()
   );
-  const products = await ctx.tx!.product.findMany({    
+  const products = await ctx.tx!.product.findMany({
     where: {
       id: { in: alerts.map((stat) => stat.productId) },
       recordStatus: RecordStatus.ACTIVE,
@@ -337,54 +333,41 @@ export const stockAlerts = async (input:StockAlertInput,ctx: TenantContext) => {
       ) {
         return false;
       }
-      if(!v.warehouse){
+      if (!v.warehouse) {
         return false
       }
       return true;
     })
-    
-      const {take,skip} = input;
-      if(skip&&take){
-        console.log("alerts all",input);
 
-        return results.slice(skip,skip+take-1)
-      }
-      else if(skip&&!take){
-        console.log("alerts skip",input);
+  const { take, skip } = input;
+  if (skip && take) {
+    return results.slice(skip, skip + take - 1)
+  }
+  else if (skip && !take) {
+    return results.slice(skip - 1)
+  } else if (take) {
+    return results.slice(0, take)
+  }
 
-        return results.slice(skip-1)
-
-
-      }else if(take){
-        console.log("alerts take",input);
-
-        return results.slice(0,take)
-      }    
-      console.log("alerts main",input);
-
-    return results;
+  return results;
 };
 
+
+export const PaymentSaleSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PaymentSaleWhereInputObjectSchema.optional()
+});
 export const paymentSale = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.PaymentSaleWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.paymentSale.groupBy({
     where: {
-      // status: { equals: "Received" },
+      ...where,
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -398,26 +381,21 @@ export const paymentSale = async (
   });
 };
 
+
+export const PaymentSaleReturnSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PaymentSaleReturnWhereInputObjectSchema.optional()
+});
 export const paymentSaleReturns = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.PaymentSaleReturnWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.paymentSaleReturn.groupBy({
     where: {
-      // status: { equals: "Received" },
-      recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+      ...where, recordStatus: RecordStatus.ACTIVE,
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -431,26 +409,22 @@ export const paymentSaleReturns = async (
   });
 };
 
-export const paymentPurchase = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+
+
+export const PaymentPurchaseSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PaymentPurchaseWhereInputObjectSchema.optional()
+});
+export const paymentPurchase = async ({ where, cursor, take, skip }: WhereInput<Prisma.PaymentPurchaseWhereInput>,
   ctx: TenantContext
 ) => {
   return ctx.tx!.paymentPurchase.groupBy({
     where: {
-      // status: { equals: "Received" },
+      ...where,
       recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -464,26 +438,21 @@ export const paymentPurchase = async (
   });
 };
 
+
+export const PaymentPurchaseReturnSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PaymentPurchaseReturnWhereInputObjectSchema.optional()
+});
 export const paymentPurchaseReturn = async (
-  { startDate, endDate, cursor, take, skip }: DateRangeInput,
+  { where, cursor, take, skip }: WhereInput<Prisma.PaymentPurchaseReturnWhereInput>,
   ctx: TenantContext
 ) => {
-  return ctx.tx!.paymentPurchase.groupBy({
+  return ctx.tx!.paymentPurchaseReturn.groupBy({
     where: {
-      // status: { equals: "Received" },
-      recordStatus: RecordStatus.ACTIVE,
-      AND: [
-        {
-          date: {
-            lte: endDate,
-          },
-        },
-        {
-          date: {
-            gte: startDate,
-          },
-        },
-      ],
+      ...where, recordStatus: RecordStatus.ACTIVE,
+
     },
     by: [Prisma.SaleScalarFieldEnum.date],
     _sum: {
@@ -497,46 +466,58 @@ export const paymentPurchaseReturn = async (
   });
 };
 
+export const CustomerSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: SaleWhereInputObjectSchema.optional()
+});
+export const customerReport = async ({where}: WhereInput<Prisma.SaleWhereInput>, ctx: TenantContext) => {
 
-export const customerReport =  async (ctx:TenantContext)=>{
-
- const stats = (await ctx.tx!.sale.groupBy({
-    where:{
-      recordStatus:RecordStatus.ACTIVE
+  const stats = (await ctx.tx!.sale.groupBy({
+    where: {
+      ...where,
+      recordStatus: RecordStatus.ACTIVE
     },
-    by:[Prisma.SaleScalarFieldEnum.customerId],
-    _count:{
-      id:true
+    by: [Prisma.SaleScalarFieldEnum.customerId],
+    _count: {
+      id: true
     },
-    _sum:{
-      paidAmount:true,
-      grandTotal:true,
-      discount:true,
-      shipping:true
+    _sum: {
+      paidAmount: true,
+      grandTotal: true,
+      discount: true,
+      shipping: true
     }
   }));
- const statMap:Map<number,typeof stats[0]> = stats.reduce((p,c,i)=>p.set(c.customerId,c),new Map())
- const result = (await ctx.tx!.customer.findMany({where:{recordStatus:RecordStatus.ACTIVE}})).map((v)=>({...v,...statMap.get(v.id)}));
- return result;
+  const statMap: Map<number, typeof stats[0]> = stats.reduce((p, c, i) => p.set(c.customerId, c), new Map())
+  const result = (await ctx.tx!.customer.findMany({ where: { recordStatus: RecordStatus.ACTIVE } })).map((v) => ({ ...v, ...statMap.get(v.id) })).filter((v)=>v._sum);
+  return result;
 }
 
-
-export const suppliersReport = async (ctx:TenantContext)=>{
-const stats = (await ctx.tx!.purchase.groupBy({
-  where:{
-    recordStatus:RecordStatus.ACTIVE
-  },
-  by:[Prisma.PurchaseScalarFieldEnum.supplierId],
-  _count:{
-    id:true
-  },
-  _sum:{
-    paidAmount:true,
-    discount:true,
-    grandTotal:true,
-  }
-}))
-const statMap:Map<number,typeof stats[0]> = stats.reduce((p,c,i)=>p.set(c.supplierId,c),new Map());
-const result = (await ctx.tx!.supplier.findMany()).map((v)=>({...v,...statMap.get(v.id)}));
-return result;
+export const SupplierSchema = z.object({
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  cursor: z.number().optional(),
+  where: PurchaseWhereInputObjectSchema.optional()
+});
+export const suppliersReport = async ({where}:WhereInput<Prisma.PurchaseWhereInput>,ctx: TenantContext) => {
+  const stats = (await ctx.tx!.purchase.groupBy({
+    where: {
+      ...where,
+      recordStatus: RecordStatus.ACTIVE
+    },
+    by: [Prisma.PurchaseScalarFieldEnum.supplierId],
+    _count: {
+      id: true
+    },
+    _sum: {
+      paidAmount: true,
+      discount: true,
+      grandTotal: true,
+    }
+  }))
+  const statMap: Map<number, typeof stats[0]> = stats.reduce((p, c, i) => p.set(c.supplierId, c), new Map());
+  const result = (await ctx.tx!.supplier.findMany()).map((v) => ({ ...v, ...statMap.get(v.id) }));
+  return result;
 }

@@ -1,30 +1,57 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
+import { FormInputField } from "@/components/FormInputField";
 import { CustomTable } from "@/components/table";
 import { getLayout } from "@/layouts/getLayout"
 import { pageOptions } from "@/lib/config/pageOptions";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useDateFilterForm } from "@/lib/hooks/useDateFilterForm";
+import { useDateFilterText } from "@/lib/hooks/useDateFilterText";
 import { useSales } from "@/lib/hooks/useSales";
 import { dateFormat, numberFormat } from "@/lib/util";
 import { Sale, PaymentSale } from "@prisma/client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 
 
 
 
-function SalesReports({sales,defaultCurrency,refetch}:SalesReportsProps){
+function SalesReports({sales,defaultCurrency,setArgs}:SalesReportsProps){
     const componentRef = useRef<HTMLDivElement | null>(null);
     const requestPrint = useReactToPrint({content:()=>componentRef.current});
-     
+    const [config,form] = useDateFilterForm();
+    const datesText = useDateFilterText(form);
+
     return (
     <FormContainer title={<h2>Sales reports</h2>}>
+          <form className="flex flex-row justify-start items-center gap-2"
+        onSubmit={form.handleSubmit((dates)=>{
+          setArgs({where:{
+            AND:[{
+            date:{
+              gte:dates.startAt
+
+            }},
+            {
+              date:{
+                lte:dates.endAt
+  
+              }}
+          ]
+          }})
+        })}>
+        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
+        <div className="flex flex-col justify-start">
+        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
+        </div>
+        </form>
+    
  <div className="flex justify-end">
            <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
            </div>
       <div ref={componentRef} className="w-full">
             <CustomTable
-                      printTitle={"Sales"}
+                      printTitle={`Sales ${datesText}`}
 
                 pageOptions={pageOptions}
                 rowsData={sales ?? []}
@@ -150,8 +177,9 @@ Index.getLayout = getLayout;
 
 function useSalesReportsRequiredData() {
     const {data,isLoading} = useAppConfig()
-    const  sales= useSales()
-    return { data: { ...data,...sales}, isLoading: isLoading||sales.result.isLoading};
+    const [args,setArgs]=useState<Parameters<typeof useSales>[0]>()
+    const  sales= useSales(args)
+    return { data: { ...data,...sales,setArgs}, isLoading: isLoading||sales.result.isLoading};
 }
 type SalesReportsProps = ReturnType<
   typeof useSalesReportsRequiredData

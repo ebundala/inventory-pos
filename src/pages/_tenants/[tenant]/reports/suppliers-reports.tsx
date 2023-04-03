@@ -1,32 +1,61 @@
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { FormContainer } from "@/components/FormContainer";
+import { FormInputField } from "@/components/FormInputField";
 import { CustomTable } from "@/components/table";
+import { SupplierSchema } from "@/core/report";
 import { getLayout } from "@/layouts/getLayout"
 import { pageOptions } from "@/lib/config/pageOptions";
 import { useStore } from "@/lib/context";
 import { useAppConfig } from "@/lib/hooks/useAppConfig";
+import { useDateFilterForm } from "@/lib/hooks/useDateFilterForm";
+import { useDateFilterText } from "@/lib/hooks/useDateFilterText";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { numberFormat } from "@/lib/util";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
+import { z } from "zod";
 
 
 
 
-function SuppliersReports({suppliersReports,defaultCurrency}:ViewProps){
+function SuppliersReports({suppliersReports,defaultCurrency,setArgs}:ViewProps){
   const componentRef = useRef<HTMLDivElement | null>(null);
   const requestPrint = useReactToPrint({content:()=>componentRef.current});
-  
-  
+  const [config,form] = useDateFilterForm();
+
+  const datesText = useDateFilterText(form);
+
   return (
     <FormContainer title={<h2>Suppliers Reports</h2>}>
+        <form className="flex flex-row justify-start items-center gap-2"
+        onSubmit={form.handleSubmit((dates)=>{
+          setArgs({where:{
+            AND:[{
+            date:{
+              gte:dates.startAt
+
+            }},
+            {
+              date:{
+                lte:dates.endAt
+  
+              }}
+          ]
+          }})
+        })}>
+        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
+        <div className="flex flex-col justify-start">
+        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
+        </div>
+        </form>
+    
 <div className="flex justify-end">
            <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>
            </div>
       <div ref={componentRef} className="w-full">
 
 <CustomTable
-          printTitle={"Suppliers"}
+          printTitle={`Suppliers ${datesText}`}
 
   pageOptions={pageOptions}
   rowsData={suppliersReports ?? []}
@@ -97,18 +126,19 @@ Index.getLayout = getLayout;
 function useViewRequiredData() {
     
     const {data,isLoading} = useAppConfig();
-    const suppliers = useSuppliersReports()
-    return { data: { ...data,...suppliers}, isLoading: isLoading || suppliers.result.isLoading};
+    const [args,setArgs] = useState<Parameters<typeof useSuppliersReports>[0]>();
+    const suppliers = useSuppliersReports(args)
+    return { data: { ...data,...suppliers,setArgs}, isLoading: isLoading || suppliers.result.isLoading};
 }
 type ViewProps = ReturnType<
   typeof useViewRequiredData
 >["data"];
 
 
-export function useSuppliersReports() {
+export function useSuppliersReports(args?:z.infer<typeof SupplierSchema>) {
   const [suppliersReports, setSuppliersReports] = useStore((s) => s.suppliersReports);
   const trpcWithHost = useTrpcTenant();
-  const result = trpcWithHost.report.supplierReports.useQuery(undefined, {
+  const result = trpcWithHost.report.supplierReports.useQuery(args??{}, {
     onSuccess(data) {
       setSuppliersReports({ suppliersReports: data });
     },
