@@ -16,10 +16,9 @@ import { useReactToPrint } from "react-to-print";
 
 
 
-function SalesReports({sales,defaultCurrency,setArgs}:SalesReportsProps){
+function SalesReports({sales,defaultCurrency,setArgs,config,form}:SalesReportsProps){
     const componentRef = useRef<HTMLDivElement | null>(null);
     const requestPrint = useReactToPrint({content:()=>componentRef.current});
-    const [config,form] = useDateFilterForm();
     const datesText = useDateFilterText(form);
 
     return (
@@ -179,7 +178,9 @@ function useSalesReportsRequiredData() {
     const {data,isLoading} = useAppConfig()
     const [args,setArgs]=useState<Parameters<typeof useSales>[0]>()
     const  sales= useSales(args)
-    return { data: { ...data,...sales,setArgs}, isLoading: isLoading||sales.result.isLoading};
+    const [config,form] = useDateFilterForm();
+
+    return { data: { ...data,config,form,...sales,setArgs}, isLoading: isLoading||sales.result.isLoading};
 }
 type SalesReportsProps = ReturnType<
   typeof useSalesReportsRequiredData

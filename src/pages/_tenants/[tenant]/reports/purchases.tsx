@@ -17,11 +17,10 @@ import { useDateFilterText } from "@/lib/hooks/useDateFilterText";
 
 
 
-function PurchasesReports({ purchases, defaultCurrency,setArgs }: ViewProps) {
+function PurchasesReports({ purchases, defaultCurrency,setArgs,config,form }: ViewProps) {
 
   const componentRef = useRef<HTMLDivElement | null>(null);
  const requestPrint = useReactToPrint({content:()=>componentRef.current});
- const [config,form] = useDateFilterForm()
 const datesText = useDateFilterText(form);
   return (
     <FormContainer title={<h2>Purchases Reports</h2>}>
@@ -167,7 +166,9 @@ function useViewRequiredData() {
   const { data, isLoading } = useAppConfig()
   const [args,setArgs] = useState<Parameters<typeof usePurchases>[0]|undefined>();
   const purchases = usePurchases(args);
-  return { data: { ...data, ...purchases,setArgs }, isLoading: isLoading || purchases.result.isLoading };
+  const [config,form] = useDateFilterForm()
+
+  return { data: { ...data,config,form, ...purchases,setArgs }, isLoading: isLoading || purchases.result.isLoading };
 }
 
 type ViewProps = ReturnType<

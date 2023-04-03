@@ -13,18 +13,15 @@ import { numberFormat } from "@/lib/util";
 import { useCallback, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import { z } from "zod";
-import { useDateFilterText } from "../../../../lib/hooks/useDateFilterText";
+import { useDateFilterText } from "@/lib/hooks/useDateFilterText";
 
 
 
 
-function View({ customersReports, defaultCurrency,setArgs }: ViewProps) {
+function View({ customersReports, defaultCurrency,setArgs,config,form }: ViewProps) {
  const componentRef = useRef<HTMLDivElement | null>(null);
  const requestPrint = useReactToPrint({content:()=>componentRef.current});
- const [config,form] = useDateFilterForm();
-
-
-
+ 
 const datesText = useDateFilterText(form);
   return (
     <FormContainer title={<h2>Customers reports</h2>}>
@@ -127,8 +124,9 @@ Index.getLayout = getLayout;
 function useViewRequiredData() {
   const { data, isLoading } = useAppConfig()
   const [args,setArgs] = useState<z.infer<typeof CustomerSchema>>()
+ const [config,form] =useDateFilterForm();
   const customers = useCustomersReports(args);  
-  return { data: { ...data, ...customers,setArgs }, isLoading: isLoading || customers.result.isLoading };
+  return { data: { ...data,config,form, ...customers,setArgs }, isLoading: isLoading || customers.result.isLoading };
 }
 type ViewProps = ReturnType<
   typeof useViewRequiredData

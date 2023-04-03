@@ -18,10 +18,9 @@ import { z } from "zod";
 
 
 
-function SuppliersReports({suppliersReports,defaultCurrency,setArgs}:ViewProps){
+function SuppliersReports({suppliersReports,defaultCurrency,setArgs,config,form}:ViewProps){
   const componentRef = useRef<HTMLDivElement | null>(null);
   const requestPrint = useReactToPrint({content:()=>componentRef.current});
-  const [config,form] = useDateFilterForm();
 
   const datesText = useDateFilterText(form);
 
@@ -128,7 +127,9 @@ function useViewRequiredData() {
     const {data,isLoading} = useAppConfig();
     const [args,setArgs] = useState<Parameters<typeof useSuppliersReports>[0]>();
     const suppliers = useSuppliersReports(args)
-    return { data: { ...data,...suppliers,setArgs}, isLoading: isLoading || suppliers.result.isLoading};
+    const [config,form] = useDateFilterForm();
+
+    return { data: { ...data,config,form,...suppliers,setArgs}, isLoading: isLoading || suppliers.result.isLoading};
 }
 type ViewProps = ReturnType<
   typeof useViewRequiredData
