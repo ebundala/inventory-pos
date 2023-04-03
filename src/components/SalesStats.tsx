@@ -9,8 +9,18 @@ export function SalesStats({
 }) {
   const trpcTenant = useTrpcTenant();
   const result = trpcTenant.report.sales.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
+    
   });
   const formater = new Intl.NumberFormat(undefined, {
     compactDisplay: "short",

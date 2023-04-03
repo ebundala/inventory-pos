@@ -23,20 +23,56 @@ export function PaymentsSentAndReceived({
   const dates = useGetDateRanges(startDate, endDate);
   const trpcTenant = useTrpcTenant();
   const result = trpcTenant.report.paymentSale.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const result1 = trpcTenant.report.paymentPurchase.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const result2 = trpcTenant.report.paymentSaleReturns.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const result3 = trpcTenant.report.paymentPurchaseReturn.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const formater = new Intl.NumberFormat(undefined, {
     compactDisplay: "short",

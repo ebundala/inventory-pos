@@ -9,8 +9,17 @@ export function PurchaseReturnStats({
 }) {
   const trpcTenant = useTrpcTenant();
   const result = trpcTenant.report.purchaseReturns.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const formater = new Intl.NumberFormat(undefined, {
     compactDisplay: "short",

@@ -9,8 +9,17 @@ export function TopProducts({
 }) {
   const trpcTenant = useTrpcTenant();
   const result = trpcTenant.report.productTopSellers.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]},
     take: 10,
   });
   const { setting } = useSetting();

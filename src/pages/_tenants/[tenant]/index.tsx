@@ -15,15 +15,16 @@ import { SalesStats } from "@/components/SalesStats";
 import { useTodayDateRange } from "@/lib/hooks/useTodayDateRange";
 import { useThisYearDateRange } from "@/lib/hooks/useThisYearDateRange";
 import { useGetDaysAgo } from "@/lib/hooks/useGetDaysAgo";
+import Link from "next/link";
 
-function useTenantIndexRequiredData(){
+function useTenantIndexRequiredData() {
   const router = useRouter();
-  const {data,status} = useSession();
-  return {data,isLoading:router.isFallback||status === "loading"}
+  const { data, status } = useSession();
+  return { data, isLoading: router.isFallback || status === "loading" }
 }
 type TenantIndexProps = ReturnType<typeof useTenantIndexRequiredData>
-function TenantIndex({data,isLoading}:TenantIndexProps) {
- 
+function TenantIndex({ data, isLoading }: TenantIndexProps) {
+
 
   const [mStartDate, mEndDate] = useGetDaysAgo(new Date(), 30);
   const [dStart, dEnd] = useTodayDateRange();
@@ -34,10 +35,14 @@ function TenantIndex({data,isLoading}:TenantIndexProps) {
     <div className="flex flex-col h-fit w-full gap-8">
       {/* stats section */}
       <div className="grid grid-flow-row md:grid-flow-col gap-4">
-        <SalesStats startDate={dStart} endDate={dEnd} />
-        <PurchasesStats startDate={dStart} endDate={dEnd} />
-        <SaleReturnStats startDate={dStart} endDate={dEnd} />
-        <PurchaseReturnStats startDate={dStart} endDate={dEnd} />
+        <Link href={"/sales"}>
+          <SalesStats  startDate={dStart} endDate={dEnd} />
+        </Link>
+        <Link href={"/purchases"}>
+          <PurchasesStats startDate={dStart} endDate={dEnd} />
+        </Link>
+        <Link href={"/sale-returns"}><SaleReturnStats startDate={dStart} endDate={dEnd} /></Link>
+        <Link href={"/purchase-returns"}><PurchaseReturnStats startDate={dStart} endDate={dEnd} /></Link>
       </div>
       {/* sales and purchases */}
       <div className="grid grid-flow-row md:grid-flow-col md:grid-cols-5 gap-4">
@@ -95,10 +100,10 @@ function TenantIndex({data,isLoading}:TenantIndexProps) {
 export default function Index() {
 
   return (
-   
-      <CollectRequiredDataWrapper useHooks={useTenantIndexRequiredData}>
-          {(props) => <TenantIndex {...props} />}
-      </CollectRequiredDataWrapper>
+
+    <CollectRequiredDataWrapper useHooks={useTenantIndexRequiredData}>
+      {(props) => <TenantIndex {...props} />}
+    </CollectRequiredDataWrapper>
   );
 }
 Index.getLayout = getLayout;

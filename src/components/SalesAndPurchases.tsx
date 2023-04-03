@@ -23,12 +23,30 @@ export function SalesAndPurchases({
   const trpcTenant = useTrpcTenant();
   const dates = useGetDateRanges(startDate, endDate);
   const result = trpcTenant.report.sales.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const result1 = trpcTenant.report.purchases.useQuery({
-    startDate,
-    endDate,
+    where:{
+      AND:[{
+      date:{
+        gte:startDate
+
+      }},
+      {
+        date:{
+          lte:endDate
+
+        }}]}
   });
   const formater = new Intl.NumberFormat(undefined, {
     compactDisplay: "short",
