@@ -1,6 +1,7 @@
 import { router, publicProcedure } from "@/core/trpc";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import { adjustmentRouter } from "./adjustments/adjustment";
+import { authorizationRouter } from "./authorization/authorization";
 import { companyRouter } from "./hrm/company";
 import { customerRouter } from "./people/customer";
 import { productRouter } from "./products/product";
@@ -17,6 +18,7 @@ export {createContext} from '@/core/trpc';
 
 
 export const appRouter = router({
+    authorization:authorizationRouter,
     tenant:tenantRouter,
     product:productRouter,
     adjustment:adjustmentRouter,
