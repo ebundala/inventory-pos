@@ -9,7 +9,7 @@ import {
  
 } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "../util/getTenantUrl";
-
+import mailer from "@/core/mail/mailer";
 const  secrets = {
   client_secret:process.env.GOOGLE_CLIENT_SECRET!,
   client_id:process.env.GOOGLE_CLIENT_ID!
@@ -312,8 +312,6 @@ export type InviteMemberInput = {
    * @maxLength 160
    */
   message?: string;
-  //tenantId: string,
-  userId: string;
   /**
    *
    * @format email
@@ -324,20 +322,33 @@ export const inviteMember = async (
   input: InviteMemberInput,
   ctx: TenantContext
 ) => {
-  const { tx, tenantId } = ctx;
-  //Todo add message field
-  const { userId, email } = input;
-  return tx!.tenantInvite.create({
+  const { tx, tenantId,session } = ctx;
+  const invitorId = session!.user.id!;
+  
+  const { email,message } = input;
+ const result = await tx!.tenantInvite.create({
     include: {
       tenant: true,
       invitor: true,
     },
     data: {
       tenantId: tenantId,
-      invitorId: userId,
+      invitorId: invitorId,
       email: email,
     },
   });
+  mailer.sendMail({
+    to:email,
+    subject:"invitation to join a business",
+  html:`<h3>Hello!</h3>
+  <h5>${session?.user.username}</h5> have invited you to join their business
+  click the link below to accept/reject the invitation.
+  ${getTenantUrl(result.tenant.subdomain)}/invite/${result.email}
+  <h6>${message?"Message":""}</h6>
+  <blockquote>${message}</blockquote>
+  `})
+
+  return result;
 };
 export type TenantEmailWhereInput = {
   /**
