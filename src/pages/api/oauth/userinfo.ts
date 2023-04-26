@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import jackson from "@/core/auth/jackson";
+import jackson from "@/core/authentication/jackson";
 
 export default async function handler(
   req: NextApiRequest,

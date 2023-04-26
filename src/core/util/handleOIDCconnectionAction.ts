@@ -1,4 +1,4 @@
-import initJackson from '@/core/auth/jackson';
+import initJackson from '@/core/authentication/jackson';
 import { OIDCSSOConnection } from "@boxyhq/saml-jackson";
 import { googleOidcDiscoveryUrl } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "@/core/util/getTenantUrl";

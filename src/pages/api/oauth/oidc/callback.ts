@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { OIDCAuthzResponsePayload } from "@boxyhq/saml-jackson";
 
-import jackson from "@/core/auth/jackson";
+import jackson from "@/core/authentication/jackson";
 import { APP_HOST } from "@/lib/util";
 
 export default async function handler(
