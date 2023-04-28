@@ -130,8 +130,7 @@ function UsersIndex({
                 Header: "Picture",
                 accessor: "image",
                 Cell: ({ row, value }: { row: any, value: string }) => {
-                   // const urls = getImageUrls(value)
-                    return <Image src={value} height={40} width={40} alt="product picture" />
+                    return <Image className="rounded-full shadow-md border-2 border-gray-400" src={value} height={40} width={40} alt="product picture" />
                 }
             },
               {

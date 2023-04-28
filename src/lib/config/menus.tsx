@@ -83,18 +83,18 @@ export const menus: LinkMenuData[] = [
         ]
     },
     {
-        name: "Quatations",
+        name: "Quotations",
         link: '#',
         icon: <HiOutlineChartPie  size={32} />,
         subMenus: [
             {
-                name: "Create Quatation",
+                name: "Create Quotation",
                 link: '/quotations/create',
                 icon: <BsAward />,
                 subMenus: []
             },
             {
-                name: "All Quatation",
+                name: "All Qutation",
                 link: '/quotations',
                 icon: <BsCalculator />,
                 subMenus: []

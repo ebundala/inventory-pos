@@ -8,7 +8,7 @@ import { authOptions } from '../authentication/auth';
 import { APP_HOST } from '@/lib/util';
 import superjson from 'superjson';
 import { Enforcer } from 'casbin';
-import { initCasbin } from '../authorization/casbin';
+import enforcer  from '../authorization/casbin';
 
 export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
     const session = await getServerSession(req,res,authOptions);
@@ -50,7 +50,7 @@ export async function createContext({req,res}: TRPCNext.CreateNextContextOptions
         }
     })
     const tenantId = tenant?.tenantId || "app";
-    const enforcer = await initCasbin()
+   // const enforcer = await initCasbin()
     return {
         session, tenantId, enforcer
     }
