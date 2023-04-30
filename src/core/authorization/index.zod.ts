@@ -15,11 +15,13 @@ const permissionActionTypeSchema = z.union([
   z.literal("delete"),
   z.literal("list"),
   z.literal("delete-many"),
+  z.literal("no-action"),
 ]);
 
 export const posSettingPermissionActionTypeSchema = z.union([
   z.literal("view"),
   z.literal("update"),
+  z.literal("no-action"),
 ]);
 
 export const systemPermissionActionTypeSchema = posSettingPermissionActionTypeSchema;

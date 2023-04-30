@@ -98,12 +98,14 @@ export async function deleteRole(role: string, { enforcer, tenantId }: TenantCon
   const {enforcer,tenantId,session} = ctx;
   return enforcer.getPermissionsForUser(session!.user!.id!)
  }
-const PermisionActions = ["create", "view", "update", "delete", "list", "delete-many"] as const;
-type PermissionActionType = "create"| "view" | "update" | "delete" | "list" |"delete-many";
+const PermisionActions = ["create", "view", "update", "delete", "list", "delete-many","no-action"] as const;
+type PermissionActionType = "create"| "view" | "update" | "delete" | "list" |"delete-many" | "no-action";
 
-export type PosSettingPermissionActionType = 'view' | 'update'
+const settingPermissionActions = ['view' , 'update' , "no-action"] as const;
+
+export type PosSettingPermissionActionType = 'view' | 'update' | "no-action"
 export type SystemPermissionActionType = PosSettingPermissionActionType;
-const UserInvitePermissionActions = ["invite", "dismiss"] as const;
+const UserInvitePermissionActions = ["invite", "dismiss","no-action"] as const;
  export type UserInvitePermission = "invite" | "dismiss"
 
 export type PermissionInput = {    
@@ -118,16 +120,20 @@ const permisions = [
         "product", "category", "unit", "brand", "adjustment",
         "quotation", "purchase", "sale", "transfer", "sale-return",
         "purchase-return", "customer", "supplier", "currency", "warehouse"
-    ].map((p) => {
-        return PermisionActions.flatMap((t) => ([p, t]))
+    ].flatMap((p) => {
+        return PermisionActions.map((t) => ([p, t]))
     }),
-    ...["user"].map((p) => {
-        return UserInvitePermissionActions.flatMap((t) => ([p, t]))
+    ...["user"].flatMap((p) => {
+        return UserInvitePermissionActions.map((t) => ([p, t]))
     }),
     ...["sales", "purchases", "sale-returns", "purchase-returns", "sales-and-purchase",
         "top-selling-products", "stock-alerts", "payment-sent-and-received", "recent-sales"
-    ].map((p) => ([`${p}-summary`, "view"])),
-    ["barcode", "print"]
+    ].map((p) => ([`${p}-summary`, "view",`${p}-summary`, "no-action"])),
+    ["barcode", "print"],
+    ["barcode", "no-action"],
+    ...["setting","pos-setting"].flatMap((s)=>{
+        return settingPermissionActions.map((p)=>([s,p]))
+    })
 ]
 
 const permisionsOutput = permisions.map<TPermission>((p,i,arr) => {

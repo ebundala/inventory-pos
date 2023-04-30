@@ -9,6 +9,10 @@ import { RouterOutput } from "@/lib/routers";
 
 
 export interface AppState {
+    userPermissions:RouterOutput['authorization']['getUserPermissions'];
+    editingRole: RouterOutput['authorization']['getRole'] | null;
+    roles: RouterOutput['authorization']['getRoles'];
+    permissions: RouterOutput['authorization']['getPolicies'];
     suppliersReports: RouterOutput['report']['supplierReports'],
     customersReports: RouterOutput['report']['customerReports'],
 

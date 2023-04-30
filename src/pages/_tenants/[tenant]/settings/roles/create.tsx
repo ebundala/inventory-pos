@@ -1,101 +1,91 @@
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
-import { createAdjustmentInputSchema } from "@/core/adjustment/index.zod";
 import { getLayout } from "@/layouts/getLayout";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useZodForm } from "@/lib/util/form-gen";
-import { useEffect, useMemo } from "react";
 import {
+  Controller,
   FieldArrayPath,
   FieldValues,
   useFieldArray,
-  useWatch,
 } from "react-hook-form";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { Prisma, Product, ProductVariant, ProductWarehouse } from "@prisma/client";
-import { FormComboBox } from "@/components/combobox";
-import { CustomTable } from "@/components/table";
-import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
-import { TAppConfig, useAppConfig } from "@/lib/hooks/useAppConfig";
-import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { useProductSearch } from "@/lib/hooks/useProductSearch";
 import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
 
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
-import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
-import { TStockDataInput } from "@/types/TStockDataInput";
-import { calculateStock } from "@/lib/util/calculateStock";
-import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
-import { useToast } from "@/lib/hooks/useToast";
-import { useAdjustmentStockConstraints } from "@/lib/hooks/useAdjustmentStockConstraints";
+import { tRoleWithPermisionSchema } from "@/core/authorization/index.zod";
+import { RolesProps, usePermissionsList } from ".";
+import { useMemo } from "react";
+import { PermissionInput, TRoleWithPermision } from "@/core/authorization";
 
-export function CreateAdjustment({ tenant, user }: TAppConfig) {
-  const options = useAdjustmentFormFieldOptions();
+export function CreateRole({ permissions }: CreateRoleProps) {
+  const options = {
+    role: {
+      label: "Role name",
+      "permissions.0.resource": {
+        hidden: true
+      },
+      "permissions.0.action": {
+        hidden: true
+      }
+    }
+  };
 
-  const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
-    defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, items: 0 },
-  });
+  const [config, form] = useZodForm(tRoleWithPermisionSchema, options);
 
   const [regularConfig, fieldArrayConfig] =
     useSplitFormConfigToFieldArray(config);
   const fname = useFieldArrayName(fieldArrayConfig);
 
-  const adjustmentDetailsForm = useFieldArray<
+  const permissionForm = useFieldArray<
     FieldValues,
     FieldArrayPath<FieldValues>,
     "key"
   >({ control: form.control, name: fname });
 
   const trpcWithHost = useTrpcTenant();
-  const { showProgress, callbacks } = useProgressFeedback("/adjustments");
+  const { showProgress, callbacks } = useProgressFeedback("/settings/roles");
 
-  const result = trpcWithHost.adjustment.create.useMutation(callbacks);
+  const result = trpcWithHost.authorization.createRole.useMutation(callbacks);
 
-  useMemo(() => {
-    form.setValue(
-      Prisma.AdjustmentScalarFieldEnum.items,
-      adjustmentDetailsForm.fields.length
-    );
-  }, [adjustmentDetailsForm.fields.length]);
 
-  useEffect(() => {
-    form.setValue(Prisma.AdjustmentScalarFieldEnum.date, new Date());
-    form.setValue(Prisma.AdjustmentScalarFieldEnum.ref, Date.now().toString());
-  }, []);
+  // const permissionsData = useRenderFieldArrayForm(
+  //   fname,
+  //   permissionForm,
+  //   form,
+  //   fieldArrayConfig
+  // );
 
-  // const errors = form.formState.errors;
-
-  const detailsData = useRenderFieldArrayForm(
-    fname,
-    adjustmentDetailsForm,
-    form,
-    fieldArrayConfig
-  );
-
-  const [notesField, otherFields] = useGetZodFormField(
-    Prisma.AdjustmentScalarFieldEnum.notes,
-    regularConfig
-  );
-
-  const warehouseId = form.watch(Prisma.AdjustmentScalarFieldEnum.warehouseId);
-  
-
-  const typeFields = useAdjustmentStockConstraints(form.control)
-  useSetComputedValues(form, typeFields);
-  
-  const checkDuplicates = useEnforceUniqueProduct(adjustmentDetailsForm as any);
+  const permissionsList = useMemo(() => {
+    const permissionMap = permissions.reduce((p, c, arr) => {
+      const value: PermissionInput[] = p.get(c.resource) ?? [];
+      value.push(c);
+      return p.set(c.resource, value);
+    }, new Map<string, PermissionInput[]>())
+    return [...permissionMap];
+  }, [permissions])
+  const indexComulative = useMemo(() => {
+    const permsLength = permissionsList.map((p) => p[1].filter(({ action }) => action !== "no-action").length);
+    const cumulativeSum = ((sum: number) => (value: number) => sum += value)(0);
+    return permsLength.map(cumulativeSum)
+  }, [permissionsList]);
 
   return (
-    <FormContainer title={<h2>Create Adjustment</h2>}>
+    <FormContainer title={<h2>Create Role</h2>}>
       <form
         onSubmit={form.handleSubmit(
-          async (data) => {
+          async (v) => {
+            const data: TRoleWithPermision = v as unknown as TRoleWithPermision
             //submit here
             showProgress({ animated: true });
-            await result.mutateAsync(data as any);
+            const permissions = data.permissions.filter((p) => p.action!== "no-action")
+            const dataFiltered = {...data,permissions};
+            console.log(dataFiltered);
+            await result.mutateAsync(dataFiltered as any);
+
+            
           },
           (e) => {
             console.error(e);
@@ -103,130 +93,58 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
         )}
       >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
-          {otherFields.map((i) => {
+          {regularConfig.map((i) => {
             return <FormInputField key={i.name} {...i} />;
           })}
         </div>
-        <div className="w-full">
-          <FormComboBox
-            label="Products"
-            name="Search product by name/code"
-            hideValue={true}
-            control={form.control}
-            keyPath={(v) => getProductFormatedName(v as any)}
-            displayValuePath={(v) => getProductFormatedName(v as any)}
-            onChange={(e, reset) => {
-              const v = e.target.value;
-              checkDuplicates(v as any);
-              if (reset) {
-                reset();
-              }
-            }}
-            useGetDataHook={() => {
-              // eslint-disable-next-line react-hooks/rules-of-hooks
-              const { labels, data, ...rest } = useProductSearch();
-              return { data: labels, ...rest };
-            }}
-          />
+        <div className="text text-2xl font-bold mt-3">Permissions</div>
+        <div className="w-full mt-3 grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {permissionsList.map(([resource, actionList], index) => {
+            const startIndex = index === 0 ? 0 : indexComulative[index - 1]
+            
+            return (<div className="h-60 shadow-md bottom border rounded-md bordner-gray-200 p-2 flex flex-col" key={resource}>
+              <div className="text text-xl text-left font-semibold">{index + 1} {resource}</div>
+              <div className="flex-1 flex-col">
+                {actionList
+                  .filter(({ action }) => action !== "no-action")
+                  .map(({ action }, i) => <div key={`permissions.${startIndex + i}.action.${action}`}
+                    className="flex flex-row w-full items-center p-1">
+                    <Controller
+                      control={form.control}
+                      defaultValue={"no-action"}
+                      name={`permissions.${startIndex + i}.action`}
+                      render={({ field: { onBlur, onChange }, fieldState }) => {
+                        return <input onChange={(e) => {
+                          // console.log(e.target.checked);
+                          if (e.target.checked) {
+                            onChange({ target: { value: action } })
+                          } else {
+                            onChange({ target: { value: "no-action" } })
+
+                          }
+                        }}
+                          type="checkbox" className="checkbox checkbox-primary checkbox-md mr-3" />
+                      }}
+                    />
+                    <Controller
+                      control={form.control}
+                      name={`permissions.${startIndex + i}.resource`}
+                      defaultValue={resource}
+                      render={({ field, fieldState }) => {
+                        return <input {...field} type="hidden" />
+                      }}
+                    />
+                    <div className="text text-md font-medium">{action}</div>
+                  </div>)}
+              </div>
+            </div>)
+          })}
         </div>
 
-        <div className="w-full  ">
-          <CustomTable
-            rowsData={detailsData}
-            colDeps={[warehouseId]}
-            collumsData={() => [
-              {
-                Header: "Product code",
-                accessor: "product.code",
-                disableSortBy: true,
-              },
-              {
-                Header: "Product",
-                accessor: "productId",
-                disableSortBy: true,
-                Cell: ({ row }: { row: any }) => {
-                  return (
-                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
-                      {getProductFormatedName(row.original)}
-                    </div>
-                  );
-                },
-              },
-              {
-                Header: "Stock",
-                accessor: "product.productWarehouse",
-                disableSortBy: true,
-                Cell: ({
-                  row,
-                  value,
-                }: {
-                  value: ProductWarehouse[];
-                  row: any;
-                }) => {
-                  const detail = row.original as TStockDataInput;
-                  return calculateStock(detail, warehouseId);
-                },
-              },
-              {
-                Header: "Quantity",
-                accessor: "fields.2",
-                disableSortBy: true,
-                Cell: ({ row, value }: { value: any; row: any }) => {
-                  const v = form.getValues(
-                    `adjustmentDetails.${row.index}.type`
-                  );
-                  console.log(v);
-                  if (value?.props?.props && v === "Subtraction") {
-                    const detail = row.original as TStockDataInput;
-                    const stock = calculateStock(detail, warehouseId);
-                    //Dirty way to enforce max stock level
-                    value.props.props.max = stock;
-                  }
 
-                  return value;
-                },
-              },
-              {
-                Header: "Type",
-                accessor: "fields.3",
-                disableSortBy: true,
-              },
-              {
-                Header: "",
-                accessor: "__",
-                disableSortBy: true,
-              },
-              {
-                Header: "",
-                accessor: "fields.1",
-                disableSortBy: true,
-              },
-              {
-                Header: "",
-                accessor: "action",
-                disableSortBy: true,
-                Cell: ({ row }: { row: any }) => {
-                  return (
-                    <button
-                      onClick={() => adjustmentDetailsForm.remove(row.index)}
-                      className="btn btn-warning btn-outline btn-xs"
-                    >
-                      remove
-                    </button>
-                  );
-                },
-              },
-            ]}
-            search={false}
-            pagenation={false}
-          />
-        </div>
-        <div className="w-full">
-          <FormInputField {...(notesField as any)} />
-        </div>
         <div className="flex flex-row py-3 justify-start">
           <button type="submit" className=" btn btn-primary rounded-md  ">
-            Submit{" "}
+            Submit
           </button>
         </div>
       </form>
@@ -236,10 +154,16 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
 
 export default function Index() {
   return (
-    <CollectRequiredDataWrapper useHooks={useAppConfig}>
-      {(props) => <CreateAdjustment {...props} />}
+    <CollectRequiredDataWrapper useHooks={useCreateRoleRequiredData}>
+      {(props) => <CreateRole {...props} />}
     </CollectRequiredDataWrapper>
   );
 }
 Index.getLayout = getLayout;
 
+export function useCreateRoleRequiredData() {
+  const { permissions, isLoading } = usePermissionsList();
+  return { data: { permissions }, isLoading }
+}
+
+export type CreateRoleProps = ReturnType<typeof useCreateRoleRequiredData>['data']
