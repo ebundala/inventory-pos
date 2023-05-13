@@ -46,6 +46,7 @@ export default function ProjectsList({ id, onNewProject, onManage, ...props }: {
                 {tenants.isSuccess && tenants.data.map((v) => (<ProjectCard key={v.tenantId}
                     id={v.tenantId}
                     name={v.name!}
+                    
                     customDomain={getUrl(v.subdomain!) ?? v.customDomain!}
                     subdomain={v.subdomain!}
                     onManage={(e) => {
@@ -54,7 +55,6 @@ export default function ProjectsList({ id, onNewProject, onManage, ...props }: {
                     }}
                     onOpen={(e) => {
                         //TODO handle custom domain here
-                        console.log(getUrl(v.subdomain!))
                         router.push(getUrl(v.subdomain!));
                     }} />))}
             </div>

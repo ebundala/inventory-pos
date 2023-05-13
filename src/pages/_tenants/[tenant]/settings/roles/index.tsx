@@ -140,7 +140,6 @@ export function usePermissionsList(){
     const result = trpcTenant.authorization.getPolicies.useQuery(undefined,
         {
             onSuccess(data) {
-                console.log(data)
                 setPermissions({ permissions: data ?? null});
             },
         }

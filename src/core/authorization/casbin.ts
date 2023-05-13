@@ -1,7 +1,8 @@
-import { CasbinRule } from "@prisma/client";
-import {PrismaAdapter} from "casbin-prisma-adapter"
-import {Enforcer,Model} from 'casbin'
-import {  prismaAdmin } from "@/core";
+import { PrismaAdapter } from "@/lib/casbin-prisma-adapter";
+import { Enforcer, newEnforcer, newModelFromString } from 'casbin'
+import { BasicAdapter } from "casbin-basic-adapter";
+import { Client } from "pg";
+
 const modelStr = `
 [request_definition]
 r = sub,dom, obj, act
@@ -19,22 +20,34 @@ e = some(where (p.eft == allow)) && !some(where (p.eft == deny))
 m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj && r.act == p.act
 `
 
-const adapter = new PrismaAdapter(prismaAdmin)
-const model = new Model()
-const enforcer = new Enforcer();
-model.loadModelFromText(modelStr);
+declare global {
+   var enforcer: Enforcer | undefined
+  // var client:Client | undefined
+   var adapter: PrismaAdapter | undefined
+  }
+
+//const client = global.client || new Client(process.env.DATABASE_URL);
+
 export async function initCasbin() {
-    await enforcer.initWithModelAndAdapter(model,adapter);
-    enforcer.enableAutoBuildRoleLinks(true);
-    enforcer.enableAutoNotifyWatcher(true);
-    enforcer.enableAutoSave(true);
-    if(process.env.NODE_ENV === "development"){
-    enforcer.enableLog(true)
+
+    //  const model = newModelFromString(modelStr)
+
+    global.adapter =global.adapter || await PrismaAdapter.newAdapter(prisma)
+     //await BasicAdapter.newAdapter('pg', client);
+    global.enforcer = global.enforcer || await newEnforcer("/home/app/src/core/authorization/rbac_model.conf", global.adapter)
+
+    // await enforcer.initWithModelAndAdapter(model,adapter);
+
+    global.enforcer.enableAutoBuildRoleLinks(true);
+    global.enforcer.enableAutoNotifyWatcher(true);
+    global.enforcer.enableAutoSave(true);
+    if (process.env.NODE_ENV === "development") {
+        global.enforcer.enableLog(true)
     }
-    enforcer.enableEnforce(true)
-    return enforcer;
+    global.enforcer.enableEnforce(true)
+    return global.enforcer;
 }
-initCasbin()
+initCasbin();
 
-export default enforcer;
 
+export const enforcer = global.enforcer;

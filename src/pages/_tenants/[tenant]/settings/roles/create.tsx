@@ -22,6 +22,10 @@ import { PermissionInput, TRoleWithPermision } from "@/core/authorization";
 
 export function CreateRole({ permissions }: CreateRoleProps) {
   const options = {
+    oldRoleName:{
+      label:"Old role name",
+      hidden:true,
+    },
     role: {
       label: "Role name",
       "permissions.0.resource": {
@@ -49,14 +53,6 @@ export function CreateRole({ permissions }: CreateRoleProps) {
   const { showProgress, callbacks } = useProgressFeedback("/settings/roles");
 
   const result = trpcWithHost.authorization.createRole.useMutation(callbacks);
-
-
-  // const permissionsData = useRenderFieldArrayForm(
-  //   fname,
-  //   permissionForm,
-  //   form,
-  //   fieldArrayConfig
-  // );
 
   const permissionsList = useMemo(() => {
     const permissionMap = permissions.reduce((p, c, arr) => {

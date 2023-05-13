@@ -148,7 +148,7 @@ export function traverseZodSchema<T extends ZodFirstPartySchemaTypes = ZodFirstP
 
     return ast;
 }
-type FormFieldConfig = {
+export type FormFieldConfig = {
     required: Boolean
     name: string
     type: ZodFirstPartyTypeKind
@@ -191,7 +191,7 @@ export const getInputTypeFromZodType = (i: ZodFirstPartyTypeKind) => {
 }
 type InputOptionValues = Array<{ label: string, value: any }> | string[] | number[];
 type TRegisterOptiopns = Partial<RegisterOptions>
-type FormFieldOption = {
+export type FormFieldOption = {
     label?: string,
     refine?: (value:any)=>string|null|undefined,
     upload?: {
@@ -289,7 +289,7 @@ export function useZodForm<T extends ZodFirstPartySchemaTypes = ZodFirstPartySch
             const path = getPath(v.name);
             const isArray = isZodFormFieldArray(v.name);
             const error = isArray?undefined:getValue(path, errors)?.message?.toString();
-            const registration = isArray||type == 'date'?{}:register(v.name, { valueAsDate, valueAsNumber,...registerOptions })
+            const registration = isArray||type == 'date'?{}:register(v.name, { valueAsDate , valueAsNumber,...registerOptions } as any)
             
             
           

@@ -1370,9 +1370,9 @@ model CasbinRule {
   v4        String?
   v5        String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt 
 
-  @@index([v0, v1, v2])
+  // @@index([v0, v1, v2,v3])
   @@map("casbin_rule")
 }
 

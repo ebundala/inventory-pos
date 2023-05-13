@@ -1,14 +1,12 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { initTRPC, inferAsyncReturnType, TRPCError } from '@trpc/server';
 import * as TRPCNext from '@trpc/server/adapters/next';
-import { getSession } from 'next-auth/react';
 import { prisma } from '@/core/prisma/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../authentication/auth';
 import { APP_HOST } from '@/lib/util';
 import superjson from 'superjson';
-import { Enforcer } from 'casbin';
-import enforcer  from '../authorization/casbin';
+import {enforcer }  from '../authorization/casbin';
 
 export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
     const session = await getServerSession(req,res,authOptions);
@@ -50,14 +48,13 @@ export async function createContext({req,res}: TRPCNext.CreateNextContextOptions
         }
     })
     const tenantId = tenant?.tenantId || "app";
-   // const enforcer = await initCasbin()
+   
     return {
-        session, tenantId, enforcer
+        session, tenantId,enforcer
     }
 }
 export type TenantContext = inferAsyncReturnType<typeof createContext> & {
     tx?: PrismaClient
-    enforcer: Enforcer
 };
 
 const t = initTRPC.context<TenantContext>().create({

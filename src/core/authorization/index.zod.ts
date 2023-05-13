@@ -13,8 +13,6 @@ const permissionActionTypeSchema = z.union([
   z.literal("view"),
   z.literal("update"),
   z.literal("delete"),
-  z.literal("list"),
-  z.literal("delete-many"),
   z.literal("no-action"),
 ]);
 
@@ -31,12 +29,15 @@ export const userInvitePermissionSchema = z.union([
   z.literal("dismiss"),
 ]);
 
+export const barcodePermissionSchema = z.literal("print");
+
 export const permissionInputSchema = z.object({
   resource: z.string(),
   action: z.union([
     permissionActionTypeSchema,
     posSettingPermissionActionTypeSchema,
     userInvitePermissionSchema,
+    barcodePermissionSchema,
   ]),
 });
 
@@ -44,5 +45,6 @@ export const tPermissionSchema = permissionInputSchema;
 
 export const tRoleWithPermisionSchema = z.object({
   role: z.string(),
+  oldRoleName: z.string().optional(),
   permissions: z.array(tPermissionSchema),
 });
