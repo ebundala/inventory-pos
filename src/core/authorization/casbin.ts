@@ -40,7 +40,7 @@ export async function initCasbin() {
 
     global.enforcer.enableAutoBuildRoleLinks(true);
     global.enforcer.enableAutoNotifyWatcher(true);
-    global.enforcer.enableAutoSave(true);
+    global.enforcer.enableAutoSave(false);
     if (process.env.NODE_ENV === "development") {
         global.enforcer.enableLog(true)
     }
@@ -51,3 +51,4 @@ initCasbin();
 
 
 export const enforcer = global.enforcer;
+export const casbinAdapter = global.adapter;

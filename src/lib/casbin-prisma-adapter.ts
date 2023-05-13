@@ -7,7 +7,8 @@ import { Prisma } from '@prisma/client';
 
 export class PrismaAdapter implements Adapter {
   #option?: Prisma.PrismaClientOptions;
-  #prisma: PrismaClient;
+  #prisma: PrismaClient 
+  #txPrisma?:Prisma.TransactionClient
 
   /**
    * @param option It should be PrismaClientOptions or PrismaClient.
@@ -20,9 +21,16 @@ export class PrismaAdapter implements Adapter {
       this.#option = option;
     }
   }
-
+ setTransactionClient(tx:Prisma.TransactionClient){
+  this.#txPrisma = tx;
+  
+  return () => this.#txPrisma = undefined;
+ }
+ getClient():PrismaClient|Prisma.TransactionClient {
+  return this.#txPrisma ?? this.#prisma!;
+ }
   async loadPolicy(model: Model): Promise<void> {
-    const lines = await this.#prisma.casbinRule.findMany();
+    const lines = await this.getClient().casbinRule.findMany();
 
     for (const line of lines) {
       this.#loadPolicyLine(line, model);
@@ -30,7 +38,7 @@ export class PrismaAdapter implements Adapter {
   }
 
   async savePolicy(model: Model): Promise<boolean> {
-    await this.#prisma.$executeRaw`DELETE FROM casbin_rule;`;
+    await this.getClient().$executeRaw`DELETE FROM casbin_rule;`;
 
     let astMap = model.model.get('p')!;
     const processes: Array<Promise<CasbinRule>> = [];
@@ -38,7 +46,7 @@ export class PrismaAdapter implements Adapter {
     for (const [ptype, ast] of astMap) {
       for (const rule of ast.policy) {
         const line = this.#savePolicyLine(ptype, rule);
-        const p = this.#prisma.casbinRule.create({
+        const p = this.getClient().casbinRule.create({
           data: line,
         });
         processes.push(p);
@@ -49,7 +57,7 @@ export class PrismaAdapter implements Adapter {
     for (const [ptype, ast] of astMap) {
       for (const rule of ast.policy) {
         const line = this.#savePolicyLine(ptype, rule);
-        const p = this.#prisma.casbinRule.create({
+        const p = this.getClient().casbinRule.create({
           data: line,
         });
         processes.push(p);
@@ -64,7 +72,7 @@ export class PrismaAdapter implements Adapter {
 
   async addPolicy(sec: string, ptype: string, rule: string[]): Promise<void> {
     const line = this.#savePolicyLine(ptype, rule);
-    await this.#prisma.casbinRule.create({ data: line });
+    await this.getClient().casbinRule.create({ data: line });
   }
 
   async addPolicies(
@@ -75,7 +83,7 @@ export class PrismaAdapter implements Adapter {
     const processes: Array<Promise<CasbinRule>> = [];
     for (const rule of rules) {
       const line = this.#savePolicyLine(ptype, rule);
-      const p = this.#prisma.casbinRule.create({ data: line });
+      const p = this.getClient().casbinRule.create({ data: line });
       processes.push(p);
     }
 
@@ -89,7 +97,7 @@ export class PrismaAdapter implements Adapter {
     rule: string[]
   ): Promise<void> {
     const line = this.#savePolicyLine(ptype, rule);
-    await this.#prisma.casbinRule.deleteMany({ where: line });
+    await this.getClient().casbinRule.deleteMany({ where: line });
   }
 
   async removePolicies(
@@ -100,7 +108,7 @@ export class PrismaAdapter implements Adapter {
     const processes: Array<Promise<Prisma.BatchPayload>> = [];
     for (const rule of rules) {
       const line = this.#savePolicyLine(ptype, rule);
-      const p = this.#prisma.casbinRule.deleteMany({ where: line });
+      const p = this.getClient().casbinRule.deleteMany({ where: line });
       processes.push(p);
     }
 
@@ -136,7 +144,7 @@ export class PrismaAdapter implements Adapter {
       line.v5 = fieldValues[5 - fieldIndex];
     }
 
-    await this.#prisma.casbinRule.deleteMany({ where: line });
+    await this.getClient().casbinRule.deleteMany({ where: line });
   }
 
   async close(): Promise<any> {

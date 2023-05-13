@@ -61,6 +61,7 @@ export async function createRole({ role, permissions }: TRoleWithPermision, { en
     }
     const policies = permissions.map<string[]>((p, i) => ([role, tenantId, p.resource, p.action]))
     const success = await enforcer!.addPolicies(policies);
+    await enforcer!.savePolicy();
     return success;
 }
 
@@ -100,6 +101,7 @@ export async function updateRole({ role, oldRoleName, permissions }: TRoleWithPe
         await enforcer?.addGroupingPolicies(roleGrouping);
         await Promise.allSettled(users?.map((u) => enforcer!.addRoleForUser(u, role, tenantId)))
     }
+   await enforcer!.savePolicy();
 
     return await getRole(role, ctx);
 }
@@ -112,17 +114,20 @@ export type AssignRoleInput = {
 export async function assignRole(input: AssignRoleInput, { enforcer, tenantId }: TenantContext) {
     const { role, userId } = input;
     const success = await enforcer!.addRoleForUser(userId, role, tenantId);
+    await enforcer!.savePolicy();
     return success;
 }
 
 export async function removeRole({ userId, role }: AssignRoleInput, { enforcer, tenantId }: TenantContext) {
     const success = await enforcer!.deleteRoleForUser(userId, role, tenantId);
+    await enforcer!.savePolicy();
     return success;
 }
 
 export async function deleteRole(role: string, { enforcer, tenantId }: TenantContext) {
     const success = await enforcer!.removeFilteredPolicy(0, role, tenantId, "", "")
     const success1 = await enforcer!.removeFilteredGroupingPolicy(1, role, tenantId)
+    await enforcer!.savePolicy();
     return success && success1;
 }
 
