@@ -16,9 +16,10 @@ import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
 
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { tRoleWithPermisionSchema } from "@/core/authorization/index.zod";
-import { RolesProps, usePermissionsList } from ".";
+import { RolesProps } from ".";
 import { useMemo } from "react";
 import { PermissionInput, TRoleWithPermision } from "@/core/authorization";
+import { useCreateRoleRequiredData } from "../../../../../lib/hooks/useCreateRoleRequiredData";
 
 export function CreateRole({ permissions }: CreateRoleProps) {
   const options = {
@@ -78,7 +79,6 @@ export function CreateRole({ permissions }: CreateRoleProps) {
             showProgress({ animated: true });
             const permissions = data.permissions.filter((p) => p.action!== "no-action")
             const dataFiltered = {...data,permissions};
-            console.log(dataFiltered);
             await result.mutateAsync(dataFiltered as any);
 
             
@@ -156,10 +156,5 @@ export default function Index() {
   );
 }
 Index.getLayout = getLayout;
-
-export function useCreateRoleRequiredData() {
-  const { permissions, isLoading } = usePermissionsList();
-  return { data: { permissions }, isLoading }
-}
 
 export type CreateRoleProps = ReturnType<typeof useCreateRoleRequiredData>['data']

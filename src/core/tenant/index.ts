@@ -286,9 +286,9 @@ export const findFirstTenant = async (
   input: Omit<Prisma.TenantFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
-  const { session } = ctx;
+  const { session,enforcer } = ctx;
   const { where, ...rest } = input;
-  return prismaAdmin!.tenant.findFirst({
+  const tenant = await prismaAdmin!.tenant.findFirst({
     include: {
       members: true,
     },
@@ -305,6 +305,12 @@ export const findFirstTenant = async (
       ],
     },
   });
+  if(tenant!==null){
+  const roles = await Promise.allSettled(tenant.members.map((u)=>enforcer!.getRolesForUser(u.id,tenant.tenantId)));
+  const members = tenant.members.map((u,i)=>({...u,roles:roles[i].status==="fulfilled"?(roles[i] as any).value as string[]:[]}))
+  return {...tenant,members};
+}
+  return tenant;
 };
 export type InviteMemberInput = {
   /**

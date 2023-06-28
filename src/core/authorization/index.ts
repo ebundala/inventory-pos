@@ -106,20 +106,26 @@ export async function updateRole({ role, oldRoleName, permissions }: TRoleWithPe
     return await getRole(role, ctx);
 }
 
+export type AssignRolesInput = {
+    roles: string[]
+    userId: string
+}
 export type AssignRoleInput = {
     role: string
     userId: string
 }
-
-export async function assignRole(input: AssignRoleInput, { enforcer, tenantId }: TenantContext) {
-    const { role, userId } = input;
-    const success = await enforcer!.addRoleForUser(userId, role, tenantId);
+export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId }: TenantContext) {
+    const { roles, userId } = input;
+    const oldRoles = await enforcer!.getRolesForUser(userId,tenantId);
+    const removeOldRoles = (await removeRoles({userId,roles:oldRoles},{enforcer,tenantId} as TenantContext))
+    
+    const success = await Promise.allSettled(roles.map((role)=>enforcer!.addRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
     return success;
 }
 
-export async function removeRole({ userId, role }: AssignRoleInput, { enforcer, tenantId }: TenantContext) {
-    const success = await enforcer!.deleteRoleForUser(userId, role, tenantId);
+export async function removeRoles({ userId, roles }: AssignRolesInput, { enforcer, tenantId }: TenantContext) {
+    const success = await Promise.allSettled(roles.map((role)=>enforcer!.deleteRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
     return success;
 }

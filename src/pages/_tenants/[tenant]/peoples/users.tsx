@@ -11,7 +11,7 @@ import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { useZodForm } from "@/lib/util/form-gen";
 import { ModalData } from "@/types/ModalData";
 import { ModalSectionProps } from "@/types/ModalSectionProps";
-import { Customer } from "@prisma/client";
+import { Customer, User } from "@prisma/client";
 import { UseMutationResult } from "@tanstack/react-query";
 import { FC, ReactNode, useMemo } from "react";
 import { z, ZodFirstPartySchemaTypes } from "zod";
@@ -25,6 +25,13 @@ import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 import { inviteMemberInputSchema } from "@/core/tenant/index.zod";
 import Image from "next/image";
 import { getImageUrls } from "@/core/util/getImageUrls";
+import { useRolesList } from "@/lib/hooks/useRolesList";
+import { Controller, useFieldArray } from "react-hook-form";
+
+const rolesSchema = z.object({
+  userId:z.string(),
+  roles: z.array(z.string())
+});
 
 function UsersIndex({
   members,
@@ -40,15 +47,15 @@ function UsersIndex({
         hidden: true,
       },
       email: {
-        label:"Email",
-        ordering:1,
+        label: "Email",
+        ordering: 1,
       },
       message: {
         label: "Message",
-        textArea:true,
+        textArea: true,
         ordering: 10,
       },
-     
+
     }),
     []
   );
@@ -66,7 +73,16 @@ function UsersIndex({
       callbacks.onError(error);
     },
   });
- 
+  const result1 = trpcWithHost.authorization.assignRoles.useMutation({
+    onSuccess: (data, variable, ctx) => {
+      callbacks.onSuccess(data);
+      hide();
+      refetch();
+    },
+    onError: (error) => {
+      callbacks.onError(error);
+    },
+  });
   const showConfirmDialog = useConfirmDialog({ message: "You are about to remove this user from your business this action is irrivesible?" })
 
 
@@ -130,14 +146,14 @@ function UsersIndex({
                 Header: "Picture",
                 accessor: "image",
                 Cell: ({ row, value }: { row: any, value: string }) => {
-                    return <Image className="rounded-full shadow-md border-2 border-gray-400" src={value} height={40} width={40} alt="product picture" />
+                  return <Image className="rounded-full shadow-md border-2 border-gray-400" src={value} height={40} width={40} alt="product picture" />
                 }
-            },
+              },
               {
                 Header: "Name",
                 accessor: "name",
               },
-              
+
               {
                 Header: "Email",
                 accessor: "email",
@@ -146,18 +162,45 @@ function UsersIndex({
                 Header: "Phone",
                 accessor: "phone",
               },
-              
+              {
+                Header: "Roles",
+                accessor: "roles",
+                Cell: ({ value }: { value: string[] }) => {
+                  return (
+                    <div className="flex flex-col ">
+                      {value.map((v) => (<div key={v} className="text text-sm">{v}</div>))}
+                    </div>)
+                }
+              },
               {
                 Header: "Actions",
                 accessor: "id",
                 disableSortBy: true,
                 Cell: ({ row, value }: { row: any; value: number }) => {
+                  const user = row.original as User & { roles: string[] };
+                  
                   return (
                     <div className="flex flex-row gap-2">
                       <button
                         onClick={(e) => {
-                          console.log(row);
-                          
+                          showModal({
+                            content: (props) => {
+                              return (
+                                <RolesForm
+                                  {...props}
+                                  mutateAsync={(data) => {
+                                    showProgress({ animated: true });
+                                    return result1.mutateAsync(data);
+                                  }}
+                                  schema={rolesSchema}
+                                  defaultValues={{ roles: user?.roles ?? [],userId:user.id }}
+                                  // fieldOptions={{}}
+                                  title={`Roles for ${user?.name ?? ""}`}
+                                />
+                              );
+                            },
+                          });
+
                         }}
                         className="btn btn-info btn-sm rounded-md btn-outline"
                       >
@@ -166,8 +209,8 @@ function UsersIndex({
                       <button
                         onClick={() => {
                           showConfirmDialog(() => {
-                           //  showProgress({ animated: true });;
-                          //  dResult.mutate(value);
+                            //  showProgress({ animated: true });;
+                            //  dResult.mutate(value);
                           })
                         }}
                         className="btn btn-warning btn-sm rounded-md btn-outline">
@@ -186,11 +229,11 @@ function UsersIndex({
 }
 
 function useUsersRequiredData() {
-    const {tenant, result: { isLoading, isSuccess },
-    refetch,} = useTenant();
-  
+  const { tenant, result: { isLoading, isSuccess },
+    refetch, } = useTenant();
 
-  return { data: { refetch, members:tenant?.members?? [] }, isLoading };
+
+  return { data: { refetch, members: tenant?.members ?? [] }, isLoading };
 }
 
 type UsersIndexProps = ReturnType<typeof useUsersRequiredData>["data"];
@@ -268,6 +311,111 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
             </button>
             <button type="submit" className="btn btn-primary btn-xs">
               Invite
+            </button>
+          </ModalAction>
+        </form>
+      </ModalContent>
+    </ModalContainer>
+  );
+};
+
+
+
+const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
+  show,
+  hide,
+  mutateAsync,
+  ModalContainer,
+  ModalContent,
+  ModalAction,
+  schema,
+  title,
+  defaultValues,
+  fieldOptions,
+}) => {
+  const { tenant } = useTenant();
+  const { roles, isLoading } = useRolesList();
+  const [config, form] = useZodForm(schema, fieldOptions,
+    {defaultValues:{userId:defaultValues?.userId,roles:[]}}
+    );
+  const arrForm = useFieldArray({ control: form.control, name: "roles" });
+  // const values: string[] = form.watch("roles",[]);
+  const initialValuesSet = useMemo(() => {
+    const { roles } = defaultValues!;
+
+    const r = (roles ?? []).filter((v)=>v).reduce((p, c) => {
+      return p.add(c!);
+    }, new Set<string>());
+    return r;
+  }, [defaultValues])
+
+  // const valuesSet = useMemo(() => {
+  //   if(values.length===0){
+  //     return initialValuesSet
+  //   }
+  //   const r = (values ?? []).filter((v)=>v).reduce((p, c) => {
+  //     return p.add(c!);
+  //   }, new Set<string>());
+  //   return r;
+  // }, [values])
+
+  if (isLoading) {
+    return <Loader />
+  }
+  return (
+    <ModalContainer>
+      <ModalContent>
+        <form
+          onSubmit={form.handleSubmit(
+            async (data) => {
+              const { roles } = data as { roles: (string | undefined)[] }
+              const data2={...data,roles:roles.filter((v) => v!=="no-role")}
+              await mutateAsync(data2);
+            },
+            (e) => {
+              console.error(e);
+            }
+          )}
+        >
+          <div className="flex w-full text-center font-semibold">
+            <h2 className="text font-bold mb-4">{title}</h2>
+          </div>
+          <div className="grid grid-flow-row grid-cols-1 gap-3">
+
+            {(roles ?? []).map((v, i) => {
+              return (<div key={v.role} className="flex flex-row justify-between">
+                <div className="text text-xl font-semibold">{v.role}</div>
+                <Controller
+                  control={form.control}
+                  defaultValue={initialValuesSet.has(v.role)?v.role:undefined}
+                  name={`roles.${i}`}
+                  render={({ field: { onBlur, onChange,value }, fieldState }) => {
+                    return <input onChange={(e) => {
+                     
+                      if (e.target.checked) {
+
+                        onChange({ target: { value: v.role } })
+                      } else {
+                        onChange({ target: { value: "no-role" } })
+
+                      }
+                    }}
+                    checked={value===v.role}
+                      type="checkbox" className="checkbox checkbox-primary checkbox-md mr-3" />
+                  }}
+                />
+              </div>)
+            })}
+          </div>
+          <ModalAction>
+            <button
+              onClick={(e) => hide()}
+              className="btn btn-outline btn-error btn-xs"
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary btn-xs">
+              Save
             </button>
           </ModalAction>
         </form>

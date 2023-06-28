@@ -1,64 +1,36 @@
 
 import { FormContainer } from "@/components/FormContainer";
 import { getLayout } from "@/layouts/getLayout";
-import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
+import { CollectHooksReturnType, CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
 import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
 import { numberFormat } from "@/lib/util";
+import { RoleInput } from "@/core/authorization";
+import { useRole } from "@/lib/hooks/useRole";
+import { useRoleRequiredData } from "@/lib/hooks/useRoleRequiredData";
 
-export function ViewAdjustment({
-  adjustment,
-  loading,
+export function ViewRole({
+  role,
+  permissions,
+  isLoading,
   refetch,
-}: UpdateAdjustmentProps) {
+}: UpdateRoleProps) {
   
 const fmt = new Intl.DateTimeFormat();
-  if ((!adjustment || !adjustment?.id) && !loading)
+  if ((!role || !role?.role) && !isLoading)
     return (
       <div className=" m-auto w-80 h-16 alert alert-error rounded-md text-center text-lg">
-        <span className="m-auto">Invalid adjustment</span>
+        <span className="m-auto">Invalid role</span>
       </div>
     );
 
   return (
-    <FormContainer title={<h2>Adjustment ref# {adjustment?.ref}</h2>}>
-      <div className="flex flex-row pt-4">
-        <table className="table xs:w-full w-1/3">
-          <tbody>
-            <tr>
-              <td>Date</td>
-              <td>{fmt.format(adjustment?.date)}</td>
-            </tr>
-            <tr>
-              <td>Reference</td>
-              <td>{adjustment?.ref}</td>
-            </tr>
-            <tr>
-              <td>Warehouse</td>
-              <td>{adjustment?.warehouse.name}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div className="flex flex-row pt-4">
-        <table className="table w-full">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Code</th>
-              <th>Quantity</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {adjustment?.adjustmentDetails.map((v)=>(<tr key={v.id}>
-              <td>{getProductFormatedName(v as any)}</td>
-              <td>{v.product.code}</td>
-              <td>{numberFormat()({value:v.quantity})}<span className="text-primary pl-2 text-sm">{v.product?.productUnit?.shortName}</span></td>
-              <td>{v.type}</td>
-            </tr>))}
-          </tbody>
-        </table>
+    <FormContainer title={<h2>Role # {role?.role}</h2>}>
+      <div className="flex flex-col pt-4 items-start justify-start">
+       {/* Todo show permissions here */}
+       <h3 className="text font-semibold text-xl py-4">Permissions</h3>
+       {permissions.filter((v)=>v.action!="no-action").map((v)=><div key={`${v.resource}${v.action}`}
+       className="text text-md text-right py-1"
+      >{`${v.action} ${v.resource}`}</div>)}
       </div>
     </FormContainer>
   );
@@ -66,9 +38,9 @@ const fmt = new Intl.DateTimeFormat();
 
 export default function Index() {
   return (
-    <CollectRequiredDataWrapper useHooks={useAdjustmentRequiredData}>
+    <CollectRequiredDataWrapper useHooks={useRoleRequiredData}>
       {(props) => {
-        return <ViewAdjustment {...props} />;
+        return <ViewRole {...props} />;
       }}
     </CollectRequiredDataWrapper>
   );
@@ -76,6 +48,7 @@ export default function Index() {
 
 Index.getLayout = getLayout;
 
-type UpdateAdjustmentProps = ReturnType<
-  typeof useAdjustmentRequiredData
+type UpdateRoleProps = ReturnType<
+  typeof useRoleRequiredData
 >["data"];
+

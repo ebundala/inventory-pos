@@ -35,12 +35,9 @@ import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
 import { useAdjustmentStockConstraints } from "@/lib/hooks/useAdjustmentStockConstraints";
 import { PermissionInput, TRoleWithPermision } from "@/core/authorization";
 import { tRoleWithPermisionSchema } from "@/core/authorization/index.zod";
-import { useRouter } from "next/router";
-import { usePermissionsList, useRole } from "..";
+import { useRoleRequiredData } from "../../../../../../lib/hooks/useRoleRequiredData";
 
-interface RolePathProps extends ParsedUrlQuery {
-  role: string;
-}
+
 
 export function UpdateRole({
   role,
@@ -223,11 +220,3 @@ type UpdateRoleProps = ReturnType<
   typeof useRoleRequiredData
 >["data"];
 
-function useRoleRequiredData() {
-  const router = useRouter();
-  const roleName = (router.query as RolePathProps).role ?? "";
-  const { role, result, refetch } = useRole(roleName);
-  const { permissions, isLoading } = usePermissionsList()
-  return { data: { role, permissions, refetch, result, isLoading: result.isLoading || isLoading }, isLoading: result.isLoading || isLoading };
-
-}

@@ -3,6 +3,11 @@ import { z } from "zod";
 
 export const roleInputSchema = z.string();
 
+export const assignRolesInputSchema = z.object({
+  roles: z.array(z.string()),
+  userId: z.string(),
+});
+
 export const assignRoleInputSchema = z.object({
   role: z.string(),
   userId: z.string(),

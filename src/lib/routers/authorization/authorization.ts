@@ -1,6 +1,6 @@
-import { createRole, assignRole, deleteRole, getPolicies, getRole, getRoles, getUserPermissions, removeRole, updateRole } from "@/core/authorization";
+import { createRole, assignRoles, deleteRole, getPolicies, getRole, getRoles, getUserPermissions, removeRoles, updateRole } from "@/core/authorization";
 import { router, privateProcedureWithTx, TenantContext } from "@/core/trpc";
-import { assignRoleInputSchema, roleInputSchema, tRoleWithPermisionSchema, } from "@/core/authorization/index.zod"
+import { assignRolesInputSchema, roleInputSchema, tRoleWithPermisionSchema, } from "@/core/authorization/index.zod"
 
 
 export const authorizationRouter = router({
@@ -18,16 +18,15 @@ export const authorizationRouter = router({
     updateRole: privateProcedureWithTx
     .input(tRoleWithPermisionSchema)
     .mutation(({ input, ctx }) => updateRole(input,ctx as TenantContext)),
-    removeRole: privateProcedureWithTx
-    .input(assignRoleInputSchema)
-    .mutation(({ input, ctx }) => removeRole(input,ctx as TenantContext)),
+    removeRoles: privateProcedureWithTx
+    .input(assignRolesInputSchema)
+    .mutation(({ input, ctx }) => removeRoles(input,ctx as TenantContext)),
     deleteRole: privateProcedureWithTx
     .input(roleInputSchema)
     .mutation(({ input, ctx }) => deleteRole(input,ctx as TenantContext)),
-   
-    assignRole: privateProcedureWithTx
-    .input(assignRoleInputSchema)
-    .mutation(({ input, ctx }) => assignRole(input,ctx as TenantContext)),
+    assignRoles: privateProcedureWithTx
+    .input(assignRolesInputSchema)
+    .mutation(({ input, ctx }) => assignRoles(input,ctx as TenantContext)),
     getUserPermissions:privateProcedureWithTx
     .query(({ ctx }) => getUserPermissions(ctx as TenantContext)),
   })

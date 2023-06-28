@@ -1,7 +1,5 @@
 import { PrismaAdapter } from "@/lib/casbin-prisma-adapter";
-import { Enforcer, newEnforcer, newModelFromString } from 'casbin'
-import { BasicAdapter } from "casbin-basic-adapter";
-import { Client } from "pg";
+import { Enforcer, newEnforcer } from 'casbin'
 
 const modelStr = `
 [request_definition]
