@@ -10,7 +10,6 @@ import useRequireAuth from "@/lib/useRequireAuth";
 import { useZodForm, ZodFormFieldConfig } from "@/lib/util/form-gen";
 import { Prisma } from "@prisma/client";
 import { Session } from "next-auth";
-import { TenantScalarFieldEnumSchema } from "prisma/generated/schemas/enums/TenantScalarFieldEnum.schema";
 import { FC, ReactNode, useState } from "react";
 
 export default function Index() {

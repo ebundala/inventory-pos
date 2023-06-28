@@ -387,7 +387,7 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
                 <div className="text text-xl font-semibold">{v.role}</div>
                 <Controller
                   control={form.control}
-                  defaultValue={initialValuesSet.has(v.role)?v.role:undefined}
+                  defaultValue={initialValuesSet.has(v.role)?v.role:"no-role"}
                   name={`roles.${i}`}
                   render={({ field: { onBlur, onChange,value }, fieldState }) => {
                     return <input onChange={(e) => {

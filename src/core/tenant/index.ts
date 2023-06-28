@@ -344,15 +344,29 @@ export const inviteMember = async (
     },
   });
   mailer.sendMail({
+    from:process.env.SMTP_FROM,
     to:email,
-    subject:"invitation to join a business",
+    subject:"Invitation to join a business",
+    text:`Hello!
+    ${session?.user.name} have invited you to join their business
+    click the link below to accept/reject the invitation.
+    ${getTenantUrl(result.tenant.subdomain)}/invite/${result.email}
+    ${message?"Message":""}
+    "${message}"
+    `,
   html:`<h3>Hello!</h3>
-  <h5>${session?.user.username}</h5> have invited you to join their business
-  click the link below to accept/reject the invitation.
+  <b>"${session?.user.name}"</b> Have invited you to join their business <br>
+  click the link below to signup/signin and accept/reject the invitation.
   ${getTenantUrl(result.tenant.subdomain)}/invite/${result.email}
   <h6>${message?"Message":""}</h6>
   <blockquote>${message}</blockquote>
-  `})
+  `}, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  })
 
   return result;
 };
