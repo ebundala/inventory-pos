@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { Enforcer } from "casbin";
+// import { Enforcer } from "casbin";
 
 declare global {
-  var prisma: PrismaClient | undefined;
- var prismaAdmin: PrismaClient | undefined;
- var enforcer: Enforcer | undefined
+  var prisma: PrismaClient 
+ var prismaAdmin: PrismaClient
+//  var enforcer: Enforcer 
 }
 const log = ['query', 'info', 'warn', 'error'] as any;
 

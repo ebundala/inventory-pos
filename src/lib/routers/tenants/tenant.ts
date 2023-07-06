@@ -1,6 +1,6 @@
 import { router, publicProcedure, privateProcedureWithTx, privateProcedure, TenantContext } from "@/core/trpc";
 import { domainSearchInputSchema, inviteMemberInputSchema, tenantCreateInputSchema, tenantEmailWhereInputSchema, tenantIdSchema, tenantIdsSchema, tenantMemberWhereInputSchema, tenantUpdateInputSchema } from '@/core/tenant/index.zod'
-import { acceptInvite, checkDomain, checkSubdomain, createTenant, deleteManyTenant, deleteTenant,  findFirstTenant, findManyTenant, getUniqueTenant, inviteMember, leaveTenant, rejectInvite, removeMember, updateTenant } from "@/core/tenant";
+import { acceptInvite, checkDomain, checkSubdomain, createTenant, deleteManyTenant, deleteTenant,  findFirstTenant, findManyTenant, findMyInvites, getUniqueTenant, inviteMember, leaveTenant, rejectInvite, removeMember, updateTenant } from "@/core/tenant";
 import { TenantFindManySchema } from "prisma/generated/schemas/findManyTenant.schema";
 
 export const tenantRouter = router({
@@ -13,7 +13,7 @@ export const tenantRouter = router({
     get: privateProcedureWithTx.input(tenantIdSchema).query(({ input, ctx }) => getUniqueTenant(input,ctx as TenantContext)),
     search: privateProcedure.input(TenantFindManySchema).query(({ input, ctx }) => findManyTenant(input,ctx)),
     findFirst: privateProcedure.input(TenantFindManySchema).query(({ input, ctx }) => findFirstTenant(input,ctx)),
-
+    findMyInvites:privateProcedure.query(({ ctx }) => findMyInvites(ctx)),
     inviteMember: privateProcedureWithTx
         .input(inviteMemberInputSchema)
         .mutation(({ input, ctx }) => inviteMember(input,ctx as TenantContext)),
@@ -35,7 +35,7 @@ export const tenantRouter = router({
     deleteMany: privateProcedureWithTx
         .input(tenantIdsSchema)
         .mutation(({ input, ctx }) => deleteManyTenant(input,ctx as TenantContext)),
+   
     checkDomain:publicProcedure.input(domainSearchInputSchema).query(({input})=>checkDomain(input)),
     checkSubDomain:publicProcedure.input(domainSearchInputSchema).query(({input})=>checkSubdomain(input))
-
 })

@@ -16,7 +16,7 @@ export default function Index() {
   useChangeTheme();
   const session = useRequireAuth();
   const [show, hide, data] = useModal();
-
+  
   if (!session) return <Loader />;
 
   return (
@@ -208,3 +208,6 @@ function SubdomainField({hostname,subdomain,config}:{hostname:string,subdomain:s
             <div className="flex flex-col justify-start"><span className="text-info text-xl pl-2 mt-10 text-center ml-1  ">.{hostname}</span></div>
             </div>;
 }
+
+
+

@@ -6,13 +6,13 @@ import { handleOIDCconnectionAction } from "../util/handleOIDCconnectionAction";
 import {
   googleOidcDiscoveryUrl,
   googleOidcProductName,
- 
+
 } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "../util/getTenantUrl";
 import mailer from "@/core/mail/mailer";
-const  secrets = {
-  client_secret:process.env.GOOGLE_CLIENT_SECRET!,
-  client_id:process.env.GOOGLE_CLIENT_ID!
+const secrets = {
+  client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+  client_id: process.env.GOOGLE_CLIENT_ID!
 }
 
 export type TenantCreateInput = {
@@ -270,7 +270,7 @@ export const findManyTenant = async (
     ...rest,
     where: {
       ...(where || {}),
-      recordStatus:RecordStatus.ACTIVE,
+      recordStatus: RecordStatus.ACTIVE,
       AND: [
         {
           members: {
@@ -286,7 +286,7 @@ export const findFirstTenant = async (
   input: Omit<Prisma.TenantFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
-  const { session,enforcer } = ctx;
+  const { session, enforcer } = ctx;
   const { where, ...rest } = input;
   const tenant = await prismaAdmin!.tenant.findFirst({
     include: {
@@ -295,7 +295,7 @@ export const findFirstTenant = async (
     ...rest,
     where: {
       ...(where || {}),
-      recordStatus:RecordStatus.ACTIVE,
+      recordStatus: RecordStatus.ACTIVE,
       AND: [
         {
           members: {
@@ -305,11 +305,11 @@ export const findFirstTenant = async (
       ],
     },
   });
-  if(tenant!==null){
-  const roles = await Promise.allSettled(tenant.members.map((u)=>enforcer!.getRolesForUser(u.id,tenant.tenantId)));
-  const members = tenant.members.map((u,i)=>({...u,roles:roles[i].status==="fulfilled"?(roles[i] as any).value as string[]:[]}))
-  return {...tenant,members};
-}
+  if (tenant !== null) {
+    const roles = await Promise.allSettled(tenant.members.map((u) => enforcer!.getRolesForUser(u.id, tenant.tenantId)));
+    const members = tenant.members.map((u, i) => ({ ...u, roles: roles[i].status === "fulfilled" ? (roles[i] as any).value as string[] : [] }))
+    return { ...tenant, members };
+  }
   return tenant;
 };
 export type InviteMemberInput = {
@@ -328,11 +328,11 @@ export const inviteMember = async (
   input: InviteMemberInput,
   ctx: TenantContext
 ) => {
-  const { tx, tenantId,session } = ctx;
+  const { tx, tenantId, session } = ctx;
   const invitorId = session!.user.id!;
-  
-  const { email,message } = input;
- const result = await tx!.tenantInvite.create({
+
+  const { email, message } = input;
+  const result = await tx!.tenantInvite.create({
     include: {
       tenant: true,
       invitor: true,
@@ -344,23 +344,23 @@ export const inviteMember = async (
     },
   });
   mailer.sendMail({
-    from:process.env.SMTP_FROM,
-    to:email,
-    subject:"Invitation to join a business",
-    text:`Hello!
+    from: process.env.SMTP_FROM,
+    to: email,
+    subject: "Invitation to join a business",
+    text: `Hello!
     ${session?.user.name} have invited you to join their business
     click the link below to accept/reject the invitation.
-    ${getTenantUrl(result.tenant.subdomain)}/invite/${result.email}
-    ${message?"Message":""}
+    ${getTenantUrl("app")}/login
+    ${message ? "Message" : ""}
     "${message}"
     `,
-  html:`<h3>Hello!</h3>
+    html: `<h3>Hello!</h3>
   <b>"${session?.user.name}"</b> Have invited you to join their business <br>
   click the link below to signup/signin and accept/reject the invitation.
-  ${getTenantUrl(result.tenant.subdomain)}/invite/${result.email}
-  <h6>${message?"Message":""}</h6>
+  ${getTenantUrl("app")}/login
+  <h6>${message ? "Message" : ""}</h6>
   <blockquote>${message}</blockquote>
-  `}, function(error, info){
+  `}, function (error, info) {
     if (error) {
       console.log(error);
     } else {
@@ -376,44 +376,81 @@ export type TenantEmailWhereInput = {
    * @format email
    */
   email: string;
-  // tenantId: string
+  tenantId: string
 };
 export const acceptInvite = async (
   input: TenantEmailWhereInput,
   ctx: TenantContext
 ) => {
+
   const { tx, tenantId } = ctx;
-  //TODO link user to tenant
-  return tx!.tenantInvite.update({
+  debugger
+ const invite = await prismaAdmin!.tenantInvite.update({
     include: {
       tenant: true,
       invitor: true,
     },
     where: {
-      tenantId_email: { ...input, tenantId },
+      tenantId_email: { ...input },
     },
     data: {
       status: ProcessStatus.APPROVED,
     },
   });
+
+  
+  if(invite.status === ProcessStatus.APPROVED){
+   await prismaAdmin.tenant.update({
+      where:{
+        tenantId:invite.tenant.tenantId
+      },
+      
+  data:{
+    members:{
+      connect:{
+        email:invite.email
+      }
+    }
+  }
+    })
+  }
+  return invite;
 };
 export const rejectInvite = async (
   input: TenantEmailWhereInput,
   ctx: TenantContext
 ) => {
   const { tx, tenantId } = ctx;
-  return tx!.tenantInvite.update({
+  const invite = await prismaAdmin!.tenantInvite.update({
     include: {
       tenant: true,
       invitor: true,
     },
     where: {
-      tenantId_email: { ...input, tenantId },
+      tenantId_email: { ...input },
     },
     data: {
       status: ProcessStatus.DENIED,
     },
   });
+
+  if(invite.status === ProcessStatus.DENIED){
+    await prismaAdmin.tenant.update({
+       where:{
+         tenantId:invite.tenant.tenantId
+       },
+       
+   data:{
+     members:{
+       disconnect:{
+         email:invite.email
+       }
+     }
+   }
+     })
+   }
+   return invite;
+
 };
 
 export type TenantMemberWhereInput = {
@@ -443,7 +480,20 @@ export const removeMember = async (
     },
   });
 };
-
+export const findMyInvites = async (ctx: TenantContext
+) => {
+  const { session} = ctx;
+  const email = session?.user.email??undefined;
+ return prismaAdmin!.tenantInvite.findMany({
+  include:{
+    invitor:true,
+    tenant:true
+  },
+  where:{
+    email:{equals:email},
+    status:{equals:ProcessStatus.PENDING}
+  }})
+};
 export const leaveTenant = async (
   input: TenantMemberWhereInput,
   ctx: TenantContext
@@ -487,7 +537,7 @@ export const checkSubdomain = async (subdomain: DomainSearchInput) => {
     where: {
       subdomain: {
         equals: subdomain,
-        mode:Prisma.QueryMode.insensitive
+        mode: Prisma.QueryMode.insensitive
       },
     },
   });

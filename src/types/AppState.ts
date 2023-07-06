@@ -9,6 +9,7 @@ import { RouterOutput } from "@/lib/routers";
 
 
 export interface AppState {
+    invites: RouterOutput['tenant']['findMyInvites'];
     userPermissions:RouterOutput['authorization']['getUserPermissions'];
     editingRole: RouterOutput['authorization']['getRole'] | null;
     roles: RouterOutput['authorization']['getRoles'];

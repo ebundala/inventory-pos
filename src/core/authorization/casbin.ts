@@ -19,9 +19,8 @@ m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj && r.act == p.act
 `
 
 declare global {
-   var enforcer: Enforcer | undefined
-  // var client:Client | undefined
-   var adapter: PrismaAdapter | undefined
+   var enforcer: Enforcer
+   var adapter: PrismaAdapter
   }
 
 //const client = global.client || new Client(process.env.DATABASE_URL);
@@ -43,10 +42,10 @@ export async function initCasbin() {
         global.enforcer.enableLog(true)
     }
     global.enforcer.enableEnforce(true)
-    return global.enforcer;
+    return {enforcer:global.enforcer,casbinAdapter:global.adapter};
 }
 initCasbin();
 
 
-export const enforcer = global.enforcer;
-export const casbinAdapter = global.adapter;
+// export const enforcer = global.enforcer;
+// export const casbinAdapter = global.adapter;

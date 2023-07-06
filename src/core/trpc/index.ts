@@ -6,7 +6,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../authentication/auth';
 import { APP_HOST } from '@/lib/util';
 import superjson from 'superjson';
-import {enforcer,casbinAdapter }  from '../authorization/casbin';
+import {initCasbin }  from '../authorization/casbin';
+
+
+
 
 export async function createContext({req,res}: TRPCNext.CreateNextContextOptions) {
     const session = await getServerSession(req,res,authOptions);
@@ -48,7 +51,7 @@ export async function createContext({req,res}: TRPCNext.CreateNextContextOptions
         }
     })
     const tenantId = tenant?.tenantId || "app";
-   
+  const {enforcer, casbinAdapter}= await initCasbin();
     return {
         session, tenantId,enforcer, casbinAdapter
     }
@@ -76,9 +79,9 @@ export const useInteractiveTransaction = middleware(async ({ next, ctx }) => {
    
     let result;
     try {
-        result = await prisma!.$transaction(async (tx) => {
-            await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${ctx.tenantId}"`)
-            const cleanUp=   ctx.casbinAdapter!.setTransactionClient(tx)
+        result = await prisma.$transaction(async (tx) => {
+            await tx.$queryRawUnsafe(`SET "app.CurrentTenant"="${ctx.tenantId}"`)
+            const cleanUp=   ctx.casbinAdapter.setTransactionClient(tx)
             return next({ ctx: { tx, ...ctx } })
             .finally(()=>{cleanUp?.call(ctx.casbinAdapter)})
          

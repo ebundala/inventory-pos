@@ -30,3 +30,5 @@ export function useProducts(args?:z.infer<typeof ProductFindManySchema> ) {
     
     return {products, result, refetch};
 }
+
+

@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
 export class PrismaAdapter implements Adapter {
-  #option?: Prisma.PrismaClientOptions;
+ // #option?: Prisma.PrismaClientOptions;
   #prisma: PrismaClient 
   #txPrisma?:Prisma.TransactionClient
 
@@ -14,12 +14,12 @@ export class PrismaAdapter implements Adapter {
    * @param option It should be PrismaClientOptions or PrismaClient.
    * You should later call open() to activate it.
    */
-  constructor(option?: Prisma.PrismaClientOptions | PrismaClient) {
-    if (option instanceof PrismaClient) {
+  constructor(option: PrismaClient) {
+    // if (option instanceof PrismaClient) {
       this.#prisma = option;
-    } else {
-      this.#option = option;
-    }
+    // } else {
+      // this.#option = option;
+    // }
   }
  setTransactionClient(tx:Prisma.TransactionClient){
   this.#txPrisma = tx;
@@ -27,7 +27,7 @@ export class PrismaAdapter implements Adapter {
   return () => this.#txPrisma = undefined;
  }
  getClient():PrismaClient|Prisma.TransactionClient {
-  return this.#txPrisma ?? this.#prisma!;
+  return this.#txPrisma ?? this.#prisma;
  }
   async loadPolicy(model: Model): Promise<void> {
     const lines = await this.getClient().casbinRule.findMany();
@@ -152,22 +152,22 @@ export class PrismaAdapter implements Adapter {
   }
 
   static async newAdapter(
-    option?: Prisma.PrismaClientOptions | PrismaClient
+    option: PrismaClient
   ): Promise<PrismaAdapter> {
     const a = new PrismaAdapter(option);
-    await a.#open();
+   // await a.#open();
 
     return a;
   }
 
   #open = async (): Promise<void> => {
-    if (!this.#option) {
-      this.#option = {};
-    }
-    if (!this.#prisma) {
-      this.#prisma = new PrismaClient(this.#option);
-    }
-    await this.#prisma.$connect();
+    // if (!this.#option) {
+    //   this.#option = {};
+    // }
+    // if (!this.#prisma) {
+    //   this.#prisma = new PrismaClient(this.#option);
+    // }
+    // await this.#prisma.$connect();
   };
 
   #loadPolicyLine = (

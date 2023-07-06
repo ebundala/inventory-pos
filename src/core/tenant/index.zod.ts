@@ -37,6 +37,7 @@ export const inviteMemberInputSchema = z.object({
 
 export const tenantEmailWhereInputSchema = z.object({
   email: z.string().email(),
+  tenantId: z.string(),
 });
 
 export const tenantMemberWhereInputSchema = z.object({
