@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@/lib/casbin-prisma-adapter";
-import { Enforcer, newEnforcer } from 'casbin'
+import { Enforcer, Model, newEnforcer, newModelFromString } from 'casbin'
 
 const modelStr = `
 [request_definition]
@@ -19,21 +19,23 @@ m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj && r.act == p.act
 `
 
 declare global {
-   var enforcer: Enforcer
-   var adapter: PrismaAdapter
-  }
+    var enforcer: Enforcer
+    var adapter: PrismaAdapter
+    var model: Model
+}
 
 //const client = global.client || new Client(process.env.DATABASE_URL);
 
 export async function initCasbin() {
 
-    //  const model = newModelFromString(modelStr)
+    global.model = global.model || newModelFromString(modelStr)
 
-    global.adapter =global.adapter || await PrismaAdapter.newAdapter(prisma)
-     //await BasicAdapter.newAdapter('pg', client);
-    global.enforcer = global.enforcer || await newEnforcer("/home/app/src/core/authorization/rbac_model.conf", global.adapter)
-
-    // await enforcer.initWithModelAndAdapter(model,adapter);
+    global.adapter = global.adapter || await PrismaAdapter.newAdapter(prisma)
+    //await BasicAdapter.newAdapter('pg', client);
+    global.enforcer = global.enforcer || await newEnforcer(/*"/home/app/src/core/authorization/rbac_model.conf", global.adapter*/)
+    if (!enforcer.getModel()||!enforcer.getAdapter()) {
+        await enforcer.initWithModelAndAdapter(model, adapter);
+    }
 
     global.enforcer.enableAutoBuildRoleLinks(true);
     global.enforcer.enableAutoNotifyWatcher(true);
@@ -42,7 +44,7 @@ export async function initCasbin() {
         global.enforcer.enableLog(true)
     }
     global.enforcer.enableEnforce(true)
-    return {enforcer:global.enforcer,casbinAdapter:global.adapter};
+    return { enforcer: global.enforcer, casbinAdapter: global.adapter };
 }
 initCasbin();
 
