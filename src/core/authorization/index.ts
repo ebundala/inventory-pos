@@ -1,5 +1,6 @@
-import { inferAsyncReturnType } from "@trpc/server";
+import { inferAsyncReturnType, TRPCError } from "@trpc/server";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 /*
 p, admin, tenant1, data1, read
 p, admin, tenant2, data2, read
@@ -12,7 +13,16 @@ export async function getPolicies({ enforcer }: TenantContext) {
     return permisionsOutput
 }
 
-export async function getRoles({ enforcer, tenantId }: TenantContext) {
+export async function getRoles({ enforcer, tenantId, session }: TenantContext) {
+
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "role",
+        action: "view"
+    })
     const roles = await enforcer!.getFilteredPolicy(1, tenantId);
     const rolesNames = roles.flatMap((r) => r[0]);
     const uniqueRoles = [...new Set(rolesNames)]
@@ -38,7 +48,16 @@ export async function getRoles({ enforcer, tenantId }: TenantContext) {
     return roleWithPerm
 }
 export type RoleInput = string;
-export async function getRole(role: string, { enforcer, tenantId }: TenantContext): Promise<TRoleWithPermision> {
+export async function getRole(role: string, { enforcer, tenantId, session }: TenantContext): Promise<TRoleWithPermision> {
+
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "role",
+        action: "view"
+    })
     const policies = await enforcer!.getFilteredPolicy(0, role, tenantId, "", "");
     const perms = policies.map<TPermission>((p, i, arr) => {
         const [_, __, resource, action] = p
@@ -54,10 +73,19 @@ export type TRoleWithPermision = {
 }
 
 
-export async function createRole({ role, permissions }: TRoleWithPermision, { enforcer, tenantId }: TenantContext) {
+export async function createRole({ role, permissions }: TRoleWithPermision, { enforcer, tenantId, session }: TenantContext) {
+
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "role",
+        action: "create"
+    })
     const existingPolicies = await enforcer!.getFilteredPolicy(0, role, tenantId, "", "")
     if (existingPolicies.length > 0) {
-        throw new Error("Role arleady exist");
+        throw new TRPCError({ message: "Role already exist", code: "BAD_REQUEST" });
     }
     const policies = permissions.map<string[]>((p, i) => ([role, tenantId, p.resource, p.action]))
     const success = await enforcer!.addPolicies(policies);
@@ -67,7 +95,15 @@ export async function createRole({ role, permissions }: TRoleWithPermision, { en
 
 
 export async function updateRole({ role, oldRoleName, permissions }: TRoleWithPermision, ctx: TenantContext) {
-    const { enforcer, tenantId } = ctx;
+    const { enforcer, tenantId, session, } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "role",
+        action: "update"
+    })
     const oldRoleNameClean = (oldRoleName ?? "")?.length > 0 ? oldRoleName : null;
     const existingPolicies = await enforcer!.getFilteredPolicy(0, oldRoleNameClean ?? role, tenantId, "", "")
     if (existingPolicies.length === 0) {
@@ -101,7 +137,7 @@ export async function updateRole({ role, oldRoleName, permissions }: TRoleWithPe
         await enforcer?.addGroupingPolicies(roleGrouping);
         await Promise.allSettled(users?.map((u) => enforcer!.addRoleForUser(u, role, tenantId)))
     }
-   await enforcer!.savePolicy();
+    await enforcer!.savePolicy();
 
     return await getRole(role, ctx);
 }
@@ -114,23 +150,47 @@ export type AssignRoleInput = {
     role: string
     userId: string
 }
-export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId }: TenantContext) {
+export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId, session }: TenantContext) {
+    const id = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId: id,
+        resource: "role",
+        action: "assign"
+    })
     const { roles, userId } = input;
-    const oldRoles = await enforcer!.getRolesForUser(userId,tenantId);
-    const removeOldRoles = (await removeRoles({userId,roles:oldRoles},{enforcer,tenantId} as TenantContext))
-    
-    const success = await Promise.allSettled(roles.map((role)=>enforcer!.addRoleForUser(userId, role, tenantId)));
+    const oldRoles = await enforcer!.getRolesForUser(userId, tenantId);
+    const removeOldRoles = (await removeRoles({ userId, roles: oldRoles }, { enforcer, tenantId } as TenantContext))
+
+    const success = await Promise.allSettled(roles.map((role) => enforcer!.addRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
     return success;
 }
 
-export async function removeRoles({ userId, roles }: AssignRolesInput, { enforcer, tenantId }: TenantContext) {
-    const success = await Promise.allSettled(roles.map((role)=>enforcer!.deleteRoleForUser(userId, role, tenantId)));
+export async function removeRoles({ userId, roles }: AssignRolesInput, { enforcer, tenantId, session }: TenantContext) {
+    const id = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId: id,
+        resource: "role",
+        action: "assign"
+    })
+    const success = await Promise.allSettled(roles.map((role) => enforcer!.deleteRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
     return success;
 }
 
-export async function deleteRole(role: string, { enforcer, tenantId }: TenantContext) {
+export async function deleteRole(role: string, { enforcer, tenantId, session }: TenantContext) {
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "role",
+        action: "delete"
+    })
     const success = await enforcer!.removeFilteredPolicy(0, role, tenantId, "", "")
     const success1 = await enforcer!.removeFilteredGroupingPolicy(1, role, tenantId)
     await enforcer!.savePolicy();
@@ -141,6 +201,9 @@ export async function getUserPermissions(ctx: TenantContext) {
     const { enforcer, tenantId, session } = ctx;
     return enforcer!.getPermissionsForUser(session!.user!.id!)
 }
+
+
+
 const PermisionActions = ["create", "view", "update", "delete", "no-action"] as const;
 export type PermissionActionType = "create" | "view" | "update" | "delete" | "no-action";
 
@@ -151,7 +214,14 @@ export type SystemPermissionActionType = PosSettingPermissionActionType;
 const UserInvitePermissionActions = ["invite", "dismiss", "no-action"] as const;
 export type UserInvitePermission = "invite" | "dismiss"
 export type BarcodePermission = "print"
-export type PermissionActionTypes = PermissionActionType | PosSettingPermissionActionType | UserInvitePermission | BarcodePermission
+const rolePermissionsActions = ["create", "view", "update", "delete", "assign", "no-action"] as const
+export type RolePermissionsActions = "create" | "view" | "update" | "delete" | "assign" | "no-action"
+
+const businessPermissionsActions = ["manage", "no-action"] as const
+export type BusinessPermissionsActions = "manage" | "no-action"
+
+export type PermissionActionTypes = PermissionActionType | PosSettingPermissionActionType | UserInvitePermission
+    | BarcodePermission | RolePermissionsActions | BusinessPermissionsActions
 
 export type PermissionInput = {
     resource: string
@@ -159,11 +229,13 @@ export type PermissionInput = {
 }
 
 export type TPermission = PermissionInput;
-export type ResourceTypes = "product"| "category"| "unit"| "brand"| "adjustment"|
-"quotation"| "purchase"| "sale"| "transfer"| "sale-return"|
-"purchase-return"| "customer"| "supplier"| "currency"| "warehouse"|"user"|
-"sales"| "purchases"| "sale-returns"| "purchase-returns"| "sales-and-purchase"|
-"top-selling-products"| "stock-alerts"| "payment-sent-and-received"| "recent-sales"|"barcode"
+export type ResourceTypes = "product" | "category" | "unit" | "brand" | "adjustment" |
+    "quotation" | "purchase" | "sale" | "transfer" | "sale-return" | "role" | "business" |
+    "purchase-return" | "customer" | "supplier" | "currency" | "warehouse" | "user" | "pos-setting" | "setting" |
+    "sales-and-purchase" |"report"|
+     "stock-alerts" | "payment-sent-and-received" | "recent-sales" | "barcode"|"top-customers-summary"|
+    "sales-summary" | "purchases-summary"| "sale-returns-summary"| "purchase-returns-summary"| "sales-and-purchase-summary"|
+    "top-customers-summary"|"top-selling-products-summary"| "stock-alerts-summary"| "payment-sent-and-received-summary"| "recent-sales-summary"
 
 const permisions = [
     ...[
@@ -176,11 +248,20 @@ const permisions = [
     ...["user"].flatMap((p) => {
         return UserInvitePermissionActions.map((t) => ([p, t]))
     }),
+    ...["role"].flatMap((p) => {
+        return rolePermissionsActions.map((t) => ([p, t]))
+    }),
+    ...["business"].flatMap((p) => {
+        return businessPermissionsActions.map((t) => ([p, t]))
+    }),
     ...["sales", "purchases", "sale-returns", "purchase-returns", "sales-and-purchase",
-        "top-selling-products", "stock-alerts", "payment-sent-and-received", "recent-sales"
+        "top-customers","top-selling-products", "stock-alerts", "payment-sent-and-received", "recent-sales"
     ].map((p) => ([`${p}-summary`, "view", `${p}-summary`, "no-action"])),
     ["barcode", "print"],
     ["barcode", "no-action"],
+    ["report", "view"],
+    ["report", "print"],
+    ["report", "no-action"],
     ...["setting", "pos-setting"].flatMap((s) => {
         return settingPermissionActions.map((p) => ([s, p]))
     })

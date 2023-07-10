@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import {
   getOneProductWarehouse,
   getProductWarehouse,
@@ -58,7 +59,16 @@ export const createTransfer = async (
   input: CreateTransferInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, transferDetails, ...data } = input;
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "create"
+  });
+  const { tenantId:_, transferDetails, ...data } = input;
   let details = {};
   if (transferDetails && transferDetails.length) {
     if (data.status === "Completed") {
@@ -170,7 +180,16 @@ export const updateTransfer = async (
   input: UpdateTransferInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, id, transferDetails, ...data } = input;
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "update"
+  });
+  const { tenantId:_, id, transferDetails, ...data } = input;
 
   const transfer = await ctx.tx!.transfer.findUnique({
     where: { id, recordStatus: RecordStatus.ACTIVE },
@@ -336,6 +355,15 @@ export const updateTransfer = async (
 export type TransferId = number;
 export type TransferIds = Array<number>;
 export const getUniqueTransfer = async (id: TransferId, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "view"
+  });
   return ctx.tx!.transfer.findUnique({
     include,
     where: {
@@ -345,6 +373,15 @@ export const getUniqueTransfer = async (id: TransferId, ctx: TenantContext) => {
   });
 };
 export const deleteTransfer = async (id: TransferId, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "delete"
+  });
   return ctx.tx!.transfer.update({
     include,
     where: {
@@ -359,6 +396,15 @@ export const deleteManyTransfer = async (
   ids: TransferIds,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "delete"
+  });
   return ctx.tx!.transfer.updateMany({
     where: {
       id: { in: ids },
@@ -373,6 +419,15 @@ export const findManyTransfer = async (
   input: Omit<Prisma.TransferFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "transfer",
+    action: "view"
+  });
   const { where, ...rest } = input;
   return ctx.tx!.transfer.findMany({
     include,

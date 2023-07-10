@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import {
   getProductWarehouse,
   getOneProductWarehouse,
@@ -74,9 +75,18 @@ export const createPurchaseReturn = async (
   input: CreatePurchaseReturnInput,
   ctx: TenantContext
 ) => {
-  const {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
     tenantId,
     userId,
+    resource: "purchase-return",
+    action: "create"
+  });
+  const {
+    tenantId:_,
+    userId:__,
     paymentPurchaseReturns,
     purchaseReturnDetails,
     ...data
@@ -194,8 +204,17 @@ export const updatePurchaseReturn = async (
   input: UpdatePurchaseReturnInput,
   ctx: TenantContext
 ) => {
-  const {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
     tenantId,
+    userId,
+    resource: "purchase-return",
+    action: "update"
+  });
+  const {
+    tenantId:__,
     id,
     paymentPurchaseReturns,
     purchaseReturnDetails,
@@ -317,6 +336,15 @@ export const getUniquePurchaseReturn = async (
   id: PurchaseReturnId,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase-return",
+    action: "view"
+  });
   return ctx.tx!.purchaseReturn.findUnique({
     include,
     where: {
@@ -342,6 +370,15 @@ export const deleteManyPurchaseReturn = async (
   ids: PurchaseReturnIds,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase-return",
+    action: "delete"
+  });
   return ctx.tx!.purchaseReturn.updateMany({
     where: {
       id: { in: ids },
@@ -356,6 +393,15 @@ export const findManyPurchaseReturn = async (
   input: Omit<Prisma.PurchaseReturnFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase-return",
+    action: "view"
+  });
   const {where,...rest} = input;
   return ctx.tx!.purchaseReturn.findMany({
     include,

@@ -2,6 +2,7 @@ import { prisma } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { text } from "stream/consumers";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import {
   getProductWarehouse,
   getOneProductWarehouse,
@@ -93,7 +94,16 @@ export const createSale = async (
   input: CreateSaleInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, userId, saleDetails, paymentSales, shipments, ...data } =
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale",
+    action: "create"
+  });
+  const { tenantId:_, userId:__, saleDetails, paymentSales, shipments, ...data } =
     input;
   let saleData = {};
   if (saleDetails && saleDetails.length) {
@@ -245,10 +255,19 @@ export const updateSale = async (
   input: UpdateSaleInput,
   ctx: TenantContext
 ) => {
-  const {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
     tenantId,
-    id,
     userId,
+    resource: "sale",
+    action: "update"
+  });
+  const {
+    tenantId:_,
+    id,
+    userId:__,
     saleDetails,
     shipments,
     paymentSales,
@@ -421,6 +440,15 @@ export const updateSale = async (
 export type SaleId = number;
 export type SaleIds = Array<number>;
 export const getUniqueSale = async (id: SaleId, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale",
+    action: "view"
+  });
   return ctx.tx!.sale.findUnique({
     include,
     where: {
@@ -429,6 +457,15 @@ export const getUniqueSale = async (id: SaleId, ctx: TenantContext) => {
   });
 };
 export const deleteSale = async (id: SaleId, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale",
+    action: "delete"
+  });
   return ctx.tx!.sale.update({
     include,
     where: {
@@ -440,6 +477,15 @@ export const deleteSale = async (id: SaleId, ctx: TenantContext) => {
   });
 };
 export const deleteManySale = async (ids: SaleIds, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale",
+    action: "delete"
+  });
   return ctx.tx!.sale.updateMany({
     where: {
       id: { in: ids },
@@ -454,6 +500,15 @@ export const findManySale = async (
   input: Omit<Prisma.SaleFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale",
+    action: "view"
+  });
   const {where,...rest}=input
   return ctx.tx!.sale.findMany({
     where:{...where,  recordStatus:RecordStatus.ACTIVE,},

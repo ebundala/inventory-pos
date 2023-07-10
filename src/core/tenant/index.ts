@@ -183,7 +183,15 @@ export const updateTenant = async (
   ctx: TenantContext
 ) => {
   const { ...data } = input;
-  const { tx, tenantId } = ctx;
+  const { tx ,enforcer,tenantId,session} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "business",
+    action: "manage"
+  })
   //TODO handle images uploads
   const tenant = await tx!.tenant.update({
     include: {
@@ -220,7 +228,15 @@ export const getUniqueTenant = async (id: TenantId, ctx: TenantContext) => {
 };
 
 export const deleteTenant = async (id: TenantId, ctx: TenantContext) => {
-  const { tx } = ctx;
+  const { tx ,enforcer,tenantId,session} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "business",
+    action: "manage"
+  })
   const tenant = await tx!.tenant.update({
     include: {
       members: true,
@@ -245,7 +261,15 @@ export const deleteTenant = async (id: TenantId, ctx: TenantContext) => {
 };
 export type TenantIds = Array<string>;
 export const deleteManyTenant = async (ids: TenantIds, ctx: TenantContext) => {
-  const { tx } = ctx;
+  const { tx ,enforcer,tenantId,session} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "business",
+    action: "manage"
+  })
   return tx!.tenant.updateMany({
     where: {
       tenantId: {

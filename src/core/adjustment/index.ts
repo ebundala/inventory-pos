@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, ProductWarehouse, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import { getProductWarehouse,getOneProductWarehouse } from "../util/getProductWarehouse";
 const include = {
   user: true,
@@ -42,7 +43,14 @@ export const createAdjustment = async (
   ctx: TenantContext
 ) => {
   const { tenantId, adjustmentDetails, ...data } = input;
-
+  const {enforcer,session}=ctx
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "create"
+  })
   const adjustment = await ctx.tx!.adjustment.create({
     include,
     data: {
@@ -112,7 +120,14 @@ export const updateAdjustment = async (
   ctx: TenantContext
 ) => {
   const { id, adjustmentDetails, ...data } = input;
-  const { tenantId } = ctx;
+  const {enforcer,session,tenantId}=ctx
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "update"
+  })
   const adjustment = await ctx.tx!.adjustment.findUnique({
     where: { id,recordStatus:RecordStatus.ACTIVE },
     include: {
@@ -251,6 +266,15 @@ export const getUniqueAdjustment = async (
   id: AdjustmentId,
   ctx: TenantContext
 ) => {
+  const {enforcer,session,tenantId}=ctx
+
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "view"
+  })
   return ctx.tx!.adjustment.findUnique({
     include,
     where: {
@@ -262,6 +286,15 @@ export const deleteAdjustment = async (
   id: AdjustmentId,
   ctx: TenantContext
 ) => {
+  const {enforcer,session,tenantId}=ctx
+
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "delete"
+  })
   return ctx.tx!.adjustment.update({
     include,
     where: {
@@ -276,6 +309,15 @@ export const deleteManyAdjustment = async (
   ids: AdjustmentIds,
   ctx: TenantContext
 ) => {
+  const {enforcer,session,tenantId}=ctx
+
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "delete"
+  })
   return ctx.tx!.adjustment.updateMany({
     where: {
       id: { in: ids },
@@ -290,6 +332,15 @@ export const findManyAdjustment = async (
   input: Omit<Prisma.AdjustmentFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {enforcer,session,tenantId}=ctx
+
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: session!.user.id!,
+    resource: "adjustment",
+    action: "view"
+  })
   const {where,...rest} = input
   return ctx.tx!.adjustment.findMany({
     where:{...where,recordStatus:RecordStatus.ACTIVE },

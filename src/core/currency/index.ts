@@ -1,6 +1,7 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 
 export type CreateCurrencyInput = {
   name: string     
@@ -9,7 +10,16 @@ export type CreateCurrencyInput = {
   tenantId: string
 }
 export const createCurrency = async (input: CreateCurrencyInput,ctx:TenantContext) => {
-    const { tenantId, ...data } = input;
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "create"
+    });
+    const { tenantId:_, ...data } = input;
     return ctx.tx!.currency.create({
         data:{tenantId:tenantId,...data}
    })
@@ -20,6 +30,15 @@ export type UpdateCurrencyInput = {
   code?:  string
 }
 export const updateCurrency = async (input: UpdateCurrencyInput,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "update"
+    });
     const { id, ...data } = input;
     return ctx.tx!.currency.update({
         where: {
@@ -31,6 +50,15 @@ export const updateCurrency = async (input: UpdateCurrencyInput,ctx:TenantContex
 export type CurrencyId = number
 export type CurrencyIds = Array<number>
 export const getUniqueCurrency = async (id: CurrencyId,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "view"
+    });
     return ctx.tx!.currency.findUnique({
         where: {
             id: id,recordStatus:RecordStatus.ACTIVE 
@@ -38,7 +66,15 @@ export const getUniqueCurrency = async (id: CurrencyId,ctx:TenantContext) => {
     })
 };
 export const deleteCurrency = async (id: CurrencyId,ctx:TenantContext) => {
-
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "delete"
+    });
     return ctx.tx!.currency.update({
         where: {
             id: id
@@ -49,6 +85,15 @@ export const deleteCurrency = async (id: CurrencyId,ctx:TenantContext) => {
     })
 };
 export const deleteManyCurrency = async (ids: CurrencyIds,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "delete"
+    });
     return ctx.tx!.currency.updateMany({
         where: {
             id: { in: ids }
@@ -60,6 +105,15 @@ export const deleteManyCurrency = async (ids: CurrencyIds,ctx:TenantContext) => 
 };
 
 export const findManyCurrency = async  (input: Omit<Prisma.CurrencyFindManyArgs, "select"|"include"> ,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "currency",
+      action: "view"
+    });
     const {where,...rest}=input;
     return ctx.tx!.currency.findMany(
        {

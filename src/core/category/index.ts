@@ -1,6 +1,7 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 
 export type CreateCategoryInput = {
   name: string     
@@ -8,7 +9,16 @@ export type CreateCategoryInput = {
   tenantId: string
 }
 export const createCategory = async (input: CreateCategoryInput,ctx:TenantContext) => {
-    const { tenantId, ...data } = input;
+    const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "category",
+    action: "create"
+  });
+    const { tenantId:_, ...data } = input;
     return ctx.tx!.category.create({
         data:{tenantId:tenantId,...data}
    })
@@ -19,6 +29,15 @@ export type UpdateCategoryInput = {
   code?:  string
 }
 export const updateCategory = async (input: UpdateCategoryInput,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "category",
+      action: "update"
+    });
     const { id, ...data } = input;
     return ctx.tx!.category.update({
         where: {
@@ -30,6 +49,15 @@ export const updateCategory = async (input: UpdateCategoryInput,ctx:TenantContex
 export type CategoryId = number
 export type CategoryIds = Array<number>
 export const getUniqueCategory = async (id: CategoryId,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "category",
+      action: "view"
+    });
     return ctx.tx!.category.findUnique({
         where: {
             id: id,recordStatus:RecordStatus.ACTIVE 
@@ -37,7 +65,15 @@ export const getUniqueCategory = async (id: CategoryId,ctx:TenantContext) => {
     })
 };
 export const deleteCategory = async (id: CategoryId,ctx:TenantContext) => {
-
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "category",
+      action: "delete"
+    });
     return ctx.tx!.category.update({
         where: {
             id: id
@@ -48,6 +84,15 @@ export const deleteCategory = async (id: CategoryId,ctx:TenantContext) => {
     })
 };
 export const deleteManyCategory = async (ids: CategoryIds,ctx:TenantContext) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "category",
+      action: "delete"
+    });
     return ctx.tx!.category.updateMany({
         where: {
             id: { in: ids }
@@ -59,6 +104,15 @@ export const deleteManyCategory = async (ids: CategoryIds,ctx:TenantContext) => 
 };
 
 export const findManyCategory = async  (input: Omit<Prisma.CategoryFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
+    const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "category",
+      action: "view"
+    });
    const {where,...rest}=input;
     return ctx.tx!.category.findMany({
         where:{...where,recordStatus:RecordStatus.ACTIVE },

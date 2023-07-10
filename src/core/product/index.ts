@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, Product, ProductVariant, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 const include = {  
   productUnit: true,
   productPurchaseUnit: true,
@@ -47,7 +48,16 @@ export const createProduct = async (
   input: CreateProductInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, productVariants, ...data } = input;
+  const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "product",
+      action: "create"
+    });
+  const { tenantId:_, productVariants, ...data } = input;
   let variants = {};
   if (productVariants && productVariants.length) {
     variants = {
@@ -123,7 +133,16 @@ export const updateProduct = async (
   input: UpdateProductInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, id, productVariants, ...data } = input;
+  const {tenantId,session,enforcer} = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "product",
+      action: "update"
+    });
+  const { tenantId:_, id, productVariants, ...data } = input;
   const product = await ctx.tx!.product.findUnique({
     where: { id ,recordStatus:{equals:RecordStatus.ACTIVE}},
     include: {
@@ -221,6 +240,15 @@ export const getUniqueProduct = async (id: ProductId, ctx: TenantContext) => {
   });
 };
 export const deleteProduct = async (id: ProductId, ctx: TenantContext) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "product",
+    action: "delete"
+  });
   return ctx.tx!.product.update({
     include,
     where: {
@@ -235,6 +263,15 @@ export const deleteManyProduct = async (
   ids: ProductIds,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "product",
+    action: "delete"
+  });
   return ctx.tx!.product.updateMany({
     where: {
       id: { in: ids },
@@ -249,6 +286,15 @@ export const findManyProduct = async (
   input: Omit<Prisma.ProductFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "product",
+    action: "view"
+  });
   const {where,...rest}=input
   return ctx.tx!.product.findMany({
     where:{...where,recordStatus:RecordStatus.ACTIVE},

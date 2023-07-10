@@ -1,6 +1,7 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 
 export type CreateCompanyInput = {
   name: string     
@@ -12,7 +13,16 @@ export type CreateCompanyInput = {
   tenantId: string
 }
 export const createCompany = async (input: CreateCompanyInput,ctx:TenantContext) => {
-    const { tenantId, ...data } = input;
+    const {tenantId,session,enforcer} = ctx;
+    // const userId = session!.user.id!;
+    // await enforceHelper({
+    //   enforcer,
+    //   tenantId,
+    //   userId,
+    //   resource: "company",
+    //   action: "create"
+    // });
+    const { tenantId:_, ...data } = input;
     return ctx.tx!.company.create({
         data:{tenantId:tenantId,...data}
    })

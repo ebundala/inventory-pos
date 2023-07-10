@@ -10,6 +10,7 @@ import { PaymentSaleWhereInputObjectSchema } from "prisma/generated/schemas/obje
 import { PaymentSaleReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentSaleReturnWhereInput.schema";
 import { PaymentPurchaseWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentPurchaseWhereInput.schema";
 import { PaymentPurchaseReturnWhereInputObjectSchema } from "prisma/generated/schemas/objects/PaymentPurchaseReturnWhereInput.schema";
+import { enforceHelper } from "../util/enforcerUtil";
 
 const productIncludes = {
   productVariants: {
@@ -41,6 +42,15 @@ export const productTopSellers = async (
   { where, cursor, take, skip }: WhereInput<Prisma.SaleDetailWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "top-selling-products-summary",
+    action: "view"
+  });
   const stats = await ctx.tx!.saleDetail.groupBy({
     by: [Prisma.SaleDetailScalarFieldEnum.productId],
     where: {
@@ -61,7 +71,7 @@ export const productTopSellers = async (
     },
     take,
     skip,
-    
+
   });
   const ids = stats.map((v) => v.productId);
 
@@ -89,6 +99,15 @@ export const topCustomers = async (
   { where, cursor, take, skip }: WhereInput<Prisma.SaleWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "top-customers-summary",
+    action: "view"
+  });
   const stats = await ctx.tx!.sale.groupBy({
     where: {
       ...where,
@@ -130,6 +149,15 @@ export const sales = async (
   { where, cursor, take, skip }: WhereInput<Prisma.SaleWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sales-summary",
+    action: "view"
+  });
   return ctx.tx!.sale.groupBy({
     where: {
       ...where,
@@ -158,6 +186,15 @@ export const purchases = async (
   { where, cursor, take, skip }: WhereInput<Prisma.PurchaseWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchases-summary",
+    action: "view"
+  });
   return ctx.tx!.purchase.groupBy({
     where: {
       ...where,
@@ -188,6 +225,16 @@ export const saleReturns = async (
   { where, cursor, take, skip }: WhereInput<Prisma.SaleReturnWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "sale-returns-summary",
+    action: "view"
+  });
+ 
   return ctx.tx!.saleReturn.groupBy({
     where: {
       ...where,
@@ -218,6 +265,15 @@ export const purchaseReturns = async (
   { where, cursor, take, skip }: WhereInput<Prisma.PurchaseReturnWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase-returns-summary",
+    action: "view"
+  });
   return ctx.tx!.purchaseReturn.groupBy({
     where: {
       ...where,
@@ -241,6 +297,16 @@ export type StockAlertInput = {
   skip?: number
 }
 export const stockAlerts = async (input: StockAlertInput, ctx: TenantContext) => {
+ 
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "stock-alerts-summary",
+    action: "view"
+  });
   const productMap = (
     await ctx.tx!.product.findMany({
       where: { recordStatus: RecordStatus.ACTIVE },
@@ -363,6 +429,16 @@ export const paymentSale = async (
   { where, cursor, take, skip }: WhereInput<Prisma.PaymentSaleWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
+
   return ctx.tx!.paymentSale.groupBy({
     where: {
       ...where,
@@ -392,6 +468,15 @@ export const paymentSaleReturns = async (
   { where, cursor, take, skip }: WhereInput<Prisma.PaymentSaleReturnWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
   return ctx.tx!.paymentSaleReturn.groupBy({
     where: {
       ...where, recordStatus: RecordStatus.ACTIVE,
@@ -420,6 +505,15 @@ export const PaymentPurchaseSchema = z.object({
 export const paymentPurchase = async ({ where, cursor, take, skip }: WhereInput<Prisma.PaymentPurchaseWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
   return ctx.tx!.paymentPurchase.groupBy({
     where: {
       ...where,
@@ -449,6 +543,15 @@ export const paymentPurchaseReturn = async (
   { where, cursor, take, skip }: WhereInput<Prisma.PaymentPurchaseReturnWhereInput>,
   ctx: TenantContext
 ) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
   return ctx.tx!.paymentPurchaseReturn.groupBy({
     where: {
       ...where, recordStatus: RecordStatus.ACTIVE,
@@ -472,8 +575,16 @@ export const CustomerSchema = z.object({
   cursor: z.number().optional(),
   where: SaleWhereInputObjectSchema.optional()
 });
-export const customerReport = async ({where}: WhereInput<Prisma.SaleWhereInput>, ctx: TenantContext) => {
-
+export const customerReport = async ({ where }: WhereInput<Prisma.SaleWhereInput>, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
   const stats = (await ctx.tx!.sale.groupBy({
     where: {
       ...where,
@@ -491,7 +602,7 @@ export const customerReport = async ({where}: WhereInput<Prisma.SaleWhereInput>,
     }
   }));
   const statMap: Map<number, typeof stats[0]> = stats.reduce((p, c, i) => p.set(c.customerId, c), new Map())
-  const result = (await ctx.tx!.customer.findMany({ where: { recordStatus: RecordStatus.ACTIVE } })).map((v) => ({ ...v, ...statMap.get(v.id) })).filter((v)=>v._sum);
+  const result = (await ctx.tx!.customer.findMany({ where: { recordStatus: RecordStatus.ACTIVE } })).map((v) => ({ ...v, ...statMap.get(v.id) })).filter((v) => v._sum);
   return result;
 }
 
@@ -501,7 +612,16 @@ export const SupplierSchema = z.object({
   cursor: z.number().optional(),
   where: PurchaseWhereInputObjectSchema.optional()
 });
-export const suppliersReport = async ({where}:WhereInput<Prisma.PurchaseWhereInput>,ctx: TenantContext) => {
+export const suppliersReport = async ({ where }: WhereInput<Prisma.PurchaseWhereInput>, ctx: TenantContext) => {
+  const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "report",
+    action: "view"
+  });
   const stats = (await ctx.tx!.purchase.groupBy({
     where: {
       ...where,

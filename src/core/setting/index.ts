@@ -1,6 +1,7 @@
 import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 const include = {
     customer:true,
     currency:true,
@@ -22,7 +23,16 @@ export type CreateSettingInput = {
     tenantId: string
 }
 export const createSetting = async (input: CreateSettingInput,ctx:TenantContext) => {
-    const { tenantId, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "update"
+    });
+    const { tenantId:_, ...data } = input;
     return ctx.tx!.setting.create({
         include,
         data:{tenantId:tenantId,...data}
@@ -43,6 +53,15 @@ export type UpdateSettingInput = {
   defaultLanguage ?:string
 }
 export const updateSetting = async (input: UpdateSettingInput,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "update"
+    });
     const { id, ...data } = input;
     return ctx.tx!.setting.update({
         include,
@@ -55,6 +74,15 @@ export const updateSetting = async (input: UpdateSettingInput,ctx:TenantContext)
 export type SettingId = number
 export type SettingIds = Array<number>
 export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "view"
+    });
     return ctx.tx!.setting.findUnique({
         include,
         where: {
@@ -63,7 +91,15 @@ export const getUniqueSetting = async (id: SettingId,ctx:TenantContext) => {
     })
 };
 export const deleteSetting = async (id: SettingId,ctx:TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "update"
+    });
     return ctx.tx!.setting.update({
         include,
         where: {
@@ -75,6 +111,15 @@ export const deleteSetting = async (id: SettingId,ctx:TenantContext) => {
     })
 };
 export const deleteManySetting = async (ids: SettingIds,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "update"
+    });
     return ctx.tx!.setting.updateMany({
         where: {
             id: { in: ids }
@@ -86,6 +131,15 @@ export const deleteManySetting = async (ids: SettingIds,ctx:TenantContext) => {
 };
 
 export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">, ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "view"
+    });
     const {where,...rest}=input;
     return ctx.tx!.setting.findMany(
       {...rest,where:{...where,  recordStatus:RecordStatus.ACTIVE,},include}
@@ -93,6 +147,15 @@ export const findManySetting = async  (input: Omit<Prisma.SettingFindManyArgs, "
 }
 
 export const findFirstSetting = async  (input: Omit<Prisma.SettingFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "setting",
+      action: "view"
+    });
     const {where,...rest}=input;
 
     return ctx.tx!.setting.findFirst({

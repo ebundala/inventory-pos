@@ -1,5 +1,6 @@
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import { getOneProductWarehouse, getProductWarehouse } from "../util/getProductWarehouse";
 const include = {
     saleReturnDetails: {
@@ -70,7 +71,17 @@ export type CreateSaleReturnInput = {
     tenantId: string
 }
 export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantContext) => {
-    const {tenantId, paymentSaleReturns,userId, saleReturnDetails, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "create"
+    });
+   
+    const {tenantId:_, paymentSaleReturns,userId:__, saleReturnDetails, ...data } = input;
    // const {tenantId,session} = ctx;
     
     let details = {};
@@ -177,7 +188,17 @@ export type UpdateSaleReturnInput = {
     tenantId: string
 }
 export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantContext) => {
-    const { tenantId, id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "update"
+    });
+   
+    const { tenantId:_, id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
     const saleReturn = await ctx.tx!.saleReturn.findUnique({
         where: { id,  recordStatus:RecordStatus.ACTIVE, }, include: {
             saleReturnDetails: true,
@@ -283,7 +304,15 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantCo
 export type SaleReturnId = number
 export type SaleReturnIds = Array<number>
 export const getUniqueSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "view"
+    });
     return ctx.tx!.saleReturn.findUnique({
         include,
         where: {
@@ -292,7 +321,15 @@ export const getUniqueSaleReturn = async (id: SaleReturnId,ctx:TenantContext) =>
     })
 };
 export const deleteSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "delete"
+    });
     return ctx.tx!.saleReturn.update({
         include,
         where: {
@@ -304,6 +341,15 @@ export const deleteSaleReturn = async (id: SaleReturnId,ctx:TenantContext) => {
     })
 };
 export const deleteManySaleReturn = async (ids: SaleReturnIds,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "delete"
+    });
     return ctx.tx!.saleReturn.updateMany({
         where: {
             id: { in: ids }
@@ -314,7 +360,16 @@ export const deleteManySaleReturn = async (ids: SaleReturnIds,ctx:TenantContext)
     })
 };
 
-export const findManySaleReturn =  (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
+export const findManySaleReturn =  async (input: Omit<Prisma.SaleReturnFindManyArgs, "select"|"include">,ctx:TenantContext ) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "sale-return",
+      action: "view"
+    });
     const {where,...rest} = input;
     return ctx.tx!.saleReturn.findMany({
         where:{...where,  recordStatus:RecordStatus.ACTIVE,},

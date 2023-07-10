@@ -2,6 +2,7 @@ import { prisma,} from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
 import { SaleWhereInputObjectSchema } from "prisma/generated/schemas/objects/SaleWhereInput.schema";
+import { enforceHelper } from "../util/enforcerUtil";
 
 export type CreateWarehouseInput = {
     name: string
@@ -13,7 +14,16 @@ export type CreateWarehouseInput = {
     tenantId: string
 }
 export const createWarehouse = async (input: CreateWarehouseInput,ctx:TenantContext) => {
-    const { tenantId, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "warehouse",
+    action: "create"
+  });
+    const { tenantId:_, ...data } = input;
     const {user} = ctx.session??{};
     const products = await ctx.tx!.product.findMany({select:{id:true}});
     
@@ -52,6 +62,15 @@ export type UpdateWarehouseInput = {
    
 }
 export const updateWarehouse = async (input: UpdateWarehouseInput,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "warehouse",
+      action: "create"
+    });
     const { id, ...data } = input;
     return ctx.tx!.warehouse.update({
         where: {
@@ -63,7 +82,15 @@ export const updateWarehouse = async (input: UpdateWarehouseInput,ctx:TenantCont
 export type WarehouseId = number
 export type WarehouseIds = Array<number>
 export const getUniqueWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "warehouse",
+      action: "view"
+    });
     return ctx.tx!.warehouse.findUnique({
         where: {
             id: id,  recordStatus:RecordStatus.ACTIVE,
@@ -71,7 +98,15 @@ export const getUniqueWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
     })
 };
 export const deleteWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "warehouse",
+      action: "delete"
+    });
     return ctx.tx!.warehouse.update({
         where: {
             id: id
@@ -82,6 +117,15 @@ export const deleteWarehouse = async (id: WarehouseId,ctx:TenantContext) => {
     })
 };
 export const deleteManyWarehouse = async (ids: WarehouseIds,ctx:TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "warehouse",
+      action: "delete"
+    });
     return ctx.tx!.warehouse.updateMany({
         where: {
             id: { in: ids }
@@ -93,6 +137,15 @@ export const deleteManyWarehouse = async (ids: WarehouseIds,ctx:TenantContext) =
 };
 
 export const findManyWarehouse = async (input: Omit<Prisma.WarehouseFindManyArgs,"select"|"include">,ctx:TenantContext) => {   
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+      enforcer,
+      tenantId,
+      userId,
+      resource: "warehouse",
+      action: "view"
+    });
     const {where,...rest}=input;
     return ctx.tx!.warehouse.findMany(
         {

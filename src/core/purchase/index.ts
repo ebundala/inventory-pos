@@ -1,6 +1,7 @@
 import { prisma } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 import { getOneProductWarehouse, getProductWarehouse } from "../util/getProductWarehouse";
 
 const include = {
@@ -71,7 +72,16 @@ export const createPurchase = async (
   input: CreatePurchaseInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, userId, paymentPurchases, purchaseDetails, ...data } =
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "create"
+  });
+  const { tenantId:_, userId:__, paymentPurchases, purchaseDetails, ...data } =
     input;
   let purchaseData = {};
   if (purchaseDetails && purchaseDetails.length) {
@@ -186,7 +196,17 @@ export const updatePurchase = async (
   input: UpdatePurchaseInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, id, paymentPurchases, purchaseDetails, ...data } = input;
+  
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "update"
+  });
+  const { tenantId:_, id, paymentPurchases, purchaseDetails, ...data } = input;
   const purchase = await ctx.tx!.purchase.findUnique({
     where: { id, recordStatus: RecordStatus.ACTIVE },
     include
@@ -307,6 +327,15 @@ export const updatePurchase = async (
 export type PurchaseId = number;
 export type PurchaseIds = Array<number>;
 export const getUniquePurchase = async (id: PurchaseId, ctx: TenantContext) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "view"
+  });
   return ctx.tx!.purchase.findUnique({
     include,
     where: {
@@ -315,6 +344,15 @@ export const getUniquePurchase = async (id: PurchaseId, ctx: TenantContext) => {
   });
 };
 export const deletePurchase = async (id: PurchaseId, ctx: TenantContext) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "delete"
+  });
   return ctx.tx!.purchase.update({
     include,
     where: {
@@ -329,6 +367,15 @@ export const deleteManyPurchase = async (
   ids: PurchaseIds,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "delete"
+  });
   return ctx.tx!.purchase.updateMany({
     where: {
       id: { in: ids },
@@ -343,6 +390,15 @@ export const findManyPurchase = async (
   input: Omit<Prisma.PurchaseFindManyArgs, "select" | "include">,
   ctx: TenantContext
 ) => {
+  const {tenantId,session,enforcer} = ctx;
+  const userId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId,
+    resource: "purchase",
+    action: "view"
+  });
   const { where, ...rest } = input;
   return ctx.tx!.purchase.findMany({
     include,

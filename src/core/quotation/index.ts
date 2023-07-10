@@ -1,6 +1,7 @@
 import { prisma, } from "@/core";
 import { Prisma, RecordStatus } from "@prisma/client";
 import { TenantContext } from "../trpc";
+import { enforceHelper } from "../util/enforcerUtil";
 const include = {
     user: true,
     warehouse: true,
@@ -8,13 +9,13 @@ const include = {
         include: {
             product: {
                 include: {
-                    productWarehouse: true,          
-                    productUnit:true,
-                    productsSaleUnit:true,
-                    productPurchaseUnit:true
+                    productWarehouse: true,
+                    productUnit: true,
+                    productsSaleUnit: true,
+                    productPurchaseUnit: true
                 },
-              },
-             productVariant: true, unit: true,
+            },
+            productVariant: true, unit: true,
         },
     },
     customer: true
@@ -50,7 +51,16 @@ export type CreateQuotationInput = {
     tenantId: string
 }
 export const createQuotation = async (input: CreateQuotationInput, ctx: TenantContext) => {
-    const { tenantId, quotationDetails, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "create"
+    });
+    const { tenantId:_, quotationDetails, ...data } = input;
 
     return ctx.tx!.quotation.create({
         include,
@@ -97,9 +107,18 @@ export type UpdateQuotationInput = {
     tenantId: string
 }
 export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantContext) => {
-    const { tenantId, id, quotationDetails, ...data } = input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "update"
+    });
+    const { tenantId: _, id, quotationDetails, ...data } = input;
     const quotation = await ctx.tx!.quotation.findUnique({
-        where: { id,recordStatus:RecordStatus.ACTIVE }, include: {
+        where: { id, recordStatus: RecordStatus.ACTIVE }, include: {
             quotationDetails: true,
         }
     });
@@ -117,7 +136,7 @@ export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantCo
         const detailsToUpdate = quotationDetails
             .filter((v) => savedDetails.find((s) => v.id === s))
             .map((v) => {
-                const { id,productVariantId, ...rest } = v;
+                const { id, productVariantId, ...rest } = v;
                 return { where: { id: id }, data: rest };
             })
         details = {
@@ -134,7 +153,7 @@ export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantCo
     return ctx.tx!.quotation.update({
         include,
         where: {
-            id: id,recordStatus:RecordStatus.ACTIVE
+            id: id, recordStatus: RecordStatus.ACTIVE
         },
         data: {
             ...data, ...details
@@ -144,16 +163,32 @@ export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantCo
 export type QuotationId = number
 export type QuotationIds = Array<number>
 export const getUniqueQuotation = async (id: QuotationId, ctx: TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "view"
+    });
     return ctx.tx!.quotation.findUnique({
         include,
         where: {
-            id: id,recordStatus:RecordStatus.ACTIVE
+            id: id, recordStatus: RecordStatus.ACTIVE
         }
     })
 };
 export const deleteQuotation = async (id: QuotationId, ctx: TenantContext) => {
-
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "delete"
+    });
     return ctx.tx!.quotation.update({
         include,
         where: {
@@ -165,6 +200,15 @@ export const deleteQuotation = async (id: QuotationId, ctx: TenantContext) => {
     })
 };
 export const deleteManyQuotation = async (ids: QuotationIds, ctx: TenantContext) => {
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "delete"
+    });
     return ctx.tx!.quotation.updateMany({
         where: {
             id: { in: ids }
@@ -176,10 +220,20 @@ export const deleteManyQuotation = async (ids: QuotationIds, ctx: TenantContext)
 };
 
 export const findManyQuotation = async (input: Omit<Prisma.QuotationFindManyArgs, "select" | "include">, ctx: TenantContext) => {
-const {where,...rest}=input;
+    const { tenantId, session, enforcer } = ctx;
+    const userId = session!.user.id!;
+    await enforceHelper({
+        enforcer,
+        tenantId,
+        userId,
+        resource: "quotation",
+        action: "view"
+    });
+    const { where, ...rest } = input;
     return ctx.tx!.quotation.findMany(
-        { include,
-            where:{...where,recordStatus:RecordStatus.ACTIVE},
+        {
+            include,
+            where: { ...where, recordStatus: RecordStatus.ACTIVE },
             ...rest
         }
     );
