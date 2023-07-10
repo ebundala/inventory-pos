@@ -1,6 +1,8 @@
-import { inferAsyncReturnType, TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { TenantContext } from "../trpc";
 import { enforceHelper } from "../util/enforcerUtil";
+import { permisionsOutput, PermissionActionType, TPermission, } from "./PermissionActionType";
+import { managerRole, ownerRole } from "./roles";
 /*
 p, admin, tenant1, data1, read
 p, admin, tenant2, data2, read
@@ -8,6 +10,21 @@ p, admin, tenant2, data2, read
 g, alice, admin, tenant1
 g, alice, user, tenant2
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function getPolicies({ enforcer }: TenantContext) {
     return permisionsOutput
@@ -83,6 +100,10 @@ export async function createRole({ role, permissions }: TRoleWithPermision, { en
         resource: "role",
         action: "create"
     })
+    if (role == ownerRole.name) {
+        throw new TRPCError({ message: `Role ${role} is system role cannot be modified`, code: "FORBIDDEN" })
+
+    }
     const existingPolicies = await enforcer!.getFilteredPolicy(0, role, tenantId, "", "")
     if (existingPolicies.length > 0) {
         throw new TRPCError({ message: "Role already exist", code: "BAD_REQUEST" });
@@ -104,10 +125,14 @@ export async function updateRole({ role, oldRoleName, permissions }: TRoleWithPe
         resource: "role",
         action: "update"
     })
+    if (role == ownerRole.name) {
+        throw new TRPCError({ message: `Role ${role} is system role cannot be modified`, code: "FORBIDDEN" })
+
+    }
     const oldRoleNameClean = (oldRoleName ?? "")?.length > 0 ? oldRoleName : null;
     const existingPolicies = await enforcer!.getFilteredPolicy(0, oldRoleNameClean ?? role, tenantId, "", "")
     if (existingPolicies.length === 0) {
-        throw new Error("Role doesn't exist");
+        throw new TRPCError({ message: "Role doesn't exist", code: "BAD_REQUEST" });
     }
     const oldRole = await getRole(oldRoleNameClean ?? role, ctx);
     const oldRoleMap = oldRole.permissions.reduce((p, c, arr) => p.set(`${c.resource}/${c.action}`, c), new Map<string, TPermission>())
@@ -159,8 +184,15 @@ export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId,
         resource: "role",
         action: "assign"
     })
+
     const { roles, userId } = input;
     const oldRoles = await enforcer!.getRolesForUser(userId, tenantId);
+    if (input.roles.indexOf(ownerRole.name) > 0) {
+        if (oldRoles.indexOf(ownerRole.name) === -1)
+            throw new TRPCError({ message: `You cannot assign owner role as a non owner user`, code: "FORBIDDEN" })
+
+    }
+
     const removeOldRoles = (await removeRoles({ userId, roles: oldRoles }, { enforcer, tenantId } as TenantContext))
 
     const success = await Promise.allSettled(roles.map((role) => enforcer!.addRoleForUser(userId, role, tenantId)));
@@ -177,6 +209,12 @@ export async function removeRoles({ userId, roles }: AssignRolesInput, { enforce
         resource: "role",
         action: "assign"
     })
+    const oldRoles = await enforcer!.getRolesForUser(userId, tenantId);
+    if (roles.indexOf(ownerRole.name) > 0) {
+        if (oldRoles.indexOf(ownerRole.name) === -1)
+            throw new TRPCError({ message: `You cannot remove Owner role as non Owner user`, code: "FORBIDDEN" })
+
+    }
     const success = await Promise.allSettled(roles.map((role) => enforcer!.deleteRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
     return success;
@@ -191,6 +229,11 @@ export async function deleteRole(role: string, { enforcer, tenantId, session }: 
         resource: "role",
         action: "delete"
     })
+    if (role === ownerRole.name) {
+        
+            throw new TRPCError({ message: `You cannot delete Owner role this is a system defined role`, code: "FORBIDDEN" })
+
+    }
     const success = await enforcer!.removeFilteredPolicy(0, role, tenantId, "", "")
     const success1 = await enforcer!.removeFilteredGroupingPolicy(1, role, tenantId)
     await enforcer!.savePolicy();
@@ -203,71 +246,3 @@ export async function getUserPermissions(ctx: TenantContext) {
 }
 
 
-
-const PermisionActions = ["create", "view", "update", "delete", "no-action"] as const;
-export type PermissionActionType = "create" | "view" | "update" | "delete" | "no-action";
-
-const settingPermissionActions = ['view', 'update', "no-action"] as const;
-
-export type PosSettingPermissionActionType = 'view' | 'update' | "no-action"
-export type SystemPermissionActionType = PosSettingPermissionActionType;
-const UserInvitePermissionActions = ["invite", "dismiss", "no-action"] as const;
-export type UserInvitePermission = "invite" | "dismiss"
-export type BarcodePermission = "print"
-const rolePermissionsActions = ["create", "view", "update", "delete", "assign", "no-action"] as const
-export type RolePermissionsActions = "create" | "view" | "update" | "delete" | "assign" | "no-action"
-
-const businessPermissionsActions = ["manage", "no-action"] as const
-export type BusinessPermissionsActions = "manage" | "no-action"
-
-export type PermissionActionTypes = PermissionActionType | PosSettingPermissionActionType | UserInvitePermission
-    | BarcodePermission | RolePermissionsActions | BusinessPermissionsActions
-
-export type PermissionInput = {
-    resource: string
-    action: PermissionActionTypes
-}
-
-export type TPermission = PermissionInput;
-export type ResourceTypes = "product" | "category" | "unit" | "brand" | "adjustment" |
-    "quotation" | "purchase" | "sale" | "transfer" | "sale-return" | "role" | "business" |
-    "purchase-return" | "customer" | "supplier" | "currency" | "warehouse" | "user" | "pos-setting" | "setting" |
-    "sales-and-purchase" |"report"|
-     "stock-alerts" | "payment-sent-and-received" | "recent-sales" | "barcode"|"top-customers-summary"|
-    "sales-summary" | "purchases-summary"| "sale-returns-summary"| "purchase-returns-summary"| "sales-and-purchase-summary"|
-    "top-customers-summary"|"top-selling-products-summary"| "stock-alerts-summary"| "payment-sent-and-received-summary"| "recent-sales-summary"
-
-const permisions = [
-    ...[
-        "product", "category", "unit", "brand", "adjustment",
-        "quotation", "purchase", "sale", "transfer", "sale-return",
-        "purchase-return", "customer", "supplier", "currency", "warehouse"
-    ].flatMap((p) => {
-        return PermisionActions.map((t) => ([p, t]))
-    }),
-    ...["user"].flatMap((p) => {
-        return UserInvitePermissionActions.map((t) => ([p, t]))
-    }),
-    ...["role"].flatMap((p) => {
-        return rolePermissionsActions.map((t) => ([p, t]))
-    }),
-    ...["business"].flatMap((p) => {
-        return businessPermissionsActions.map((t) => ([p, t]))
-    }),
-    ...["sales", "purchases", "sale-returns", "purchase-returns", "sales-and-purchase",
-        "top-customers","top-selling-products", "stock-alerts", "payment-sent-and-received", "recent-sales"
-    ].map((p) => ([`${p}-summary`, "view", `${p}-summary`, "no-action"])),
-    ["barcode", "print"],
-    ["barcode", "no-action"],
-    ["report", "view"],
-    ["report", "print"],
-    ["report", "no-action"],
-    ...["setting", "pos-setting"].flatMap((s) => {
-        return settingPermissionActions.map((p) => ([s, p]))
-    })
-]
-
-const permisionsOutput = permisions.map<TPermission>((p, i, arr) => {
-    const [resource, action] = p;
-    return { resource, action } as TPermission;
-})

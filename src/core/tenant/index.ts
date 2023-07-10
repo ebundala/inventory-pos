@@ -11,6 +11,8 @@ import {
 import { getTenantUrl } from "../util/getTenantUrl";
 import mailer from "@/core/mail/mailer";
 import { enforceHelper } from "../util/enforcerUtil";
+import { TRPCError } from "@trpc/server";
+import { getPoliciesForSystemRole, managerRole, ownerRole, userRole, viewOnlyRole } from "../authorization/roles";
 const secrets = {
   client_secret: process.env.GOOGLE_CLIENT_SECRET!,
   client_id: process.env.GOOGLE_CLIENT_ID!
@@ -44,7 +46,7 @@ export const createTenant = async (
   ctx: TenantContext
 ) => {
   const { userId, ...data } = input;
-  const { tx } = ctx;
+  const { tx,enforcer } = ctx;
   const id = cuid();
 
   await tx!.$queryRawUnsafe(`SET "app.CurrentTenant"="${id}"`);
@@ -153,6 +155,20 @@ export const createTenant = async (
     product: googleOidcProductName,
     oidcDiscoveryUrl: googleOidcDiscoveryUrl,
   });
+  //Create system roles
+  
+const policies = [
+  ...getPoliciesForSystemRole(ownerRole,tenant.tenantId),
+  ...getPoliciesForSystemRole(managerRole,tenant.tenantId),
+  ...getPoliciesForSystemRole(userRole,tenant.tenantId),
+  ...getPoliciesForSystemRole(viewOnlyRole,tenant.tenantId)
+]
+const success = await enforcer.addPolicies(policies);
+const succes1=await enforcer.addRoleForUser(userId, ownerRole.name, tenant.tenantId)
+ const success2=   await enforcer!.savePolicy();
+ if(!(success&&succes1&&success2)){
+  throw new TRPCError({message:"Failed to setup user roles",code:"INTERNAL_SERVER_ERROR"})
+ }
   return tenant;
 };
 
@@ -415,15 +431,18 @@ export const acceptInvite = async (
   ctx: TenantContext
 ) => {
 
-  const { tx, tenantId } = ctx;
-  debugger
+  const { tx, tenantId,session } = ctx;
+  const {email} = session!.user!
+  if(email !==input.email){
+    throw new TRPCError({message:"Invalid user",code:"BAD_REQUEST"})
+  }
   const invite = await prismaAdmin!.tenantInvite.update({
     include: {
       tenant: true,
       invitor: true,
     },
     where: {
-      tenantId_email: { ...input },
+      tenantId_email: { ...input,email:email! },
     },
     data: {
       status: ProcessStatus.APPROVED,
@@ -452,7 +471,11 @@ export const rejectInvite = async (
   input: TenantEmailWhereInput,
   ctx: TenantContext
 ) => {
-  const { tx, tenantId } = ctx;
+  const { tx, tenantId,session } = ctx;
+  const {email} = session!.user!
+  if(email !==input.email){
+    throw new TRPCError({message:"Invalid user",code:"BAD_REQUEST"})
+  }
   const invite = await prismaAdmin!.tenantInvite.update({
     include: {
       tenant: true,
@@ -475,7 +498,7 @@ export const rejectInvite = async (
       data: {
         members: {
           disconnect: {
-            email: invite.email
+            email: email!
           }
         }
       }
@@ -494,7 +517,17 @@ export const removeMember = async (
   input: TenantMemberWhereInput,
   ctx: TenantContext
 ) => {
-  const { tx, tenantId } = ctx;
+  const { tx, tenantId, session, enforcer } = ctx;
+
+  const id = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: id,
+    resource: "user",
+    action: "dismiss"
+  })
+  
   const { userId } = input;
   return tx!.tenant.update({
     include: {
@@ -531,14 +564,18 @@ export const leaveTenant = async (
   input: TenantMemberWhereInput,
   ctx: TenantContext
 ) => {
-  const { tenantId } = ctx;
+  const { tenantId,session } = ctx;
   const { userId } = input;
+  const id = session!.user.id!;
+  if(id !==userId){
+    throw new TRPCError({message:"Invalid user",code:"BAD_REQUEST"})
+  }
   return prisma!.user.update({
     include: {
       tenants: true,
     },
     where: {
-      id: userId,
+      id: id,
     },
     data: {
       tenants: {
