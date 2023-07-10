@@ -155,7 +155,7 @@ export class PrismaAdapter implements Adapter {
     option: PrismaClient
   ): Promise<PrismaAdapter> {
     const a = new PrismaAdapter(option);
-   // await a.#open();
+  //  await a.#open();
 
     return a;
   }
@@ -167,7 +167,7 @@ export class PrismaAdapter implements Adapter {
     // if (!this.#prisma) {
     //   this.#prisma = new PrismaClient(this.#option);
     // }
-    // await this.#prisma.$connect();
+     await this.#prisma.$connect();
   };
 
   #loadPolicyLine = (

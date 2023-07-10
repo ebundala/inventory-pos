@@ -142,7 +142,7 @@ export async function getUserPermissions(ctx: TenantContext) {
     return enforcer!.getPermissionsForUser(session!.user!.id!)
 }
 const PermisionActions = ["create", "view", "update", "delete", "no-action"] as const;
-type PermissionActionType = "create" | "view" | "update" | "delete" | "no-action";
+export type PermissionActionType = "create" | "view" | "update" | "delete" | "no-action";
 
 const settingPermissionActions = ['view', 'update', "no-action"] as const;
 
@@ -151,13 +151,19 @@ export type SystemPermissionActionType = PosSettingPermissionActionType;
 const UserInvitePermissionActions = ["invite", "dismiss", "no-action"] as const;
 export type UserInvitePermission = "invite" | "dismiss"
 export type BarcodePermission = "print"
+export type PermissionActionTypes = PermissionActionType | PosSettingPermissionActionType | UserInvitePermission | BarcodePermission
 
 export type PermissionInput = {
     resource: string
-    action: PermissionActionType | PosSettingPermissionActionType | UserInvitePermission | BarcodePermission
+    action: PermissionActionTypes
 }
 
 export type TPermission = PermissionInput;
+export type ResourceTypes = "product"| "category"| "unit"| "brand"| "adjustment"|
+"quotation"| "purchase"| "sale"| "transfer"| "sale-return"|
+"purchase-return"| "customer"| "supplier"| "currency"| "warehouse"|"user"|
+"sales"| "purchases"| "sale-returns"| "purchase-returns"| "sales-and-purchase"|
+"top-selling-products"| "stock-alerts"| "payment-sent-and-received"| "recent-sales"|"barcode"
 
 const permisions = [
     ...[

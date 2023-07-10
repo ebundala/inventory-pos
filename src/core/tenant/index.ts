@@ -10,6 +10,7 @@ import {
 } from "@/core/util/oidcConfig";
 import { getTenantUrl } from "../util/getTenantUrl";
 import mailer from "@/core/mail/mailer";
+import { enforceHelper } from "../util/enforcerUtil";
 const secrets = {
   client_secret: process.env.GOOGLE_CLIENT_SECRET!,
   client_id: process.env.GOOGLE_CLIENT_ID!
@@ -328,9 +329,16 @@ export const inviteMember = async (
   input: InviteMemberInput,
   ctx: TenantContext
 ) => {
-  const { tx, tenantId, session } = ctx;
-  const invitorId = session!.user.id!;
+  const { tx, tenantId, session, enforcer } = ctx;
 
+  const invitorId = session!.user.id!;
+  await enforceHelper({
+    enforcer,
+    tenantId,
+    userId: invitorId,
+    resource: "user",
+    action: "invite"
+  })
   const { email, message } = input;
   const result = await tx!.tenantInvite.create({
     include: {
@@ -385,7 +393,7 @@ export const acceptInvite = async (
 
   const { tx, tenantId } = ctx;
   debugger
- const invite = await prismaAdmin!.tenantInvite.update({
+  const invite = await prismaAdmin!.tenantInvite.update({
     include: {
       tenant: true,
       invitor: true,
@@ -398,20 +406,20 @@ export const acceptInvite = async (
     },
   });
 
-  
-  if(invite.status === ProcessStatus.APPROVED){
-   await prismaAdmin.tenant.update({
-      where:{
-        tenantId:invite.tenant.tenantId
+
+  if (invite.status === ProcessStatus.APPROVED) {
+    await prismaAdmin.tenant.update({
+      where: {
+        tenantId: invite.tenant.tenantId
       },
-      
-  data:{
-    members:{
-      connect:{
-        email:invite.email
+
+      data: {
+        members: {
+          connect: {
+            email: invite.email
+          }
+        }
       }
-    }
-  }
     })
   }
   return invite;
@@ -434,22 +442,22 @@ export const rejectInvite = async (
     },
   });
 
-  if(invite.status === ProcessStatus.DENIED){
+  if (invite.status === ProcessStatus.DENIED) {
     await prismaAdmin.tenant.update({
-       where:{
-         tenantId:invite.tenant.tenantId
-       },
-       
-   data:{
-     members:{
-       disconnect:{
-         email:invite.email
-       }
-     }
-   }
-     })
-   }
-   return invite;
+      where: {
+        tenantId: invite.tenant.tenantId
+      },
+
+      data: {
+        members: {
+          disconnect: {
+            email: invite.email
+          }
+        }
+      }
+    })
+  }
+  return invite;
 
 };
 
@@ -482,17 +490,18 @@ export const removeMember = async (
 };
 export const findMyInvites = async (ctx: TenantContext
 ) => {
-  const { session} = ctx;
-  const email = session?.user.email??undefined;
- return prismaAdmin!.tenantInvite.findMany({
-  include:{
-    invitor:true,
-    tenant:true
-  },
-  where:{
-    email:{equals:email},
-    status:{equals:ProcessStatus.PENDING}
-  }})
+  const { session } = ctx;
+  const email = session?.user.email ?? undefined;
+  return prismaAdmin!.tenantInvite.findMany({
+    include: {
+      invitor: true,
+      tenant: true
+    },
+    where: {
+      email: { equals: email },
+      status: { equals: ProcessStatus.PENDING }
+    }
+  })
 };
 export const leaveTenant = async (
   input: TenantMemberWhereInput,

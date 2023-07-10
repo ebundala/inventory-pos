@@ -19,32 +19,32 @@ m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj && r.act == p.act
 `
 
 declare global {
-    var enforcer: Enforcer
-    var adapter: PrismaAdapter
-    var model: Model
+    var casbinEnforcer: Enforcer
+    var casbinPrismaAdapter: PrismaAdapter
+    var authorizationModel: Model
+    var casbinInitialized: Boolean
 }
 
-//const client = global.client || new Client(process.env.DATABASE_URL);
 
 export async function initCasbin() {
 
-    global.model = global.model || newModelFromString(modelStr)
+    global.authorizationModel = global.authorizationModel || newModelFromString(modelStr)
 
-    global.adapter = global.adapter || await PrismaAdapter.newAdapter(prisma)
-    //await BasicAdapter.newAdapter('pg', client);
-    global.enforcer = global.enforcer || await newEnforcer(/*"/home/app/src/core/authorization/rbac_model.conf", global.adapter*/)
-    if (!enforcer.getModel()||!enforcer.getAdapter()) {
-        await enforcer.initWithModelAndAdapter(model, adapter);
-    }
+    global.casbinPrismaAdapter = global.casbinPrismaAdapter || await PrismaAdapter.newAdapter(prisma)
+    global.casbinEnforcer = global.casbinEnforcer || await newEnforcer(); /*"/home/app/src/core/authorization/rbac_model.conf", global.adapter*/
+    if (global.casbinInitialized!==true) {
+        await casbinEnforcer.initWithModelAndAdapter(global.authorizationModel, global.casbinPrismaAdapter);
+        global.casbinInitialized=true;
 
-    global.enforcer.enableAutoBuildRoleLinks(true);
-    global.enforcer.enableAutoNotifyWatcher(true);
-    global.enforcer.enableAutoSave(false);
+    global.casbinEnforcer.enableAutoBuildRoleLinks(true);
+    global.casbinEnforcer.enableAutoNotifyWatcher(true);
+    global.casbinEnforcer.enableAutoSave(false);
     if (process.env.NODE_ENV === "development") {
-        global.enforcer.enableLog(true)
+        global.casbinEnforcer.enableLog(true)
     }
-    global.enforcer.enableEnforce(true)
-    return { enforcer: global.enforcer, casbinAdapter: global.adapter };
+    global.casbinEnforcer.enableEnforce(true)
+}
+    return { enforcer: global.casbinEnforcer, casbinAdapter: global.casbinPrismaAdapter };
 }
 initCasbin();
 
