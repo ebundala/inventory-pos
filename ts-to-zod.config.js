@@ -4,7 +4,8 @@
  * @type {import("ts-to-zod").TsToZodConfig}
  */
 
-module.exports=[
+
+const config = [
   "authorization","adjustment","brand","category","company","currency","customer","expense",
   "pos_setting","product","purchase","purchase_return","quotation",
   "sale","sale_return","setting","supplier","tenant","transfer",
@@ -15,8 +16,9 @@ module.exports=[
     input: `src/core/${v}/index.ts`,
     output: `src/core/${v}/index.zod.ts`,
   };
-})
+});
 
+module.exports=config
 //module.exports = models
 // [
 //   {

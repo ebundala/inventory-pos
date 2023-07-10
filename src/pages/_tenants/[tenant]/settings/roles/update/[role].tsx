@@ -2,40 +2,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { FormContainer } from "@/components/FormContainer";
 import { FormInputField } from "@/components/FormInputField";
-import { updateAdjustmentInputSchema } from "@/core/adjustment/index.zod";
 import { getLayout } from "@/layouts/getLayout";
-import { FormFieldOption, useZodForm } from "@/lib/util/form-gen";
-import { ParsedUrlQuery } from "querystring";
-import { useAdjustmentFormFieldOptions } from "@/lib/hooks/useAdjustmentFormFieldOptions";
+import { useZodForm } from "@/lib/util/form-gen";
 import { useEffect, useMemo } from "react";
 import { useFieldArrayName } from "@/lib/hooks/useFieldArrayName";
 import { useSplitFormConfigToFieldArray } from "@/lib/hooks/useSplitFormConfigToFieldArray";
 import { useFieldArray, FieldValues, FieldArrayPath, Controller } from "react-hook-form";
 import { useTrpcTenant } from "@/lib/hooks/useTrpcTenant";
 import { CollectRequiredDataWrapper } from "@/components/CollectRequiredDataWrapper";
-import {
-  AdjustmentDetail,
-  Prisma,
-  Product,
-  ProductVariant,
-  ProductWarehouse,
-} from "@prisma/client";
-import { CustomTable } from "@/components/table";
-import { FormComboBox } from "@/components/combobox";
-import { useProductSearch } from "@/lib/hooks/useProductSearch";
-import { getProductFormatedName } from "@/lib/util/getProductFormatedName";
-import { useRenderFieldArrayForm } from "@/lib/hooks/useRenderFieldArrayForm";
-import { useGetZodFormField } from "@/lib/hooks/useGetZodFormField";
-import { useAdjustmentRequiredData } from "@/lib/hooks/useAdjustmentRequiredData";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
-import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
-import { calculateStock } from "@/lib/util/calculateStock";
-import { TStockDataInput } from "@/types/TStockDataInput";
-import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
-import { useAdjustmentStockConstraints } from "@/lib/hooks/useAdjustmentStockConstraints";
 import { PermissionInput, TRoleWithPermision } from "@/core/authorization";
 import { tRoleWithPermisionSchema } from "@/core/authorization/index.zod";
-import { useRoleRequiredData } from "../../../../../../lib/hooks/useRoleRequiredData";
+import { useRoleRequiredData } from "@/lib/hooks/useRoleRequiredData";
 
 
 

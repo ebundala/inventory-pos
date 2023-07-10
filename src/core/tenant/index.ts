@@ -12,7 +12,7 @@ import { getTenantUrl } from "../util/getTenantUrl";
 import mailer from "@/core/mail/mailer";
 import { enforceHelper } from "../util/enforcerUtil";
 import { TRPCError } from "@trpc/server";
-import { getPoliciesForSystemRole, managerRole, ownerRole, userRole, viewOnlyRole } from "../authorization/roles";
+import { getPoliciesForSystemRole, managerRole, ownerRole, userRole, viewOnlyRole } from "@/core/authorization";
 const secrets = {
   client_secret: process.env.GOOGLE_CLIENT_SECRET!,
   client_id: process.env.GOOGLE_CLIENT_ID!

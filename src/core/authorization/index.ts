@@ -1,15 +1,73 @@
 import { TRPCError } from "@trpc/server";
-import { TenantContext } from "../trpc";
-import { enforceHelper } from "../util/enforcerUtil";
-import { permisionsOutput, PermissionActionType, TPermission, } from "./PermissionActionType";
-import { managerRole, ownerRole } from "./roles";
-/*
-p, admin, tenant1, data1, read
-p, admin, tenant2, data2, read
+import { TenantContext } from "@/core/trpc";
+import { enforceHelper } from "@/core/util/enforcerUtil";
 
-g, alice, admin, tenant1
-g, alice, user, tenant2
-*/
+
+export type PermissionActionType = "create" | "view" | "update" | "delete" | "no-action";
+
+const PermisionActions = ["create", "view", "update", "delete", "no-action"] as const;
+const settingPermissionActions = ['view', 'update', "no-action"] as const;
+
+export type PosSettingPermissionActionType = 'view' | 'update' | "no-action"
+export type SystemPermissionActionType = PosSettingPermissionActionType;
+const UserInvitePermissionActions = ["invite", "dismiss", "no-action"] as const;
+export type UserInvitePermission = "invite" | "dismiss"
+export type BarcodePermission = "print"
+const rolePermissionsActions = ["create", "view", "update", "delete", "assign", "no-action"] as const
+export type RolePermissionsActions = "create" | "view" | "update" | "delete" | "assign" | "no-action"
+
+const businessPermissionsActions = ["manage", "no-action"] as const
+export type BusinessPermissionsActions = "manage" | "no-action"
+
+export type PermissionActionTypes = PermissionActionType | PosSettingPermissionActionType | UserInvitePermission
+    | BarcodePermission | RolePermissionsActions | BusinessPermissionsActions
+
+export type PermissionInput = {
+    resource: string
+    action: PermissionActionTypes
+}
+
+export type TPermission = PermissionInput;
+export type ResourceTypes = "product" | "category" | "unit" | "brand" | "adjustment" |
+    "quotation" | "purchase" | "sale" | "transfer" | "sale-return" | "role" | "business" |
+    "purchase-return" | "customer" | "supplier" | "currency" | "warehouse" | "user" | "pos-setting" | "setting" |
+     "report" | "barcode" |
+     "sales-summary"| "purchases-summary"| "sale-returns-summary"| "purchase-returns-summary"| "sales-and-purchase-summary"|
+        "top-customers-summary"| "top-selling-products-summary"| "stock-alerts-summary"| "payment-sent-and-received-summary"| "recent-sales-summary"
+export const permisions = [
+    ...[
+        "product", "category", "unit", "brand", "adjustment",
+        "quotation", "purchase", "sale", "transfer", "sale-return",
+        "purchase-return", "customer", "supplier", "currency", "warehouse"
+    ].flatMap((p) => {
+        return PermisionActions.map((t) => ([p, t]))
+    }),
+    ...["user"].flatMap((p) => {
+        return UserInvitePermissionActions.map((t) => ([p, t]))
+    }),
+    ...["role"].flatMap((p) => {
+        return rolePermissionsActions.map((t) => ([p, t]))
+    }),
+    ...["business"].flatMap((p) => {
+        return businessPermissionsActions.map((t) => ([p, t]))
+    }),
+    ...["sales", "purchases", "sale-returns", "purchase-returns", "sales-and-purchase",
+        "top-customers", "top-selling-products", "stock-alerts", "payment-sent-and-received", "recent-sales"
+    ].map((p) => ([`${p}-summary`, "view", `${p}-summary`, "no-action"])),
+    ["barcode", "print"],
+    ["barcode", "no-action"],
+    ["report", "view"],
+    ["report", "print"],
+    ["report", "no-action"],
+    ...["setting", "pos-setting"].flatMap((s) => {
+        return settingPermissionActions.map((p) => ([s, p]))
+    })
+]
+
+export const permisionsOutput = permisions.map<TPermission>((p, i, arr) => {
+    const [resource, action] = p;
+    return { resource, action } as TPermission;
+})
 
 
 
@@ -246,3 +304,77 @@ export async function getUserPermissions(ctx: TenantContext) {
 }
 
 
+
+export type SystemRoles = {
+    name: string,
+    permissions: [ResourceTypes, PermissionActionTypes][]
+}
+const permClean = permisions.filter(([r, a]) => a !== "no-action").map(([resource, action]) => {
+    return [resource, action] as unknown as [ResourceTypes, PermissionActionTypes]
+})
+
+export const ownerRole: SystemRoles = {
+    name: "Owner",
+    permissions: permClean
+}
+
+export const managerRole: SystemRoles = {
+    name: "Manager",
+    permissions: permClean.filter(([r, a]) => {
+        switch (r) {
+            case "role":
+            //case "user":
+            case "setting":
+            case "pos-setting":
+                return false;
+            default:
+                return true;
+        }
+    })
+
+}
+
+export const userRole: SystemRoles = {
+    name: "User",
+    permissions: permClean.filter(([r, a]) => {
+        switch (r) {
+            case "role":
+            case "user":
+            case "setting":
+            case "pos-setting":
+                return false;
+            case "supplier":
+            case "brand":
+            case "unit":
+            case "adjustment":
+            case "transfer":
+            case "warehouse":
+            case "category":
+            case "currency":
+            case "purchase":
+            case "product":
+                if (a === "view")
+                    return true
+                else {
+                    return false
+                }
+            case "customer":
+                if (a !== "delete") {
+                    return true
+                }
+                else { return false }
+            default:
+                return true;
+        }
+    })
+}
+
+export const viewOnlyRole: SystemRoles = {
+    name: "ViewOnly",
+    permissions: userRole.permissions.filter(([r, a]) => a !== "view")
+}
+
+
+export function getPoliciesForSystemRole(role:SystemRoles,domain:string){
+   return role.permissions.map(([resource,action])=>[role.name, domain, resource, action])
+}
