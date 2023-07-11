@@ -33,6 +33,7 @@ export const tenantIdsSchema = z.array(z.string());
 export const inviteMemberInputSchema = z.object({
   message: z.string().max(160).optional(),
   email: z.string().email(),
+  roles: z.array(z.string()),
 });
 
 export const tenantEmailWhereInputSchema = z.object({

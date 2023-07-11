@@ -19,6 +19,7 @@ import { useUnitSearch } from "@/lib/hooks/useUnitSearch";
 import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { pageOptions } from "@/lib/config/pageOptions";
 import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
+import { FormContainer } from "@/components/FormContainer";
 
 function useUnitFormOptions(opts?: Unit & { unit?: Unit }) {
     const { unit, operator } = opts ?? {};
@@ -106,7 +107,8 @@ export function UnitIndex({ units, refetch }: UnitIndexProps) {
     const showConfirmDialog = useConfirmDialog({ message: "You are about to delete this record. This action cannot be reversed, Do you want to continue?" })
 
 
-    return <div className="flex flex-col justify-start">
+    return <FormContainer title={<h2>All Units</h2>}>
+    <div className="flex flex-col justify-start">
         <div className="flex flex-row justify-end ">
             <button className="btn btn-success btn-sm btn-outline"
                 onClick={
@@ -206,7 +208,7 @@ export function UnitIndex({ units, refetch }: UnitIndexProps) {
                 ]
             }} />
     </div>
-
+    </FormContainer>
 }
 
 function useRequiredUnitData() {

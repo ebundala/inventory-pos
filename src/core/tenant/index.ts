@@ -364,6 +364,8 @@ export type InviteMemberInput = {
    * @format email
    */
   email: string;
+
+  roles: string[]
 };
 export const inviteMember = async (
   input: InviteMemberInput,
@@ -379,7 +381,7 @@ export const inviteMember = async (
     resource: "user",
     action: "invite"
   })
-  const { email, message } = input;
+  const { email, message,roles } = input;
   const result = await tx!.tenantInvite.create({
     include: {
       tenant: true,
@@ -389,6 +391,7 @@ export const inviteMember = async (
       tenantId: tenantId,
       invitorId: invitorId,
       email: email,
+      roles:roles.filter((v)=>v.length>0)
     },
   });
   mailer.sendMail({
@@ -432,7 +435,7 @@ export const acceptInvite = async (
 ) => {
 
   const { tx, tenantId,session } = ctx;
-  const {email} = session!.user!
+  const {email,id} = session!.user!
   if(email !==input.email){
     throw new TRPCError({message:"Invalid user",code:"BAD_REQUEST"})
   }
@@ -464,6 +467,8 @@ export const acceptInvite = async (
         }
       }
     })
+   await Promise.allSettled(invite.roles.map((v)=> ctx.enforcer.addRoleForUser(id!,v,invite.tenant.tenantId)))
+   await ctx.enforcer.savePolicy();
   }
   return invite;
 };

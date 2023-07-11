@@ -325,10 +325,14 @@ export const managerRole: SystemRoles = {
     permissions: permClean.filter(([r, a]) => {
         switch (r) {
             case "role":
-            //case "user":
+                if(a==="view")return true
+                else return false
             case "setting":
+                if(a==="view")return true
+                else return false
             case "pos-setting":
-                return false;
+                if(a==="view")return true
+                else return false
             default:
                 return true;
         }
@@ -344,7 +348,8 @@ export const userRole: SystemRoles = {
             case "user":
             case "setting":
             case "pos-setting":
-                return false;
+                if(a==="view")return true
+                else return false
             case "supplier":
             case "brand":
             case "unit":
@@ -360,6 +365,8 @@ export const userRole: SystemRoles = {
                 else {
                     return false
                 }
+            case "purchase-return":
+            case "sale-return":
             case "customer":
                 if (a !== "delete") {
                     return true

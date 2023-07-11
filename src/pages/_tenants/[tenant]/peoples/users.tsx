@@ -27,9 +27,10 @@ import Image from "next/image";
 import { getImageUrls } from "@/core/util/getImageUrls";
 import { useRolesList } from "@/lib/hooks/useRolesList";
 import { Controller, useFieldArray } from "react-hook-form";
+import { useGetZodFormFields } from "@/lib/hooks/useGetZodFormFields";
 
 const rolesSchema = z.object({
-  userId:z.string(),
+  userId: z.string(),
   roles: z.array(z.string())
 });
 
@@ -40,7 +41,7 @@ function UsersIndex({
   const [showModal, hide, data] = useModal();
   const options = useMemo(
     () => ({
-      
+
       userId: {
         hidden: true,
       },
@@ -176,7 +177,7 @@ function UsersIndex({
                 disableSortBy: true,
                 Cell: ({ row, value }: { row: any; value: number }) => {
                   const user = row.original as User & { roles: string[] };
-                  
+
                   return (
                     <div className="flex flex-row gap-2">
                       <button
@@ -191,7 +192,7 @@ function UsersIndex({
                                     return result1.mutateAsync(data);
                                   }}
                                   schema={rolesSchema}
-                                  defaultValues={{ roles: user?.roles ?? [],userId:user.id }}
+                                  defaultValues={{ roles: user?.roles ?? [], userId: user.id }}
                                   // fieldOptions={{}}
                                   title={`Roles for ${user?.name ?? ""}`}
                                 />
@@ -262,7 +263,9 @@ type ZodFormSchema<
   mutateAsync: (data: any) => Promise<unknown>;
 };
 
-const InviteForm: FC<ZodFormSchema<Customer>> = ({
+type InviteInput = z.infer<typeof inviteMemberInputSchema>;
+
+const InviteForm: FC<ZodFormSchema<InviteInput, typeof inviteMemberInputSchema>> = ({
   show,
   hide,
   mutateAsync,
@@ -275,23 +278,65 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
   fieldOptions,
 }) => {
   const { tenant } = useTenant();
+  const { roles, isLoading } = useRolesList();
   const [config, form] = useZodForm(schema, fieldOptions, {
     defaultValues: { ...defaultValues },
   });
+
+  const arrForm = useFieldArray({ control: form.control, name: "roles" });
+
+  if (isLoading) {
+    return <Loader />
+  }
+
 
   return (
     <ModalContainer>
       <ModalContent>
         <form
-          
+
         >
           <div className="flex w-full text-center font-semibold">
-            <h2>{title}</h2>
+            <h2 className="text text-lg font-semibold">{title}</h2>
           </div>
           <div className="grid grid-flow-row grid-cols-1 gap-3">
-            {config.map((i) => {
+            {config.filter((v) => v.name !== "roles").map((i) => {
               return <FormInputField key={i.name} {...i} />;
             })}
+          </div>
+
+
+          <div className="flex flex-col mt-3">
+            <h3 className="text text-sm font-semibold">User roles</h3>
+
+            <div className="grid grid-flow-row grid-cols-1 gap-1">
+
+              {(roles ?? []).map((v, i) => {
+                return (<div key={v.role} className="flex flex-row justify-between">
+                  <div className="text ">{v.role}</div>
+                  <Controller
+                    control={form.control}
+                    defaultValue={"no-role"}
+                    name={`roles.${i}`}
+                    render={({ field: { onBlur, onChange, value }, fieldState }) => {
+                      return <input onChange={(e) => {
+
+                        if (e.target.checked) {
+
+                          onChange({ target: { value: v.role } })
+                        } else {
+                          onChange({ target: { value: "no-role" } })
+
+                        }
+                      }}
+                        checked={value === v.role}
+                        type="checkbox" className="checkbox checkbox-primary checkbox-md mr-3" />
+                    }}
+                  />
+                </div>)
+              })}
+            </div>
+
           </div>
           <ModalAction>
             <button
@@ -300,16 +345,17 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
             >
               cancel
             </button>
-            <button type="submit" 
-            className="btn btn-primary btn-xs"
-            onClick={form.handleSubmit(
-              async (data) => {
-                await mutateAsync(data as any);
-              },
-              (e) => {
-                console.error(e);
-              }
-            )}
+            <button type="submit"
+              className="btn btn-primary btn-xs"
+              onClick={form.handleSubmit(
+                async (data) => {
+                  const { email, message, roles } = data as InviteInput;
+                  await mutateAsync({ email, message, roles: roles.filter((v) => v !== "no-role") });
+                },
+                (e) => {
+                  console.error(e);
+                }
+              )}
             >
               Invite
             </button>
@@ -320,9 +366,9 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
   );
 };
 
+type RolesInput = z.infer<typeof rolesSchema>;
 
-
-const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
+const RolesForm: FC<ZodFormSchema<RolesInput,typeof rolesSchema>> = ({
   show,
   hide,
   mutateAsync,
@@ -337,28 +383,20 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
   const { tenant } = useTenant();
   const { roles, isLoading } = useRolesList();
   const [config, form] = useZodForm(schema, fieldOptions,
-    {defaultValues:{userId:defaultValues?.userId,roles:[]}}
-    );
+    { defaultValues: { userId: defaultValues?.userId, roles: [] } }
+  );
   const arrForm = useFieldArray({ control: form.control, name: "roles" });
   // const values: string[] = form.watch("roles",[]);
   const initialValuesSet = useMemo(() => {
     const { roles } = defaultValues!;
 
-    const r = (roles ?? []).filter((v)=>v).reduce((p, c) => {
+    const r = (roles ?? []).filter((v) => v).reduce((p, c) => {
       return p.add(c!);
     }, new Set<string>());
     return r;
   }, [defaultValues])
 
-  // const valuesSet = useMemo(() => {
-  //   if(values.length===0){
-  //     return initialValuesSet
-  //   }
-  //   const r = (values ?? []).filter((v)=>v).reduce((p, c) => {
-  //     return p.add(c!);
-  //   }, new Set<string>());
-  //   return r;
-  // }, [values])
+
 
   if (isLoading) {
     return <Loader />
@@ -367,7 +405,7 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
     <ModalContainer>
       <ModalContent>
         <form
-          
+
         >
           <div className="flex w-full text-center font-semibold">
             <h2 className="text font-bold mb-4">{title}</h2>
@@ -379,11 +417,11 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
                 <div className="text text-xl font-semibold">{v.role}</div>
                 <Controller
                   control={form.control}
-                  defaultValue={initialValuesSet.has(v.role)?v.role:"no-role"}
+                  defaultValue={initialValuesSet.has(v.role) ? v.role : "no-role"}
                   name={`roles.${i}`}
-                  render={({ field: { onBlur, onChange,value }, fieldState }) => {
+                  render={({ field: { onBlur, onChange, value }, fieldState }) => {
                     return <input onChange={(e) => {
-                     
+
                       if (e.target.checked) {
 
                         onChange({ target: { value: v.role } })
@@ -392,7 +430,7 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
 
                       }
                     }}
-                    checked={value===v.role}
+                      checked={value === v.role}
                       type="checkbox" className="checkbox checkbox-primary checkbox-md mr-3" />
                   }}
                 />
@@ -407,19 +445,19 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
               Cancel
             </button>
             <button type="submit"
-             className="btn btn-primary btn-xs"
-             onClick={form.handleSubmit(
-              async (data) => {
-                const { roles } = data as { roles: (string | undefined)[] }
-                const data2={...data,roles:roles.filter((v) => v!=="no-role")}
-               
-                await mutateAsync(data2);
-              },
-              (e) => {
-                console.error(e);
-              }
-            )}
-             >
+              className="btn btn-primary btn-xs"
+              onClick={form.handleSubmit(
+                async (data) => {
+                  const { roles } = data as { roles: (string | undefined)[] }
+                  const data2 = { ...data, roles: roles.filter((v) => v !== "no-role") }
+
+                  await mutateAsync(data2);
+                },
+                (e) => {
+                  console.error(e);
+                }
+              )}
+            >
               Save
             </button>
           </ModalAction>
