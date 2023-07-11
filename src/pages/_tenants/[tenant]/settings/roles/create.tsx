@@ -72,21 +72,7 @@ export function CreateRole({ permissions }: CreateRoleProps) {
   return (
     <FormContainer title={<h2>Create Role</h2>}>
       <form
-        onSubmit={form.handleSubmit(
-          async (v) => {
-            const data: TRoleWithPermision = v as unknown as TRoleWithPermision
-            //submit here
-            showProgress({ animated: true });
-            const permissions = data.permissions.filter((p) => p.action!== "no-action")
-            const dataFiltered = {...data,permissions};
-            await result.mutateAsync(dataFiltered as any);
-
-            
-          },
-          (e) => {
-            console.error(e);
-          }
-        )}
+        
       >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
           {regularConfig.map((i) => {
@@ -139,7 +125,22 @@ export function CreateRole({ permissions }: CreateRoleProps) {
 
 
         <div className="flex flex-row py-3 justify-start">
-          <button type="submit" className=" btn btn-primary rounded-md  ">
+          <button type="submit" className=" btn btn-primary rounded-md  "
+          onClick={form.handleSubmit(
+            async (v) => {
+              const data: TRoleWithPermision = v as unknown as TRoleWithPermision
+              //submit here
+              showProgress({ animated: true });
+              const permissions = data.permissions.filter((p) => p.action!== "no-action")
+              const dataFiltered = {...data,permissions};
+              await result.mutateAsync(dataFiltered as any);
+  
+              
+            },
+            (e) => {
+              console.error(e);
+            }
+          )}>
             Submit
           </button>
         </div>

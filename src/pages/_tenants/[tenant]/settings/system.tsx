@@ -108,13 +108,13 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
       logo: { label: "Change logo", ordering: 18, upload: true },
       footer: { label: "footer", ordering: 9 },
       developedBy: { label: "Developed by", ordering: 10 },
-      tenantId: { label: "tenantId", hidden: true, ordering: 11 },
+      
       id: { label: "id", hidden: true, ordering: 12 }
     }
   }, [setting]);
 
   const [config, form] = useZodForm(setting?.id ? updateSettingInputSchema : createSettingInputSchema,
-    fieldOptions, { defaultValues: { tenantId: tenant?.tenantId, ...(setting ?? {}) } })
+    fieldOptions, { defaultValues: { ...(setting ?? {}) } })
 
    useEffect(()=>{
     if(setting){
@@ -124,14 +124,7 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
 
   return (
     <FormContainer title={<h1>System settings </h1>}>
-      <form onSubmit={form.handleSubmit(async (data) => {
-       
-       showProgress({animated:true});
-        await (setting?.id ? updateSetting.mutateAsync(data as any) : createSetting.mutateAsync(data as any));
-
-      }, (e) => {
-        console.error(e)
-      })}>
+      <form >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
           {config.map((i) => {
             return (<FormInputField key={i.name} {...i} />);
@@ -139,7 +132,16 @@ function SystemSettings({tenant,setting,refetchTenant,refetchSetting}:SystemSett
         </div>
         <div className="flex flex-row py-3 justify-start">
 
-          <button type="submit" className=" btn btn-primary rounded-md" >Submit </button>
+          <button type="submit" className=" btn btn-primary rounded-md"
+          onClick={form.handleSubmit(async (data) => {
+       
+            showProgress({animated:true});
+             await (setting?.id ? updateSetting.mutateAsync(data as any) : createSetting.mutateAsync(data as any));
+     
+           }, (e) => {
+             console.error(e)
+           })} 
+          >Submit </button>
         </div>
       </form>
     </FormContainer>
@@ -179,15 +181,13 @@ function PosSettings({tenant,posSetting,refetchPosSettings}:PosSettingProps) {
       id: {
         hidden: true
       },
-      tenantId: {
-        hidden: true
-      }
+      
     }
   }, [])
 
   const [config, form] = useZodForm(posSetting?.id ? updatePosSettingInputSchema : createPosSettingInputSchema,
     fieldOptions,
-    { defaultValues: { tenantId: tenant?.tenantId, ...(posSetting ?? {}) } })
+    { defaultValues: { ...(posSetting ?? {}) } })
 
   const trpc = useTrpcTenant()
   const {showProgress,callbacks} = useProgressFeedback()
@@ -209,20 +209,21 @@ function PosSettings({tenant,posSetting,refetchPosSettings}:PosSettingProps) {
 
   return (
     <FormContainer title={<h1>POS receipt settings </h1>}>
-      <form onSubmit={form.handleSubmit(async (data) => {
-        showProgress({animated:true})
-        await (posSetting?.id ? updateSetting.mutateAsync(data as any) : createSetting.mutateAsync(data as any));
-
-      }, (e) => {
-        console.error(e)
-      })}>
+      <form >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
           {config.map((i) => {
             return (<FormInputField key={i.name} {...i} />);
           })}
         </div>
         <div className="flex flex-row py-3 justify-start">
-          <button type="submit" className=" btn btn-primary rounded-md" >Submit </button>
+          <button type="submit" className=" btn btn-primary rounded-md" 
+          onClick={form.handleSubmit(async (data) => {
+            showProgress({animated:true})
+            await (posSetting?.id ? updateSetting.mutateAsync(data as any) : createSetting.mutateAsync(data as any));
+    
+          }, (e) => {
+            console.error(e)
+          })}>Submit </button>
         </div>
       </form>
     </FormContainer>

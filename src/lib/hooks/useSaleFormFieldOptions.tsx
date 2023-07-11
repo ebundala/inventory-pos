@@ -100,9 +100,7 @@ export function useSaleFormFieldOptions(opts?: { warehouse?: Warehouse; customer
         userId: {
             hidden: true
         },
-        tenantId: {
-            hidden: true
-        },
+       
         "saleDetails.0.productId": {
             label: "Product",
             ordering: 13,

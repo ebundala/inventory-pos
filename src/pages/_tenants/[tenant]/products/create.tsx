@@ -25,14 +25,14 @@ export function CreateProduct() {
 
     const options = useProductFormFieldOptions();
     const [config, form] = useZodForm(createProductInputSchema, options, {
-        defaultValues: { tenantId: tenant?.tenantId }
+        defaultValues: {}
     });
-   const [noteField,config2] = useGetZodFormField(Prisma.ProductScalarFieldEnum.note,config);
-   const [boolFields,config3] = useGetZodFormFields([
-    Prisma.ProductScalarFieldEnum.isVariant,
-    Prisma.ProductScalarFieldEnum.isActive,
-    Prisma.ProductScalarFieldEnum.isImei
-   ],config2);
+    const [noteField, config2] = useGetZodFormField(Prisma.ProductScalarFieldEnum.note, config);
+    const [boolFields, config3] = useGetZodFormFields([
+        Prisma.ProductScalarFieldEnum.isVariant,
+        Prisma.ProductScalarFieldEnum.isActive,
+        Prisma.ProductScalarFieldEnum.isImei
+    ], config2);
 
     const [reguralConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config3)
     const fname = useFieldArrayName(fieldArrayConfig);
@@ -49,38 +49,31 @@ export function CreateProduct() {
     }, [hasVariant])
 
     const trpcWithHost = useTrpcTenant();
-    const {showProgress,callbacks} = useProgressFeedback("/products")
+    const { showProgress, callbacks } = useProgressFeedback("/products")
 
     const result = trpcWithHost.product.create.useMutation(callbacks);
 
     return (
         <FormContainer title={<h2>Create product</h2>}>
-            <form onSubmit={form.handleSubmit(async (data) => {
-                //submit here
-                showProgress({animated:true});
-                await result.mutateAsync(data as any);
-               
-            }, (e) => {
-                console.error(e);
-            })}>
+            <form >
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {reguralConfig.map((i) => {
                         return (<FormInputField key={i.name} {...i} />);
                     })}
                 </div>
-                
-                 <div className="grid grid-flow-row xs:grid-cols-1 ">
-                {noteField&&<FormInputField key={noteField.name} {...noteField} />}
+
+                <div className="grid grid-flow-row xs:grid-cols-1 ">
+                    {noteField && <FormInputField key={noteField.name} {...noteField} />}
                 </div>
 
                 {boolFields.map((i) => {
-                        return (
+                    return (
                         <div key={i.name} className="grid grid-flow-row xs:grid-cols-1   sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        <FormInputField  {...i} />
-                        </div> 
-                        );
-                    })}
-                  
+                            <FormInputField  {...i} />
+                        </div>
+                    );
+                })}
+
                 {hasVariant && <div className="w-full  p-4 rounded-md">
                     <div className="h-10 w-full border-gray-400 border-b ">
                         <h2 className="text-lg font-semibold">Product variants</h2>
@@ -111,7 +104,16 @@ export function CreateProduct() {
 
                 <div className="flex flex-row py-3 justify-start">
 
-                    <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+                    <button type="submit" className=" btn btn-primary rounded-md"
+                        onClick={form.handleSubmit(async (data) => {
+                            //submit here
+                            showProgress({ animated: true });
+                            await result.mutateAsync(data as any);
+
+                        }, (e) => {
+                            console.error(e);
+                        })}
+                    >Submit </button>
                 </div>
             </form>
         </FormContainer>

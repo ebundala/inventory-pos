@@ -16,28 +16,7 @@ function WarehouseReports({}:WarehouseReportsProps){
 
   return (
     <FormContainer title={<h2>Warehouse Reports</h2>}>
-        {/* <form className="flex flex-row justify-start items-center gap-2"
-        onSubmit={form.handleSubmit((dates)=>{
-          setArgs({where:{
-            AND:[{
-            date:{
-              gte:dates.startAt
-
-            }},
-            {
-              date:{
-                lte:dates.endAt
-  
-              }}
-          ]
-          }})
-        })}>
-        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
-        <div className="flex flex-col justify-start">
-        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
-        </div>
-        </form>
-     */}
+        
         <div className="flex justify-end">
 
            <button onClick={()=>{requestPrint()}} className="btn btn-sm btn-info btn-outline">Print</button>

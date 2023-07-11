@@ -32,11 +32,11 @@ import { useQuotationConstraints } from "@/lib/hooks/useQuotationConstraints";
 
 export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defaultCurrency, }: TAppConfig) {
     const symbol = defaultCurrency?.symbol ?? "";
-    
+
     const options = useQuotationFormFieldOptions();
 
     const [config, form] = useZodForm(createQuotationInputSchema, options, {
-        defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
+        defaultValues: { userId: user?.id, }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
@@ -45,7 +45,7 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
     const quotationDetailsForm = useFieldArray<FieldValues, FieldArrayPath<FieldValues>, 'key'>({ control: form.control, name: fname });
 
     const trpcWithHost = useTrpcTenant();
-    const {showProgress,callbacks} = useProgressFeedback("/quotations")
+    const { showProgress, callbacks } = useProgressFeedback("/quotations")
 
     const result = trpcWithHost.quotation.create.useMutation(callbacks);
 
@@ -152,10 +152,10 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
             return partialData;
         }
     })
-    useSetComputedValues(form,data)
-   
+    useSetComputedValues(form, data)
 
-    const [taxRate, taxNet, discount, shipping, grandTotal,warehouseId] = form.watch([
+
+    const [taxRate, taxNet, discount, shipping, grandTotal, warehouseId] = form.watch([
         Prisma.QuotationScalarFieldEnum.taxRate,
         Prisma.QuotationScalarFieldEnum.taxNet,
         Prisma.QuotationScalarFieldEnum.discount,
@@ -165,22 +165,12 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
 
     const checkDuplicates = useEnforceUniqueProduct(quotationDetailsForm as any);
     const constraints = useQuotationConstraints(form.control);
-    useSetComputedValues(form,constraints);
+    useSetComputedValues(form, constraints);
     return (
         <FormContainer title={<h2>Create Quotation</h2>}>
-            <form onSubmit={form.handleSubmit(async (data) => {
-                //submit here
-                showProgress({animated:true});
-                await result.mutateAsync(data as any);
-               
-
-            }, (e) => {
-                console.error(e);
-            })}>
+            <form >
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
-
-
                         return (<FormInputField key={i.name} {...i} />);
                     })}
 
@@ -194,8 +184,8 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                         displayValuePath={(v) => getProductFormatedName(v as any)}
                         onChange={(e, reset) => {
                             const v = e.target.value;
-                           
-                           checkDuplicates(v as any);
+
+                            checkDuplicates(v as any);
                             if (reset) {
                                 reset();
                             }
@@ -217,85 +207,85 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
                 </div>
 
                 <div className="w-full  ">
-                    <CustomTable 
-                    colDeps={[warehouseId]}
-                    rowsData={detailsData} 
-                    collumsData={() => [
-                        {
-                            Header: "code",
-                            accessor: "product.code",
-                            disableSortBy: true
-                        },
-                        {
-                            Header: "Product",
-                            accessor: "productId",
-                            disableSortBy: true,
-                            Cell: ({ row }: { row: any }) => {
-                                return (
-                                    <div className="w-[160px] whitespace-normal text-ellipsis break-words">
-                                        {getProductFormatedName(row.original)}
-                                    </div>);
-                            }
-                        },
-                        {
-                            Header: `Unit price (${symbol})`,
-                            accessor: "fields.1",
-                            disableSortBy: true,
-
-                        },
-                        {
-                            Header: "Stock",
-                            accessor: "product.productWarehouse",
-                            disableSortBy: true,
-                            Cell: ({
-                                row,
-                                value,
-                              }: {
-                                value: ProductWarehouse[];
-                                row: any;
-                              }) => {
-                                const detail = row.original as TStockDataInput;
-                                 return calculateStock(detail,warehouseId)
+                    <CustomTable
+                        colDeps={[warehouseId]}
+                        rowsData={detailsData}
+                        collumsData={() => [
+                            {
+                                Header: "code",
+                                accessor: "product.code",
+                                disableSortBy: true
                             },
-                        },
-                        {
-                            Header: "Quantity",
-                            accessor: "fields.2",
-                            disableSortBy: true,
-                            Cell: ({ row, value }: { value: any; row: any }) => {
-                                const detail = row.original as TStockDataInput;
-                                const stock = calculateStock(detail, warehouseId);
-                                //Dirty way to enforce max stock level
-                                if (value?.props?.props) {
-                                  value.props.props.max = stock;
-                                }              
-                                return value;
-                              },
-                        },
-                        // {
-                        //     Header: `Discount (${symbol})`,
-                        //     accessor: "fields.3",
-                        //     disableSortBy: true
-                        // },
-                        {
-                            Header: `Tax (${symbol})`,
-                            accessor: "fields.4",
-                            disableSortBy: true
-                        },
-                        {
-                            Header: `Subtotal (${symbol})`,
-                            accessor: "fields.5",
-                            disableSortBy: true
-                        },
-                        {
-                            Header: "",
-                            accessor: "action",
-                            disableSortBy: true,
-                            Cell: ({ row }: { row: any }) => {
-                                return <button onClick={() => quotationDetailsForm.remove(row.index)} className="btn btn-warning btn-outline btn-xs">remove</button>
+                            {
+                                Header: "Product",
+                                accessor: "productId",
+                                disableSortBy: true,
+                                Cell: ({ row }: { row: any }) => {
+                                    return (
+                                        <div className="w-[160px] whitespace-normal text-ellipsis break-words">
+                                            {getProductFormatedName(row.original)}
+                                        </div>);
+                                }
+                            },
+                            {
+                                Header: `Unit price (${symbol})`,
+                                accessor: "fields.1",
+                                disableSortBy: true,
+
+                            },
+                            {
+                                Header: "Stock",
+                                accessor: "product.productWarehouse",
+                                disableSortBy: true,
+                                Cell: ({
+                                    row,
+                                    value,
+                                }: {
+                                    value: ProductWarehouse[];
+                                    row: any;
+                                }) => {
+                                    const detail = row.original as TStockDataInput;
+                                    return calculateStock(detail, warehouseId)
+                                },
+                            },
+                            {
+                                Header: "Quantity",
+                                accessor: "fields.2",
+                                disableSortBy: true,
+                                Cell: ({ row, value }: { value: any; row: any }) => {
+                                    const detail = row.original as TStockDataInput;
+                                    const stock = calculateStock(detail, warehouseId);
+                                    //Dirty way to enforce max stock level
+                                    if (value?.props?.props) {
+                                        value.props.props.max = stock;
+                                    }
+                                    return value;
+                                },
+                            },
+                            // {
+                            //     Header: `Discount (${symbol})`,
+                            //     accessor: "fields.3",
+                            //     disableSortBy: true
+                            // },
+                            {
+                                Header: `Tax (${symbol})`,
+                                accessor: "fields.4",
+                                disableSortBy: true
+                            },
+                            {
+                                Header: `Subtotal (${symbol})`,
+                                accessor: "fields.5",
+                                disableSortBy: true
+                            },
+                            {
+                                Header: "",
+                                accessor: "action",
+                                disableSortBy: true,
+                                Cell: ({ row }: { row: any }) => {
+                                    return <button onClick={() => quotationDetailsForm.remove(row.index)} className="btn btn-warning btn-outline btn-xs">remove</button>
+                                }
                             }
-                        }
-                    ]} search={false} pagenation={false} />
+                        ]} search={false} pagenation={false} />
                 </div>
                 <div className="w-full mt-10 flex justify-end">
                     <OrderSummary
@@ -325,7 +315,14 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
 
                 <div className="flex flex-row py-3 justify-start">
 
-                    <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+                    <button  onClick={form.handleSubmit(async (data) => {
+                        //submit here
+                        showProgress({ animated: true });
+                        await result.mutateAsync(data as any);
+                    }, (e) => {
+                        console.error(e);
+                    })}
+                      className=" btn btn-primary rounded-md  " >Submit </button>
                 </div>
             </form>
         </FormContainer>

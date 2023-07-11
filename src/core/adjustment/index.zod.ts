@@ -9,7 +9,6 @@ export const createAdjustmentDetailsInputSchema = z.object({
 });
 
 export const createAdjustmentInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   warehouseId: z.number(),

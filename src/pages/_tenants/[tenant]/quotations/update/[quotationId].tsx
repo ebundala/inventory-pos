@@ -285,9 +285,9 @@ export function UpdateQuotation({
       return partialData;
     },
   });
-  useSetComputedValues(form,data);
- 
-  
+  useSetComputedValues(form, data);
+
+
 
   const [taxRate, taxNet, discount, shipping, grandTotal, warehouseId] =
     form.watch([
@@ -311,16 +311,7 @@ export function UpdateQuotation({
   return (
     <FormContainer title={<h2>Update Quotation</h2>}>
       <form
-        onSubmit={form.handleSubmit(
-          async (data) => {
-            //submit here
-            showProgress({ animated: true });
-            await result.mutateAsync(data as any);
-          },
-          (e) => {
-            console.error(e);
-          }
-        )}
+
       >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
           {mainFields.map((i) => {
@@ -393,7 +384,7 @@ export function UpdateQuotation({
                   row: any;
                 }) => {
                   const detail = row.original as TStockDataInput;
-                  console.log(detail);
+                  
                   return calculateStock(detail, warehouseId);
                 },
               },
@@ -463,7 +454,18 @@ export function UpdateQuotation({
         </div>
 
         <div className="flex flex-row py-3 justify-start">
-          <button type="submit" className=" btn btn-primary rounded-md  ">
+          <button type="submit" className=" btn btn-primary rounded-md"
+            onClick={form.handleSubmit(
+              async (data) => {
+                //submit here
+                showProgress({ animated: true });
+                await result.mutateAsync(data as any);
+              },
+              (e) => {
+                console.error(e);
+              }
+            )}
+          >
             Submit{" "}
           </button>
         </div>

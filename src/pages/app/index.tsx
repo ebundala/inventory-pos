@@ -135,22 +135,7 @@ function TenantForm({
   return (
 
     <form
-      onSubmit={form.handleSubmit(
-        async (data) => {
-          //submit here   
-          if(checkResult.data?.subdomain){
-            form.setError(Prisma.TenantScalarFieldEnum.subdomain,{
-              message:"Subdomain is not available",
-              type:"deps"
-            },{shouldFocus:true})
-            return;
-          }
-          await result.mutateAsync(data as any);
-        },
-        (e) => {
-          console.error(e);
-        }
-      )}
+      
     >
       <div className="w-full font-semibold text-base"> Create Business</div>
       <div className="grid grid-flow-row grid-cols-1   gap-3">
@@ -176,7 +161,23 @@ function TenantForm({
         >
           Cancel
         </button>
-        <button type="submit" disabled={checkResult.isLoading} className="btn btn-sm btn-success">
+        <button type="submit" disabled={checkResult.isLoading} className="btn btn-sm btn-success"
+        onClick={form.handleSubmit(
+          async (data) => {
+            //submit here   
+            if(checkResult.data?.subdomain){
+              form.setError(Prisma.TenantScalarFieldEnum.subdomain,{
+                message:"Subdomain is not available",
+                type:"deps"
+              },{shouldFocus:true})
+              return;
+            }
+            await result.mutateAsync(data as any);
+          },
+          (e) => {
+            console.error(e);
+          }
+        )}>
           {checkResult.isLoading?"Validating..":"Save"}
         </button>
       </ModalAction>

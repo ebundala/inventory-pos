@@ -36,7 +36,7 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
   const options = useAdjustmentFormFieldOptions();
 
   const [config, form] = useZodForm(createAdjustmentInputSchema, options, {
-    defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, items: 0 },
+    defaultValues: { userId: user?.id, items: 0 },
   });
 
   const [regularConfig, fieldArrayConfig] =
@@ -91,16 +91,7 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
   return (
     <FormContainer title={<h2>Create Adjustment</h2>}>
       <form
-        onSubmit={form.handleSubmit(
-          async (data) => {
-            //submit here
-            showProgress({ animated: true });
-            await result.mutateAsync(data as any);
-          },
-          (e) => {
-            console.error(e);
-          }
-        )}
+        
       >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
           {otherFields.map((i) => {
@@ -225,7 +216,16 @@ export function CreateAdjustment({ tenant, user }: TAppConfig) {
           <FormInputField {...(notesField as any)} />
         </div>
         <div className="flex flex-row py-3 justify-start">
-          <button type="submit" className=" btn btn-primary rounded-md  ">
+          <button type="submit" onClick={form.handleSubmit(
+          async (data) => {
+            //submit here
+            showProgress({ animated: true });
+            await result.mutateAsync(data as any);
+          },
+          (e) => {
+            console.error(e);
+          }
+        )} className=" btn btn-primary rounded-md  ">
             Submit{" "}
           </button>
         </div>

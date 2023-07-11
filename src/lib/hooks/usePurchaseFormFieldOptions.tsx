@@ -117,9 +117,7 @@ export function usePurchaseFormFieldOptions(opts?: { warehouse?: Warehouse, supp
         userId: {
             hidden: true
         },
-        tenantId: {
-            hidden: true
-        },
+       
         "purchaseDetails.0.productId": {
             label: "Product",
             ordering: 13,

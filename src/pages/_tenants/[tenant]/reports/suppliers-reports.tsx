@@ -27,7 +27,11 @@ function SuppliersReports({suppliersReports,defaultCurrency,setArgs,config,form}
   return (
     <FormContainer title={<h2>Suppliers Reports</h2>}>
         <form className="flex flex-row justify-start items-center gap-2"
-        onSubmit={form.handleSubmit((dates)=>{
+        >
+        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
+        <div className="flex flex-col justify-start">
+        <button className="btn btn-xs btn-outline btn-secondary mt-7" 
+        onClick={form.handleSubmit((dates)=>{
           setArgs({where:{
             AND:[{
             date:{
@@ -41,10 +45,8 @@ function SuppliersReports({suppliersReports,defaultCurrency,setArgs,config,form}
               }}
           ]
           }})
-        })}>
-        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
-        <div className="flex flex-col justify-start">
-        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
+        })}
+        >Apply</button>
         </div>
         </form>
     

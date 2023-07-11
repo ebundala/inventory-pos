@@ -38,12 +38,7 @@ export function useAdjustmentFormFieldOptions(opts?: {
       items: {
         hidden: true,
       },
-      userId: {
-        hidden: true,
-      },
-      tenantId: {
-        hidden: true,
-      },
+      userId:{hidden:true},
       id: {
         hidden: true,
       },

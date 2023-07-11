@@ -23,9 +23,7 @@ import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 function useUnitFormOptions(opts?: Unit & { unit?: Unit }) {
     const { unit, operator } = opts ?? {};
     return useMemo((): ZodFormFieldOptions => ({
-        tenantId: {
-            hidden: true
-        },
+       
         id: {
             hidden: true
         },
@@ -245,7 +243,7 @@ type ZodFormSchema<R, T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTy
 const UnitForm: FC<ZodFormSchema<Unit>> = ({ show, hide, mutateAsync, ModalContainer, ModalContent, ModalAction, schema, title, defaultValues }) => {
     const { tenant } = useTenant();
     const options = useUnitFormOptions(defaultValues as any)
-    const [config, form] = useZodForm(schema, options, { defaultValues: { tenantId: tenant?.tenantId, ...defaultValues } });
+    const [config, form] = useZodForm(schema, options, { defaultValues: { ...defaultValues } });
     useEffect(() => {
         if (defaultValues) {
             form.reset(defaultValues)
@@ -257,11 +255,7 @@ const UnitForm: FC<ZodFormSchema<Unit>> = ({ show, hide, mutateAsync, ModalConta
         <ModalContainer>
 
             <ModalContent>
-                <form onSubmit={form.handleSubmit(async (data) => {
-                    await mutateAsync(data as any);
-                }, (e) => {
-                    console.error(e)
-                })}>
+                <form >
                     <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
                     <div className="grid grid-flow-row grid-cols-1 ">
                         {config.map((i) => {
@@ -272,7 +266,13 @@ const UnitForm: FC<ZodFormSchema<Unit>> = ({ show, hide, mutateAsync, ModalConta
                         <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">
                             cancel
                         </button>
-                        <button type="submit" className="btn btn-primary btn-xs">
+                        <button type="submit" className="btn btn-primary btn-xs"
+                        onClick={form.handleSubmit(async (data) => {
+                            await mutateAsync(data as any);
+                        }, (e) => {
+                            console.error(e)
+                        })}
+                        >
                             save
                         </button>
                     </ModalAction>

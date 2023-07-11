@@ -29,9 +29,7 @@ export function BrandIndex({ brands, refetch }: BrandsIndexProps) {
   const [showModal, hide, data] = useModal();
   const options = useMemo(
     () => ({
-      tenantId: {
-        hidden: true,
-      },
+     
       id: {
         hidden: true,
       },
@@ -260,21 +258,14 @@ const BrandForm: FC<ZodFormSchema<Brand>> = ({
 }) => {
   const { tenant } = useTenant();
   const [config, form] = useZodForm(schema, fieldOptions, {
-    defaultValues: { tenantId: tenant?.tenantId, ...defaultValues },
+    defaultValues: { ...defaultValues },
   });
 
   return (
     <ModalContainer>
       <ModalContent>
         <form
-          onSubmit={form.handleSubmit(
-            async (data) => {
-              await mutateAsync(data as any);
-            },
-            (e) => {
-              console.error(e);
-            }
-          )}
+          
         >
           <div className="flex w-full text-center font-semibold">
             <h2>{title}</h2>
@@ -291,7 +282,16 @@ const BrandForm: FC<ZodFormSchema<Brand>> = ({
             >
               cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-xs">
+            <button type="submit" className="btn btn-primary btn-xs"
+            onClick={form.handleSubmit(
+              async (data) => {
+                await mutateAsync(data as any);
+              },
+              (e) => {
+                console.error(e);
+              }
+            )}
+            >
               save
             </button>
           </ModalAction>

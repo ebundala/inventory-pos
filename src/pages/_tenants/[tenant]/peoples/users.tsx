@@ -40,9 +40,7 @@ function UsersIndex({
   const [showModal, hide, data] = useModal();
   const options = useMemo(
     () => ({
-      tenantId: {
-        hidden: true,
-      },
+      
       userId: {
         hidden: true,
       },
@@ -278,21 +276,14 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
 }) => {
   const { tenant } = useTenant();
   const [config, form] = useZodForm(schema, fieldOptions, {
-    defaultValues: { tenantId: tenant?.tenantId, ...defaultValues },
+    defaultValues: { ...defaultValues },
   });
 
   return (
     <ModalContainer>
       <ModalContent>
         <form
-          onSubmit={form.handleSubmit(
-            async (data) => {
-              await mutateAsync(data as any);
-            },
-            (e) => {
-              console.error(e);
-            }
-          )}
+          
         >
           <div className="flex w-full text-center font-semibold">
             <h2>{title}</h2>
@@ -309,7 +300,17 @@ const InviteForm: FC<ZodFormSchema<Customer>> = ({
             >
               cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-xs">
+            <button type="submit" 
+            className="btn btn-primary btn-xs"
+            onClick={form.handleSubmit(
+              async (data) => {
+                await mutateAsync(data as any);
+              },
+              (e) => {
+                console.error(e);
+              }
+            )}
+            >
               Invite
             </button>
           </ModalAction>
@@ -366,16 +367,7 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
     <ModalContainer>
       <ModalContent>
         <form
-          onSubmit={form.handleSubmit(
-            async (data) => {
-              const { roles } = data as { roles: (string | undefined)[] }
-              const data2={...data,roles:roles.filter((v) => v!=="no-role")}
-              await mutateAsync(data2);
-            },
-            (e) => {
-              console.error(e);
-            }
-          )}
+          
         >
           <div className="flex w-full text-center font-semibold">
             <h2 className="text font-bold mb-4">{title}</h2>
@@ -414,7 +406,19 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
             >
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-xs">
+            <button type="submit"
+             className="btn btn-primary btn-xs"
+             onClick={form.handleSubmit(
+              async (data) => {
+                const { roles } = data as { roles: (string | undefined)[] }
+                const data2={...data,roles:roles.filter((v) => v!=="no-role")}
+                await mutateAsync(data2);
+              },
+              (e) => {
+                console.error(e);
+              }
+            )}
+             >
               Save
             </button>
           </ModalAction>

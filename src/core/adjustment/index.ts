@@ -29,14 +29,13 @@ export type CreateAdjustmentDetailsInput = {
   type: string;
 };
 export type CreateAdjustmentInput = {
-  userId: string;
   date: Date;
   ref: string;
   warehouseId: number;
   items?: number;
   notes?: string;
   adjustmentDetails: Array<CreateAdjustmentDetailsInput>;
- // tenantId: string;
+ 
 };
 export const createAdjustment = async (
   input: CreateAdjustmentInput,
@@ -44,6 +43,7 @@ export const createAdjustment = async (
 ) => {
   const {  adjustmentDetails, ...data } = input;
   const {enforcer,session,tenantId}=ctx
+  const userId = session!.user.id!
   await enforceHelper({
     enforcer,
     tenantId,
@@ -55,6 +55,7 @@ export const createAdjustment = async (
     include,
     data: {
       tenantId: tenantId,
+      userId,
       ...data,
       adjustmentDetails: {
         createMany: {

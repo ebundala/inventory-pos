@@ -106,16 +106,7 @@ export function UpdateAdjustment({
   return (
     <FormContainer title={<h2>Update Adjustment</h2>}>
       <form
-        onSubmit={form.handleSubmit(
-          async (data) => {
-            //submit here
-            showProgress({ animated: true });
-            await result.mutateAsync(data as any);
-          },
-          (e) => {
-            console.error(e);
-          }
-        )}
+       
       >
         <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 gap-3">
           {otherFields.map((i) => {
@@ -258,7 +249,16 @@ export function UpdateAdjustment({
           <FormInputField {...(notesField as any)} />
         </div>
         <div className="flex flex-row py-3 justify-start">
-          <button type="submit" className=" btn btn-primary rounded-md  ">
+          <button type="submit"  onClick={form.handleSubmit(
+          async (data) => {
+            //submit here
+            showProgress({ animated: true });
+            await result.mutateAsync(data as any);
+          },
+          (e) => {
+            console.error(e);
+          }
+        )} className=" btn btn-primary rounded-md  ">
             Submit{" "}
           </button>
         </div>

@@ -24,7 +24,11 @@ function SalesReports({sales,defaultCurrency,setArgs,config,form}:SalesReportsPr
     return (
     <FormContainer title={<h2>Sales reports</h2>}>
           <form className="flex flex-row justify-start items-center gap-2"
-        onSubmit={form.handleSubmit((dates)=>{
+        >
+        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
+        <div className="flex flex-col justify-start">
+        <button className="btn btn-xs btn-outline btn-secondary mt-7"
+        onClick={form.handleSubmit((dates)=>{
           setArgs({where:{
             AND:[{
             date:{
@@ -38,10 +42,8 @@ function SalesReports({sales,defaultCurrency,setArgs,config,form}:SalesReportsPr
               }}
           ]
           }})
-        })}>
-        {config.map((v)=><FormInputField key={v.name} {...v}/>)}
-        <div className="flex flex-col justify-start">
-        <button className="btn btn-xs btn-outline btn-secondary mt-7">Apply</button>
+        })}
+        >Apply</button>
         </div>
         </form>
     

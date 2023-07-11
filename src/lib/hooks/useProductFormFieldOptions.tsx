@@ -184,9 +184,7 @@ export function useProductFormFieldOptions(opts?: {
         label: "Variant id",
         hidden: true,
       },
-      tenantId: {
-        hidden: true,
-      },
+      
       id: {
         hidden: true,
       },

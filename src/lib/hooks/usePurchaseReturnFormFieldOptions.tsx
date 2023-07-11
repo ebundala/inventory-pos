@@ -111,9 +111,7 @@ export function usePurchaseReturnFormFieldOptions(opts?: { warehouse?: Warehouse
         userId: {
             hidden: true
         },
-        tenantId: {
-            hidden: true
-        },
+       
         "purchaseReturnDetails.0.productId": {
             label: "Product",
             ordering: 13,

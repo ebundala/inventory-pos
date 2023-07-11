@@ -24,9 +24,7 @@ import { useConfirmDialog } from "@/lib/hooks/useConfirmDialog";
 function SupplierIndex({suppliers,refetch}:SupplierIndexProps) {
     const [showModal, hide, data] = useModal();
     const options = useMemo(()=>({
-        tenantId:{
-            hidden:true
-        },
+        
         id:{
             hidden:true
         },
@@ -243,18 +241,14 @@ type ZodFormSchema<R,T extends ZodFirstPartySchemaTypes = ZodFirstPartySchemaTyp
 
 const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,mutateAsync, ModalContainer, ModalContent, ModalAction, schema,title, defaultValues,fieldOptions })=>{
     const {tenant} = useTenant();
-    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{tenantId:tenant?.tenantId,...defaultValues}});
+    const [config, form] = useZodForm(schema,fieldOptions,{defaultValues:{...defaultValues}});
 
     return (
 
         <ModalContainer>
 
             <ModalContent>
-                <form onSubmit={form.handleSubmit(async (data) => {
-                  await mutateAsync(data as any);
-                }, (e) => {
-                    console.error(e)
-                })}>
+                <form >
                     <div className="flex w-full text-center font-semibold"><h2>{title}</h2></div>
                     <div className="grid grid-flow-row grid-cols-1  sm:grid-cols-2 gap-3">
                         {config.map((i) => {
@@ -265,7 +259,14 @@ const SupplierForm:FC<ZodFormSchema<Supplier>> =({ show, hide,mutateAsync, Modal
                         <button onClick={(e) => hide()} className="btn btn-outline btn-error btn-xs">
                             cancel
                         </button>
-                        <button type="submit" className="btn btn-primary btn-xs">
+                        <button type="submit"
+                         className="btn btn-primary btn-xs"
+                         onClick={form.handleSubmit(async (data) => {
+                            await mutateAsync(data as any);
+                          }, (e) => {
+                              console.error(e)
+                          })}
+                         >
                             save
                         </button>
                     </ModalAction>

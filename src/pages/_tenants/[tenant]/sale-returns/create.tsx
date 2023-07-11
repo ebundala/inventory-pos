@@ -33,7 +33,7 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
     const options = useSaleReturnFormFieldOptions();
 
     const [config, form] = useZodForm(createSaleReturnInputSchema, options, {
-        defaultValues: { tenantId: tenant?.tenantId, userId: user?.id, }
+        defaultValues: { }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)
@@ -240,15 +240,7 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
    useSetComputedValues(form,constraints);
     return (
         <FormContainer title={<h2>Create Sale return</h2>}>
-            <form onSubmit={form.handleSubmit(async (data) => {
-                //submit here
-                showProgress({animated:true})
-                await result.mutateAsync(data as any);
-             
-
-            }, (e) => {
-                console.error(e);
-            })}>
+            <form >
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
 
@@ -409,7 +401,17 @@ export function CreateSaleReturn({ tenant, defaultWarehouse, user, setting, defa
 
                 <div className="flex flex-row py-3 justify-start">
 
-                    <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+                    <button type="submit" className=" btn btn-primary rounded-md  "
+                    onClick={form.handleSubmit(async (data) => {
+                        //submit here
+                        showProgress({animated:true})
+                        await result.mutateAsync(data as any);
+                     
+        
+                    }, (e) => {
+                        console.error(e);
+                    })}
+                     >Submit </button>
                 </div>
             </form>
         </FormContainer>

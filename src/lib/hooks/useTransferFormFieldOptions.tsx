@@ -85,9 +85,7 @@ export function useTransferFormFieldOptions(opts?: { fromWarehouse?: Warehouse, 
         userId: {
             hidden: true
         },
-        tenantId: {
-            hidden: true
-        },
+        
         "transferDetails.0.productId": {
             label: "Product",
             ordering: 13,

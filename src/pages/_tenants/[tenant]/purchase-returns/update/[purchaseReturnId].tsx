@@ -255,15 +255,7 @@ useSetComputedValues(form,data);
             
     return (
         <FormContainer title={<h2>Update Purchase Return</h2>}>
-            <form onSubmit={form.handleSubmit(async (data) => {
-                //submit here
-                showProgress({animated:true})
-                await result.mutateAsync(data as any);
-                
-
-            }, (e) => {
-                console.error(e);
-            })}>
+            <form >
                 <div className="grid grid-flow-row xs:grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {mainFields.map((i) => {
 
@@ -421,7 +413,17 @@ useSetComputedValues(form,data);
 
                 <div className="flex flex-row py-3 justify-start">
 
-                    <button type="submit" className=" btn btn-primary rounded-md  " >Submit </button>
+                    <button type="submit" className=" btn btn-primary rounded-md  " 
+                    onClick={form.handleSubmit(async (data) => {
+                        //submit here
+                        showProgress({animated:true})
+                        await result.mutateAsync(data as any);
+                        
+        
+                    }, (e) => {
+                        console.error(e);
+                    })}
+                    >Submit </button>
                 </div>
             </form>
         </FormContainer>
