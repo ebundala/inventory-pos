@@ -11,7 +11,6 @@ export type CreateSupplierInput = {
     country?: string
     city?: string
     address?: string
-    tenantId: string
 }
 export const createSupplier = async (input: CreateSupplierInput,ctx:TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -23,9 +22,9 @@ export const createSupplier = async (input: CreateSupplierInput,ctx:TenantContex
       resource: "supplier",
       action: "create"
     });
-    const { tenantId:_, ...data } = input;
+    
     return ctx.tx!.supplier.create({
-        data:{tenantId:tenantId,...data}
+        data:{tenantId,...input}
    })
 }
 export type UpdateSupplierInput = {

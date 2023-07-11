@@ -29,7 +29,6 @@ export const createTransferInputSchema = z.object({
   status: z.string(),
   notes: z.string().optional(),
   transferDetails: z.array(createTransferDetailInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const updateTransferDetailInputSchema = z.object({
@@ -62,7 +61,6 @@ export const updateTransferInputSchema = z.object({
   status: z.string(),
   notes: z.string().optional(),
   transferDetails: z.array(updateTransferDetailInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const transferIdSchema = z.number();

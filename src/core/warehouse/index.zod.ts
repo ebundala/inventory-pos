@@ -8,7 +8,6 @@ export const createWarehouseInputSchema = z.object({
   mobile: z.string().optional(),
   country: z.string().optional(),
   zip: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const updateWarehouseInputSchema = z.object({

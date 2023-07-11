@@ -29,7 +29,6 @@ export const createQuotationInputSchema = z.object({
   status: z.string(),
   notes: z.string().optional(),
   quotationDetails: z.array(createQuotationDetailsInputSchema),
-  tenantId: z.string(),
 });
 
 export const updateQuotationDetailsInputSchema = z.object({
@@ -62,7 +61,6 @@ export const updateQuotationInputSchema = z.object({
   status: z.string().optional(),
   notes: z.string().optional(),
   quotationDetails: z.array(updateQuotationDetailsInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const quotationIdSchema = z.number();

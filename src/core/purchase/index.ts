@@ -66,7 +66,6 @@ export type CreatePurchaseInput = {
   notes?: string;
   paymentPurchases: Array<CreatePaymentPurchaseInput>;
   purchaseDetails: Array<CreatePurchaseDetailsInput>;
-  tenantId: string;
 };
 export const createPurchase = async (
   input: CreatePurchaseInput,
@@ -81,7 +80,7 @@ export const createPurchase = async (
     resource: "purchase",
     action: "create"
   });
-  const { tenantId:_, userId:__, paymentPurchases, purchaseDetails, ...data } =
+  const { userId:__, paymentPurchases, purchaseDetails, ...data } =
     input;
   let purchaseData = {};
   if (purchaseDetails && purchaseDetails.length) {
@@ -190,7 +189,6 @@ export type UpdatePurchaseInput = {
   notes?: string;
   paymentPurchases?: Array<UpdatePaymentPurchaseInput>;
   purchaseDetails?: Array<UpdatePurchaseDetailsInput>;
-  tenantId: string;
 };
 export const updatePurchase = async (
   input: UpdatePurchaseInput,
@@ -206,7 +204,7 @@ export const updatePurchase = async (
     resource: "purchase",
     action: "update"
   });
-  const { tenantId:_, id, paymentPurchases, purchaseDetails, ...data } = input;
+  const { id, paymentPurchases, purchaseDetails, ...data } = input;
   const purchase = await ctx.tx!.purchase.findUnique({
     where: { id, recordStatus: RecordStatus.ACTIVE },
     include

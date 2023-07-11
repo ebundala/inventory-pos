@@ -20,7 +20,7 @@ export type CreateSettingInput = {
     customerId      ?:number
     warehouseId     ?:number
     defaultLanguage :string 
-    tenantId: string
+    
 }
 export const createSetting = async (input: CreateSettingInput,ctx:TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -32,7 +32,7 @@ export const createSetting = async (input: CreateSettingInput,ctx:TenantContext)
       resource: "setting",
       action: "update"
     });
-    const { tenantId:_, ...data } = input;
+    const { ...data } = input;
     return ctx.tx!.setting.create({
         include,
         data:{tenantId:tenantId,...data}

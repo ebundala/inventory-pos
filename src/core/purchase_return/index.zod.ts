@@ -25,7 +25,6 @@ export const createPaymentPurchaseReturnInputSchema = z.object({
 });
 
 export const createPurchaseReturnInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   supplierId: z.number(),
@@ -41,7 +40,6 @@ export const createPurchaseReturnInputSchema = z.object({
   notes: z.string().optional(),
   paymentPurchaseReturns: z.array(createPaymentPurchaseReturnInputSchema),
   purchaseReturnDetails: z.array(createPurchaseReturnDetailInputSchema),
-  tenantId: z.string(),
 });
 
 export const updatePurchaseReturnDetailInputSchema = z.object({
@@ -88,7 +86,6 @@ export const updatePurchaseReturnInputSchema = z.object({
   notes: z.string().optional(),
   paymentPurchaseReturns: z.array(updatePaymentPurchaseReturnInputSchema),
   purchaseReturnDetails: z.array(updatePurchaseReturnDetailInputSchema),
-  tenantId: z.string(),
 });
 
 export const purchaseReturnIdSchema = z.number();

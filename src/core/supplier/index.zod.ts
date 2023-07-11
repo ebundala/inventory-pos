@@ -9,7 +9,6 @@ export const createSupplierInputSchema = z.object({
   country: z.string().optional(),
   city: z.string().optional(),
   address: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const updateSupplierInputSchema = z.object({

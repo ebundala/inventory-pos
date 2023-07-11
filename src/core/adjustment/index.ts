@@ -36,14 +36,14 @@ export type CreateAdjustmentInput = {
   items?: number;
   notes?: string;
   adjustmentDetails: Array<CreateAdjustmentDetailsInput>;
-  tenantId: string;
+ // tenantId: string;
 };
 export const createAdjustment = async (
   input: CreateAdjustmentInput,
   ctx: TenantContext
 ) => {
-  const { tenantId, adjustmentDetails, ...data } = input;
-  const {enforcer,session}=ctx
+  const {  adjustmentDetails, ...data } = input;
+  const {enforcer,session,tenantId}=ctx
   await enforceHelper({
     enforcer,
     tenantId,

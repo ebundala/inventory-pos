@@ -41,7 +41,6 @@ export const createPurchaseInputSchema = z.object({
   notes: z.string().optional(),
   paymentPurchases: z.array(createPaymentPurchaseInputSchema),
   purchaseDetails: z.array(createPurchaseDetailsInputSchema),
-  tenantId: z.string(),
 });
 
 export const updatePurchaseDetailsInputSchema = z.object({
@@ -88,7 +87,6 @@ export const updatePurchaseInputSchema = z.object({
   notes: z.string().optional(),
   paymentPurchases: z.array(updatePaymentPurchaseInputSchema).optional(),
   purchaseDetails: z.array(updatePurchaseDetailsInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const purchaseIdSchema = z.number();

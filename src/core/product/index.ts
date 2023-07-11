@@ -42,7 +42,6 @@ export type CreateProductInput = {
   isImei: boolean;
   isActive?: boolean;
   productVariants?: Array<CreateProductVariantInput>;
-  tenantId: string;
 };
 export const createProduct = async (
   input: CreateProductInput,
@@ -57,7 +56,7 @@ export const createProduct = async (
       resource: "product",
       action: "create"
     });
-  const { tenantId:_, productVariants, ...data } = input;
+  const { productVariants, ...data } = input;
   let variants = {};
   if (productVariants && productVariants.length) {
     variants = {
@@ -71,7 +70,7 @@ export const createProduct = async (
   }
   const product = await ctx.tx!.product.create({
     include,
-    data: { tenantId: tenantId, ...data, ...variants },
+    data: { tenantId, ...data, ...variants },
   });
   const warehouses = await ctx.tx!.warehouse.findMany({ select: { id: true } });
   const productWarehouseData = warehouses.flatMap((w) => {
@@ -79,7 +78,7 @@ export const createProduct = async (
       return product.productVariants.map((v) => {
         return {
           productId: product.id,
-          tenantId: ctx.tenantId,
+          tenantId: tenantId,
           productVariantId: v.id,
           qty: 0,
           warehouseId: w.id,
@@ -89,7 +88,7 @@ export const createProduct = async (
       return [
         {
           productId: product.id,
-          tenantId: ctx.tenantId,
+          tenantId: tenantId,
           qty: 0,
           warehouseId: w.id,
         },
@@ -127,7 +126,6 @@ export type UpdateProductInput = {
   isImei?: boolean;
   isActive?: boolean;
   productVariants?: Array<UpdateProductVariantInput>;
-  tenantId: string;
 };
 export const updateProduct = async (
   input: UpdateProductInput,
@@ -142,7 +140,7 @@ export const updateProduct = async (
       resource: "product",
       action: "update"
     });
-  const { tenantId:_, id, productVariants, ...data } = input;
+  const { id, productVariants, ...data } = input;
   const product = await ctx.tx!.product.findUnique({
     where: { id ,recordStatus:{equals:RecordStatus.ACTIVE}},
     include: {

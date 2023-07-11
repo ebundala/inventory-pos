@@ -53,7 +53,7 @@ export type CreatePaymentPurchaseReturnInput = {
 };
 
 export type CreatePurchaseReturnInput = {
-  userId: string;
+  //userId: string;
   date: Date;
   ref: string;
   supplierId: number;
@@ -69,7 +69,7 @@ export type CreatePurchaseReturnInput = {
   notes?: string;
   paymentPurchaseReturns: Array<CreatePaymentPurchaseReturnInput>;
   purchaseReturnDetails: Array<CreatePurchaseReturnDetailInput>;
-  tenantId: string;
+
 };
 export const createPurchaseReturn = async (
   input: CreatePurchaseReturnInput,
@@ -85,8 +85,6 @@ export const createPurchaseReturn = async (
     action: "create"
   });
   const {
-    tenantId:_,
-    userId:__,
     paymentPurchaseReturns,
     purchaseReturnDetails,
     ...data
@@ -198,7 +196,7 @@ export type UpdatePurchaseReturnInput = {
   notes?: string;
   paymentPurchaseReturns: Array<UpdatePaymentPurchaseReturnInput>;
   purchaseReturnDetails: Array<UpdatePurchaseReturnDetailInput>;
-  tenantId: string;
+
 };
 export const updatePurchaseReturn = async (
   input: UpdatePurchaseReturnInput,
@@ -214,7 +212,6 @@ export const updatePurchaseReturn = async (
     action: "update"
   });
   const {
-    tenantId:__,
     id,
     paymentPurchaseReturns,
     purchaseReturnDetails,

@@ -10,7 +10,6 @@ export const createPosSettingInputSchema = z.object({
   showEmail: z.boolean().optional(),
   showPhone: z.boolean().optional(),
   showAddress: z.boolean().optional(),
-  tenantId: z.string(),
 });
 
 export const updatePosSettingInputSchema = z.object({

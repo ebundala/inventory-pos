@@ -7,7 +7,7 @@ export type CreateBrandInput = {
   name: string;
   description?: string;
   image?: string;
-  tenantId: string;
+ // tenantId: string;
 };
 export const createBrand = async (
   input: CreateBrandInput,
@@ -23,10 +23,8 @@ export const createBrand = async (
     action: "create"
   });
 
-  const { tenantId:_, ...data } = input;
-
   return ctx.tx!.brand.create({
-    data: { tenantId: tenantId, ...data },
+    data: { tenantId, ...input },
   });
 };
 export type UpdateBrandInput = {

@@ -6,7 +6,6 @@ import { enforceHelper } from "../util/enforcerUtil";
 export type CreateCategoryInput = {
   name: string     
   code:  string
-  tenantId: string
 }
 export const createCategory = async (input: CreateCategoryInput,ctx:TenantContext) => {
     const {tenantId,session,enforcer} = ctx;
@@ -18,9 +17,8 @@ export const createCategory = async (input: CreateCategoryInput,ctx:TenantContex
     resource: "category",
     action: "create"
   });
-    const { tenantId:_, ...data } = input;
     return ctx.tx!.category.create({
-        data:{tenantId:tenantId,...data}
+        data:{tenantId,...input}
    })
 }
 export type UpdateCategoryInput = {

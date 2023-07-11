@@ -4,7 +4,6 @@ import { z } from "zod";
 export const createCategoryInputSchema = z.object({
   name: z.string(),
   code: z.string(),
-  tenantId: z.string(),
 });
 
 export const updateCategoryInputSchema = z.object({

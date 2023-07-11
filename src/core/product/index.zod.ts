@@ -26,7 +26,6 @@ export const createProductInputSchema = z.object({
   isImei: z.boolean(),
   isActive: z.boolean().optional(),
   productVariants: z.array(createProductVariantInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const updateProductVariantInputSchema = z.object({
@@ -56,7 +55,6 @@ export const updateProductInputSchema = z.object({
   isImei: z.boolean().optional(),
   isActive: z.boolean().optional(),
   productVariants: z.array(updateProductVariantInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const productIdSchema = z.number();

@@ -11,7 +11,6 @@ export type CreateWarehouseInput = {
     mobile?: string
     country?: string
     zip?: string
-    tenantId: string
 }
 export const createWarehouse = async (input: CreateWarehouseInput,ctx:TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -23,7 +22,7 @@ export const createWarehouse = async (input: CreateWarehouseInput,ctx:TenantCont
     resource: "warehouse",
     action: "create"
   });
-    const { tenantId:_, ...data } = input;
+    const { ...data } = input;
     const {user} = ctx.session??{};
     const products = await ctx.tx!.product.findMany({select:{id:true}});
     

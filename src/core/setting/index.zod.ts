@@ -13,7 +13,6 @@ export const createSettingInputSchema = z.object({
   customerId: z.number().optional(),
   warehouseId: z.number().optional(),
   defaultLanguage: z.string(),
-  tenantId: z.string(),
 });
 
 export const updateSettingInputSchema = z.object({

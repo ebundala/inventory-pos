@@ -7,7 +7,6 @@ export const createUnitInputSchema = z.object({
   baseUnitId: z.number().optional(),
   operator: z.string().optional(),
   operatorValue: z.number().optional(),
-  tenantId: z.string(),
 });
 
 export const updateUnitInputSchema = z.object({

@@ -16,7 +16,6 @@ export const createAdjustmentInputSchema = z.object({
   items: z.number().optional(),
   notes: z.string().optional(),
   adjustmentDetails: z.array(createAdjustmentDetailsInputSchema),
-  tenantId: z.string(),
 });
 
 export const updateAdjustmentDetailsInputSchema = z.object({

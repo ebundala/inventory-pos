@@ -10,7 +10,6 @@ export type CreateCompanyInput = {
   country?: string
   city?: string
   address?: string
-  tenantId: string
 }
 export const createCompany = async (input: CreateCompanyInput,ctx:TenantContext) => {
     const {tenantId,session,enforcer} = ctx;
@@ -22,9 +21,8 @@ export const createCompany = async (input: CreateCompanyInput,ctx:TenantContext)
     //   resource: "company",
     //   action: "create"
     // });
-    const { tenantId:_, ...data } = input;
     return ctx.tx!.company.create({
-        data:{tenantId:tenantId,...data}
+        data:{tenantId,...input}
    })
 }
 export type UpdateCompanyInput = {

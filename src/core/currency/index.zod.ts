@@ -5,7 +5,6 @@ export const createCurrencyInputSchema = z.object({
   name: z.string(),
   code: z.string(),
   symbol: z.string(),
-  tenantId: z.string(),
 });
 
 export const updateCurrencyInputSchema = z.object({

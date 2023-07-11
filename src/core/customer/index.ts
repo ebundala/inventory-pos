@@ -11,7 +11,6 @@ export type CreateCustomerInput = {
     city         ?:string
     phone        ?:string
     address      ?:string
-  tenantId: string
 }
 export const createCustomer = async (input: CreateCustomerInput,ctx:TenantContext) => {
     const {tenantId,session,enforcer} = ctx;
@@ -23,9 +22,8 @@ export const createCustomer = async (input: CreateCustomerInput,ctx:TenantContex
       resource: "customer",
       action: "create"
     });
-    const { tenantId:_, ...data } = input;
     return ctx.tx!.customer.create({
-        data:{tenantId:tenantId,...data}
+        data:{tenantId,...input}
    })
 }
 export type UpdateCustomerInput = {

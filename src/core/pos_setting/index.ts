@@ -12,7 +12,7 @@ export type CreatePosSettingInput = {
     showEmail    ?:boolean      
     showPhone    ?:boolean      
     showAddress  ?:boolean 
-    tenantId: string
+    
 }
 export const createPosSetting = async (input: CreatePosSettingInput,ctx:TenantContext) => {
     const {tenantId,session,enforcer} = ctx;
@@ -24,9 +24,8 @@ export const createPosSetting = async (input: CreatePosSettingInput,ctx:TenantCo
       resource: "pos-setting",
       action: "update"
     });
-    const { tenantId:_, ...data } = input;
     return ctx.tx!.posSetting.create({
-        data:{tenantId:tenantId,...data}
+        data:{tenantId,...input}
    })
 }
 export type UpdatePosSettingInput = {

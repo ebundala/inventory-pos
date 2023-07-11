@@ -11,7 +11,7 @@ export type CreateUnitInput={
   baseUnitId?:            number
   operator?:              string 
   operatorValue?:         number
-  tenantId:              string
+  
 }
 export const createUnit = async (input:CreateUnitInput,ctx:TenantContext)=>{
     const { tenantId, session, enforcer } = ctx;
@@ -23,7 +23,7 @@ export const createUnit = async (input:CreateUnitInput,ctx:TenantContext)=>{
       resource: "unit",
       action: "create"
     });
-    const {tenantId:_,...data}=input;
+    const {...data}=input;
    return ctx.tx!.unit.create({
     include,
     data:{...data,tenantId:tenantId}

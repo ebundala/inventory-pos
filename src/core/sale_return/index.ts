@@ -52,7 +52,7 @@ export type CreatePaymentSaleReturnInput = {
 }
 
 export type CreateSaleReturnInput = {
-    userId: string
+    
     date: Date
     ref: string
     clientId: number
@@ -68,7 +68,7 @@ export type CreateSaleReturnInput = {
     notes?: string
     paymentSaleReturns: Array<CreatePaymentSaleReturnInput>
     saleReturnDetails: Array<CreateSaleReturnDetailInput>
-    tenantId: string
+    
 }
 export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -81,8 +81,7 @@ export const createSaleReturn = async (input: CreateSaleReturnInput,ctx:TenantCo
       action: "create"
     });
    
-    const {tenantId:_, paymentSaleReturns,userId:__, saleReturnDetails, ...data } = input;
-   // const {tenantId,session} = ctx;
+    const { paymentSaleReturns, saleReturnDetails, ...data } = input;
     
     let details = {};
     if (saleReturnDetails && saleReturnDetails.length) {
@@ -185,7 +184,6 @@ export type UpdateSaleReturnInput = {
     notes?: string
     paymentSaleReturns: Array<UpdatePaymentSaleReturnInput>
     saleReturnDetails: Array<UpdateSaleReturnDetailInput>
-    tenantId: string
 }
 export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -198,7 +196,7 @@ export const updateSaleReturn = async (input: UpdateSaleReturnInput,ctx:TenantCo
       action: "update"
     });
    
-    const { tenantId:_, id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
+    const { id,  paymentSaleReturns,saleReturnDetails, ...data } = input;
     const saleReturn = await ctx.tx!.saleReturn.findUnique({
         where: { id,  recordStatus:RecordStatus.ACTIVE, }, include: {
             saleReturnDetails: true,

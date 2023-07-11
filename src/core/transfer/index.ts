@@ -53,7 +53,7 @@ export type CreateTransferInput = {
   status: string;
   notes?: string;
   transferDetails?: Array<CreateTransferDetailInput>;
-  tenantId: string;
+  
 };
 export const createTransfer = async (
   input: CreateTransferInput,
@@ -68,7 +68,7 @@ export const createTransfer = async (
     resource: "transfer",
     action: "create"
   });
-  const { tenantId:_, transferDetails, ...data } = input;
+  const { transferDetails, ...data } = input;
   let details = {};
   if (transferDetails && transferDetails.length) {
     if (data.status === "Completed") {
@@ -174,7 +174,6 @@ export type UpdateTransferInput = {
   status: string;
   notes?: string;
   transferDetails?: Array<UpdateTransferDetailInput>;
-  tenantId: string;
 };
 export const updateTransfer = async (
   input: UpdateTransferInput,
@@ -189,7 +188,7 @@ export const updateTransfer = async (
     resource: "transfer",
     action: "update"
   });
-  const { tenantId:_, id, transferDetails, ...data } = input;
+  const { id, transferDetails, ...data } = input;
 
   const transfer = await ctx.tx!.transfer.findUnique({
     where: { id, recordStatus: RecordStatus.ACTIVE },

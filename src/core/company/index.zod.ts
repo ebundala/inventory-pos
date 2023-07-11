@@ -8,7 +8,6 @@ export const createCompanyInputSchema = z.object({
   country: z.string().optional(),
   city: z.string().optional(),
   address: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const updateCompanyInputSchema = z.object({

@@ -48,7 +48,7 @@ export type CreateQuotationInput = {
     status: string
     notes?: string
     quotationDetails: Array<CreateQuotationDetailsInput>
-    tenantId: string
+    
 }
 export const createQuotation = async (input: CreateQuotationInput, ctx: TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -60,7 +60,7 @@ export const createQuotation = async (input: CreateQuotationInput, ctx: TenantCo
         resource: "quotation",
         action: "create"
     });
-    const { tenantId:_, quotationDetails, ...data } = input;
+    const { quotationDetails, ...data } = input;
 
     return ctx.tx!.quotation.create({
         include,
@@ -104,7 +104,7 @@ export type UpdateQuotationInput = {
     status?: string
     notes?: string
     quotationDetails?: Array<UpdateQuotationDetailsInput>
-    tenantId: string
+    
 }
 export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantContext) => {
     const { tenantId, session, enforcer } = ctx;
@@ -116,7 +116,7 @@ export const updateQuotation = async (input: UpdateQuotationInput, ctx: TenantCo
         resource: "quotation",
         action: "update"
     });
-    const { tenantId: _, id, quotationDetails, ...data } = input;
+    const { id, quotationDetails, ...data } = input;
     const quotation = await ctx.tx!.quotation.findUnique({
         where: { id, recordStatus: RecordStatus.ACTIVE }, include: {
             quotationDetails: true,

@@ -70,7 +70,6 @@ export type CreateShipmentInput = {
 };
 
 export type CreateSaleInput = {
-  userId: string;
   date: Date;
   ref: string;
   isPos?: boolean;
@@ -88,7 +87,6 @@ export type CreateSaleInput = {
   saleDetails?: Array<CreateSaleDetailsInput>;
   paymentSales?: Array<CreatePaymentSaleInput>;
   shipments?: Array<CreateShipmentInput>;
-  tenantId: string;
 };
 export const createSale = async (
   input: CreateSaleInput,
@@ -103,7 +101,7 @@ export const createSale = async (
     resource: "sale",
     action: "create"
   });
-  const { tenantId:_, userId:__, saleDetails, paymentSales, shipments, ...data } =
+  const { saleDetails, paymentSales, shipments, ...data } =
     input;
   let saleData = {};
   if (saleDetails && saleDetails.length) {
@@ -231,7 +229,6 @@ export type UpdateShipmentInput = {
 };
 export type UpdateSaleInput = {
   id: number;
-  userId?: string;
   date?: Date;
   ref?: string;
   isPos?: boolean;
@@ -249,7 +246,6 @@ export type UpdateSaleInput = {
   saleDetails?: Array<UpdateSaleDetailsInput>;
   paymentSales?: Array<UpdatePaymentSaleInput>;
   shipments?: Array<UpdateShipmentInput>;
-  tenantId: string;
 };
 export const updateSale = async (
   input: UpdateSaleInput,
@@ -265,9 +261,7 @@ export const updateSale = async (
     action: "update"
   });
   const {
-    tenantId:_,
     id,
-    userId:__,
     saleDetails,
     shipments,
     paymentSales,

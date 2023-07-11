@@ -25,7 +25,6 @@ export const createPaymentSaleReturnInputSchema = z.object({
 });
 
 export const createSaleReturnInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   clientId: z.number(),
@@ -41,7 +40,6 @@ export const createSaleReturnInputSchema = z.object({
   notes: z.string().optional(),
   paymentSaleReturns: z.array(createPaymentSaleReturnInputSchema),
   saleReturnDetails: z.array(createSaleReturnDetailInputSchema),
-  tenantId: z.string(),
 });
 
 export const updateSaleReturnDetailInputSchema = z.object({
@@ -89,7 +87,6 @@ export const updateSaleReturnInputSchema = z.object({
   notes: z.string().optional(),
   paymentSaleReturns: z.array(updatePaymentSaleReturnInputSchema),
   saleReturnDetails: z.array(updateSaleReturnDetailInputSchema),
-  tenantId: z.string(),
 });
 
 export const saleReturnIdSchema = z.number();

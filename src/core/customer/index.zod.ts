@@ -9,7 +9,6 @@ export const createCustomerInputSchema = z.object({
   city: z.string().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const updateCustomerInputSchema = z.object({

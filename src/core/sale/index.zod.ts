@@ -35,7 +35,6 @@ export const createShipmentInputSchema = z.object({
 });
 
 export const createSaleInputSchema = z.object({
-  userId: z.string(),
   date: z.date(),
   ref: z.string(),
   isPos: z.boolean().optional(),
@@ -53,7 +52,6 @@ export const createSaleInputSchema = z.object({
   saleDetails: z.array(createSaleDetailsInputSchema).optional(),
   paymentSales: z.array(createPaymentSaleInputSchema).optional(),
   shipments: z.array(createShipmentInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const updateSaleDetailsInputSchema = z.object({
@@ -97,7 +95,6 @@ export const updateShipmentInputSchema = z.object({
 
 export const updateSaleInputSchema = z.object({
   id: z.number(),
-  userId: z.string().optional(),
   date: z.date().optional(),
   ref: z.string().optional(),
   isPos: z.boolean().optional(),
@@ -115,7 +112,6 @@ export const updateSaleInputSchema = z.object({
   saleDetails: z.array(updateSaleDetailsInputSchema).optional(),
   paymentSales: z.array(updatePaymentSaleInputSchema).optional(),
   shipments: z.array(updateShipmentInputSchema).optional(),
-  tenantId: z.string(),
 });
 
 export const saleIdSchema = z.number();

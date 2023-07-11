@@ -5,7 +5,6 @@ export const createBrandInputSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   image: z.string().optional(),
-  tenantId: z.string(),
 });
 
 export const updateBrandInputSchema = z.object({
