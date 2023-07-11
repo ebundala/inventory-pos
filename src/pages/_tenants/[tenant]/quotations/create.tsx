@@ -125,7 +125,6 @@ export function CreateQuotation({ tenant, defaultWarehouse, user, setting, defau
 
                             const productSubTotal = productQuantity * productPriceBeforeTax + productTaxNet - productDiscount;
                             subTotal += productSubTotal;
-                            console.log(productPriceBeforeTax)
                             partialData.push(...[
                                 { value: productQuantity, default: 0, path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.quantity] },
                                 { value: productTaxMethod, default: "inclusive", path: [rootPath, i, Prisma.QuotationDetailScalarFieldEnum.taxMethod] },

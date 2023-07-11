@@ -27,7 +27,7 @@ import { useProgressFeedback } from "@/lib/hooks/useProgressFeedback";
 import { useEnforceUniqueProduct } from "@/lib/hooks/useEnforceUniqueProduct";
 import { calculateStock } from "@/lib/util/calculateStock";
 import { useSetComputedValues } from "@/lib/hooks/useSetComputedValues";
-import { usePurchaseConstraints } from "../../../../lib/hooks/usePurchaseConstraints";
+import { usePurchaseConstraints } from "@/lib/hooks/usePurchaseConstraints";
 
 
 export function CreatePurchase({ tenant, user, defaultCurrency, }: TAppConfig) {
@@ -36,7 +36,7 @@ export function CreatePurchase({ tenant, user, defaultCurrency, }: TAppConfig) {
     const options = usePurchaseFormFieldOptions();
 
     const [config, form] = useZodForm(createPurchaseInputSchema, options, {
-        defaultValues: {  }
+        defaultValues: { userId:user?.id }
     });
 
     const [regularConfig, fieldArrayConfig] = useSplitFormConfigToFieldArray(config)

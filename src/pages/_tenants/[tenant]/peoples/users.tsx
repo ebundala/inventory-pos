@@ -412,6 +412,7 @@ const RolesForm: FC<ZodFormSchema<z.infer<typeof rolesSchema>>> = ({
               async (data) => {
                 const { roles } = data as { roles: (string | undefined)[] }
                 const data2={...data,roles:roles.filter((v) => v!=="no-role")}
+               
                 await mutateAsync(data2);
               },
               (e) => {

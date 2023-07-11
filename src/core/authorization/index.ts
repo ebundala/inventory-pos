@@ -233,7 +233,8 @@ export type AssignRoleInput = {
     role: string
     userId: string
 }
-export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId, session }: TenantContext) {
+export async function assignRoles(input: AssignRolesInput, ctx: TenantContext) {
+    const { enforcer, tenantId, session } =ctx
     const id = session!.user.id!;
     await enforceHelper({
         enforcer,
@@ -251,7 +252,8 @@ export async function assignRoles(input: AssignRolesInput, { enforcer, tenantId,
 
     }
 
-    const removeOldRoles = (await removeRoles({ userId, roles: oldRoles }, { enforcer, tenantId } as TenantContext))
+   // const removeOldRoles = (await removeRoles({ userId, roles: oldRoles }, ctx))
+    const removeOldRoles = await Promise.allSettled(oldRoles.map((role) => enforcer!.deleteRoleForUser(userId, role, tenantId)));
 
     const success = await Promise.allSettled(roles.map((role) => enforcer!.addRoleForUser(userId, role, tenantId)));
     await enforcer!.savePolicy();
