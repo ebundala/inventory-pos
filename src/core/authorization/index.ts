@@ -380,7 +380,7 @@ export const userRole: SystemRoles = {
 
 export const viewOnlyRole: SystemRoles = {
     name: "ViewOnly",
-    permissions: userRole.permissions.filter(([r, a]) => a !== "view")
+    permissions: userRole.permissions.filter(([r, a]) => a === "view")
 }
 
 
