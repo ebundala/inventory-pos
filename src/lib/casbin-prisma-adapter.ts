@@ -41,15 +41,17 @@ export class PrismaAdapter implements Adapter {
     await this.getClient().$executeRaw`DELETE FROM casbin_rule;`;
 
     let astMap = model.model.get('p')!;
-    const processes: Array<Promise<CasbinRule>> = [];
+    //const processes: Array<Promise<CasbinRule>> = [];
+    const lines:Prisma.CasbinRuleCreateInput[]=[]
 
     for (const [ptype, ast] of astMap) {
       for (const rule of ast.policy) {
         const line = this.#savePolicyLine(ptype, rule);
-        const p = this.getClient().casbinRule.create({
-          data: line,
-        });
-        processes.push(p);
+        lines.push(line)
+        // const p = this.getClient().casbinRule.create({
+        //   data: line,
+        // });
+        // processes.push(p);
       }
     }
 
@@ -57,16 +59,17 @@ export class PrismaAdapter implements Adapter {
     for (const [ptype, ast] of astMap) {
       for (const rule of ast.policy) {
         const line = this.#savePolicyLine(ptype, rule);
-        const p = this.getClient().casbinRule.create({
-          data: line,
-        });
-        processes.push(p);
+        lines.push(line)
+        // const p = this.getClient().casbinRule.create({
+        //   data: line,
+        // });
+        // processes.push(p);
       }
     }
 
     // https://github.com/prisma/prisma-client-js/issues/332
-    await Promise.all(processes);
-
+    // await Promise.all(processes);
+    await this.getClient().casbinRule.createMany({data:lines})
     return true;
   }
 
@@ -80,15 +83,20 @@ export class PrismaAdapter implements Adapter {
     ptype: string,
     rules: string[][]
   ): Promise<void> {
-    const processes: Array<Promise<CasbinRule>> = [];
+   // const processes: Array<Promise<CasbinRule>> = [];
+    const lines:Prisma.CasbinRuleCreateInput[]=[]
     for (const rule of rules) {
       const line = this.#savePolicyLine(ptype, rule);
-      const p = this.getClient().casbinRule.create({ data: line });
-      processes.push(p);
+      lines.push(line);
+     // const p = this.getClient().casbinRule.create({ data: line });
+     // processes.push(p);
     }
 
     // https://github.com/prisma/prisma-client-js/issues/332
-    await Promise.all(processes);
+   // await Promise.all(processes);
+   await this.getClient().casbinRule.createMany({
+    data:lines,skipDuplicates:true
+   })
   }
 
   async removePolicy(
@@ -105,15 +113,20 @@ export class PrismaAdapter implements Adapter {
     ptype: string,
     rules: string[][]
   ): Promise<void> {
-    const processes: Array<Promise<Prisma.BatchPayload>> = [];
+   // const processes: Array<Promise<Prisma.BatchPayload>> = [];
+    const lines:Prisma.CasbinRuleCreateInput[]=[]
     for (const rule of rules) {
       const line = this.#savePolicyLine(ptype, rule);
-      const p = this.getClient().casbinRule.deleteMany({ where: line });
-      processes.push(p);
+      lines.push(line)
+    //  const p = this.getClient().casbinRule.deleteMany({ where: line });
+    //  processes.push(p);
     }
-
+   
     // https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/transactions#bulk-operations
-    await Promise.all(processes);
+   // await Promise.all(processes);
+   await this.getClient().casbinRule.deleteMany({where:{
+    OR:lines
+   }})
   }
 
   async removeFilteredPolicy(
