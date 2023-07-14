@@ -17,7 +17,7 @@ export function useProgressFeedback(redirect?: string) {
             }
             showToast({
                 timeout: 5000,
-                type: ToastMessageType.warning,
+                type: ToastMessageType.success,
                 content: <span>Success</span>,
                 id: Date.now().toString()
             });

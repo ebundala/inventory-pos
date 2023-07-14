@@ -49,7 +49,8 @@ function AlertBuilder({ m, dismiss, send }: {
 
     return (
         <div key={m.id} className={`alert ${m.type}`}>
-            <div >
+            <div className="alert-success alert-warning alert-info alert-error hidden"/>
+            <div  >
                 {content}
             </div>
         </div>
