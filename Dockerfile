@@ -27,5 +27,5 @@ VOLUME [ "/usr/src/app/public" ]
 # VOLUME [ "/usr/src/app/$GOOGLE_APPLICATION_CREDENTIALS" ]
 
 EXPOSE 3000
-
+EXPOSE 587
 CMD [ "yarn","start" ]
