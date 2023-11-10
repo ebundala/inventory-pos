@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:18
 # 12.22.3-buster
 
 # Create app directory
