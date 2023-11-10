@@ -111,9 +111,9 @@ services:
   webserver:
     image: nginx:latest
     ports:
-      - "80:80"
-      - "443:443"
-      - "5555:5555"
+      - 80:80
+      - 443:443
+      - 5555:5555
     volumes:
       - ./webserver/web-root:/var/www/html
       - ./webserver/nginx-conf:/etc/nginx/conf.d
