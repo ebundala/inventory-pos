@@ -7,7 +7,7 @@ services:
     volumes:
       - PGDATA:/var/lib/postgresql/data
     networks:
-      webnet:
+      shopcare.local:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -30,7 +30,7 @@ services:
     image: ghcr.io/ebundala/inventory-pos/studio:main 
           
     networks:
-      webnet:
+      shopcare.local:
     environment:
       DATABASE_URL: ${DATABASE_URL}
     deploy:
@@ -79,7 +79,7 @@ services:
       # - ${PWD}/${GOOGLE_APPLICATION_CREDENTIALS}:/usr/src/app/${GOOGLE_APPLICATION_CREDENTIALS}
       - ./webserver/web-root/public:/usr/src/app/public
     networks:
-      webnet:
+      shopcare.local:
 
     deploy:
       replicas: 1
@@ -98,7 +98,7 @@ services:
   #     timeout: 3s
   #     retries: 30
   #   networks:
-  #     webnet:
+  #     shopcare.local:
   #   deploy:
   #     replicas: 1
   #     resources:
@@ -114,14 +114,17 @@ services:
       - 80:80
       - 443:443
       - 5555:5555
+      - 5558:5558
     volumes:
       - ./webserver/web-root:/var/www/html
+      -  /home/pos/pos-php:/var/www
       - ./webserver/nginx-conf:/etc/nginx/conf.d
       -  /etc/letsencrypt:/etc/letsencrypt
       - ./dhparam:/etc/ssl/certs
       - ./.env:/usr/src/app/.env
     networks:
-      webnet:
+      - shopcare.local
+      - shared
     deploy:
       replicas: 1
       resources:
@@ -129,10 +132,12 @@ services:
         #  cpus: 0.1
          memory: 500mb
       restart_policy:
-        condition: on-failure
-        
+        condition: on-failure      
 networks:
-  webnet:   
+  shopcare.local:
+  shared:
+     name: shared_api_network
+     external: true
 volumes:
   PGDATA:
 
