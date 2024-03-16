@@ -12,10 +12,10 @@ import { Prisma } from "@prisma/client";
 
 const  useSecureCookies = process.env.NODE_ENV === 'production';
 
-const cookieBuilder = (name:string)=>({
+const cookieBuilder = (name:string,httpOnly:boolean=true)=>({
   name:`${useSecureCookies?'__Secure-':''}next-auth.${name}`,
   options:{
-    httpOnly:true,
+    httpOnly,
     sameSite: 'Lax',
     path:'/',
     domain: `.${(new URL(process.env.NEXTAUTH_URL!)).hostname}`,
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
           id: profile.sub,
           name: profile.name,
           email: profile.email,
-          image: profile.picture
+          image: profile.picture,
         };
       },
       },
@@ -88,7 +88,8 @@ export const authOptions: NextAuthOptions = {
   debug:true,
   useSecureCookies:useSecureCookies,
   cookies:{
-    sessionToken:cookieBuilder("session-token"),
+    //TODO change this to httponly cookie after we find a better way to read the cookie from js
+    sessionToken:cookieBuilder("session-token",false),
     csrfToken:cookieBuilder('csrf-token'),
     state:cookieBuilder('state'),
     nonce:cookieBuilder("nonce"),
@@ -126,6 +127,7 @@ export const authOptions: NextAuthOptions = {
     session: ({ session, user,token }) => ({
       ...session,
       token,
+      
       user: {
         ...session.user,
         id: user.id,
