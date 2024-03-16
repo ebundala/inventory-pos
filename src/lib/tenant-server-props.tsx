@@ -1,12 +1,12 @@
 import { Tenant, Prisma } from "@prisma/client";
 import { GetServerSideProps } from "next";
-import { unstable_getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/core";
 import { TenantPathProps } from "@/types/TenantPathProps";
 
 export const getTenantServerSideProps: GetServerSideProps<{ tenant: Pick<Tenant,"tenantId"|"customDomain"|"name"|"subdomain"|"image"|"imageBlurhash"> }, TenantPathProps> = async (context) => {
     const domains = context.params?.tenant;
-    const session = await unstable_getServerSession(context.req, context.res, authOptions);
+    const session = await getServerSession(context.req, context.res, authOptions);
     // TODO uncomment this after auth become stable/prod ready 
     // if(!session?.user){
     //     return {

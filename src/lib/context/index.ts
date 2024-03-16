@@ -49,5 +49,6 @@ export const { Provider, useStore } =
         permissions: [],
         suppliersReports: [],
         customersReports: [],
-        userPermissions: []
+        userPermissions: [],
+        invites: []
     })
