@@ -88,8 +88,7 @@ export const authOptions: NextAuthOptions = {
   debug:true,
   useSecureCookies:useSecureCookies,
   cookies:{
-    //TODO change this to httponly cookie after we find a better way to read the cookie from js
-    sessionToken:cookieBuilder("session-token",false),
+    sessionToken:cookieBuilder("session-token"),
     csrfToken:cookieBuilder('csrf-token'),
     state:cookieBuilder('state'),
     nonce:cookieBuilder("nonce"),
@@ -124,7 +123,10 @@ export const authOptions: NextAuthOptions = {
       }
       return baseUrl
     },
-    session: ({ session, user,token }) => ({
+    session: async ({ session, user,token }) =>{
+     let sessionData = await prismaAdmin.session.findFirst({where:{userId:user.id}});
+     
+      return {
       ...session,
       token,
       
@@ -132,8 +134,9 @@ export const authOptions: NextAuthOptions = {
         ...session.user,
         id: user.id,
         username: user.username,
+        sessionToken:sessionData?.sessionToken
       },
-    }),
+    }},
   },
 };
 

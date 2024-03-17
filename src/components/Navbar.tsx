@@ -111,15 +111,15 @@ export function Navbar() {
             </li>
            {tenant&& <li
               onClick={(e) => {
-                let cookie = document.cookie
-                  .split(";")
-                  .map((c) => c.trim())
-                  .find((c) => c.startsWith("next-auth.session-token"));
+                // let cookie = document.cookie
+                //   .split(";")
+                //   .map((c) => c.trim())
+                //   .find((c) => c.startsWith("next-auth.session-token"));
 
                 let { members, ...info } = tenant;
 
                 let qr = {
-                  token: cookie,
+                  session: session.data,
                   host,
                   tenant: info,
                 };
@@ -133,6 +133,7 @@ export function Navbar() {
                     ModalContent,
                     ModalAction,
                   }) => {
+                    let logo =((JSON.parse(tenant.logo??"") as string[])??[""]).at(0)??"";
                     return (
                       <ModalContainer>
                         <ModalContent>
@@ -140,8 +141,15 @@ export function Navbar() {
                           <div className="flex row">
                           <Canvas
                             text={JSON.stringify(qr)}
+                            logo={{
+                              src:session?.data?.user.image??"",
+                              options:{
+                                width:56
+                              }
+                            }}
                             options={{
                               errorCorrectionLevel: "M",
+                              
                               margin: 3,
                               
                               scale: 4,
@@ -155,7 +163,7 @@ export function Navbar() {
                           <div className="col ml-2 justify-between">
                             <div>{tenant.name}</div>
                             <div>{tenant.description}</div>
-                            <Image width={50} height={50} alt="logo" src={((JSON.parse(tenant.logo??"") as string[])??[""]).at(0)??""}/>
+                            <Image width={50} height={50} alt="logo" src={logo}/>
                           </div>
                           </div>
                           <ModalAction>
