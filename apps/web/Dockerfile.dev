@@ -1,0 +1,40 @@
+FROM node:20 AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ARG NEXT_PUBLIC_CLOUD_NAME=ddbqbk80e
+ARG NEXT_PUBLIC_CLOUD_PREFIX=exinhn0j
+RUN corepack enable
+WORKDIR /home/app
+COPY . .
+
+FROM base AS dev-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install 
+# --frozen-lockfile
+
+
+FROM base AS dev
+ARG NEXT_PUBLIC_HOST=https://ebundala.dev
+# RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+COPY --from=dev-deps /home/app/node_modules /home/app/node_modules
+EXPOSE 3000
+EXPOSE 9229
+EXPOSE 5555
+EXPOSE 9230
+# VOLUME [ "/home/app" ]
+
+
+FROM base AS build
+ARG NEXT_PUBLIC_HOST=https://shopcare.dev
+# RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+COPY --from=dev-deps /home/app/node_modules /home/app/node_modules
+RUN pnpm run build
+
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+
+FROM base as prod
+COPY --from=prod-deps /home/app/node_modules /home/app/node_modules
+COPY --from=build /home/app/.next /home/app/.next
+VOLUME [ "/home/app" ]
+EXPOSE 3000
+CMD [ "pnpm", "start" ]
